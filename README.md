@@ -253,6 +253,8 @@ The following features are experimental and could change or disappear in the fut
 
 The PWA is a full-featured client app for c2FmZQ implemented entirely in HTML and javascript.
 
+[Watch the automated test video](https://youtu.be/R_sQ26unlXQ?si=4FolTMKrpdqP6lzb&t=12)
+
 All the cryptographic operations are performed in the browser using 
 [Sodium-Plus](https://github.com/paragonie/sodium-plus), and the app
 implements the same protocol as the c2FmZQ client and the Stingle Photos app.
