@@ -19,46 +19,156 @@
 /* jshint -W083 */
 'use strict';
 
-window.Lang = {
-  init: () => {
+let Lang = {
+  supported: {
+    'ar': 'العربية',
+    'bn': 'বাংলা',
+    'ca': 'Català',
+    'cs': 'Čeština',
+    'da': 'Dansk',
+    'de': 'Deutsch',
+    'de-AT': 'Deutsch (Österreich)',
+    'de-CH': 'Deutsch (Schweiz)',
+    'el': 'Ελληνικά',
+    'en': 'English',
+    'en-AU': 'English (Australia)',
+    'en-CA': 'English (Canada)',
+    'en-UK': 'English (UK)',
+    'es': 'Español',
+    'es-AR': 'Español (Argentina)',
+    'es-ES': 'Español (España)',
+    'es-MX': 'Español (México)',
+    'fa': 'فارسی',
+    'fi': 'Suomi',
+    'fr': 'Français',
+    'fr-BE': 'Français (Belgique)',
+    'fr-CA': 'Français (Canada)',
+    'fr-CH': 'Français (Suisse)',
+    'gsw': 'Schwiizerdüütsch',
+    'he': 'עברית',
+    'hi': 'हिन्दी',
+    'hu': 'Magyar',
+    'id': 'Bahasa Indonesia',
+    'it': 'Italiano',
+    'ja': '日本語',
+    'ko': '한국어',
+    'mr': 'मराठी',
+    'ms': 'Bahasa Melayu',
+    'nl': 'Nederlands',
+    'nl-BE': 'Nederlands (België)',
+    'no': 'Norsk',
+    'pl': 'Polski',
+    'pt': 'Português',
+    'ro': 'Română',
+    'ru': 'Русский',
+    'sk': 'Slovenčina',
+    'sv': 'Svenska',
+    'te': 'తెలుగు',
+    'th': 'ไทย',
+    'tl': 'Tagalog',
+    'tr': 'Türkçe',
+    'ug': 'ئۇيغۇرچە',
+    'uk': 'Українська',
+    'ur': 'اردو',
+    'vi': 'Tiếng Việt',
+    'zh-CN': '中文 (简体)',
+    'zh-TW': '中文 (繁體)'
+  },
+
+  init: async () => {
+    await Lang.loadLanguage('en');
+
+    let preferredLang = 'en';
     for (let lang of navigator.languages) {
-      if (Lang.dict[lang]) {
-        Lang.current = lang;
+      if (Lang.supported[lang]) {
+        preferredLang = lang;
+        break;
+      }
+      const langParts = lang.split('-');
+      if (langParts.length >= 3) {
+        const ll = langParts[0]+'-'+langParts[2];
+        if (Lang.supported[ll]) {
+          preferredLang = ll;
+          break;
+        }
+      }
+      const baseLang = langParts[0];
+      if (Lang.supported[baseLang]) {
+        preferredLang = baseLang;
         break;
       }
     }
+
     if (window.localStorage) {
       const saved = window.localStorage.getItem('lang');
-      if (saved && Lang.dict[saved] !== undefined) {
-        Lang.current = saved;
+      if (saved && Lang.supported[saved]) {
+        preferredLang = saved;
       }
+    }
+
+    await Lang.setLanguage(preferredLang);
+  },
+
+  setLanguage: async (lang) => {
+    if (!Lang.supported[lang]) {
+      console.error(`Language ${lang} is not supported.`);
+      lang = 'en';
+    }
+
+    await Lang.loadLanguage(lang);
+    const baseLang = lang.split('-')[0];
+    if (baseLang !== lang) {
+      await Lang.loadLanguage(baseLang);
+    }
+
+    Lang.current = lang;
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem('lang', lang);
+    }
+
+    if (typeof document !== 'undefined' && Lang.dict[lang]) {
+      document.documentElement.lang = lang;
+      document.documentElement.dir = Lang.dict[lang].direction || 'ltr';
     }
   },
 
-  current: 'en-US',
+  loadLanguage: async (lang) => {
+    if (Lang.dict[lang] || !Lang.supported[lang]) {
+      return;
+    }
+    try {
+      const response = await fetch(`lang/${lang}.json`);
+      if (!response.ok) {
+        throw new Error(`Failed to load language file: ${lang}`);
+      }
+      Lang.dict[lang] = await response.json();
+    } catch (error) {
+      console.error(error);
+      delete Lang.supported[lang];
+    }
+  },
+
+  current: 'en',
 
   languages: () => {
-    let out = {};
-    Object.keys(Lang.dict).forEach(x => {
-      out[x] = Lang.dict[x].LANG;
-    });
-    return out;
+    return Lang.supported;
   },
 
   text: (key, ...args) => {
-    if (Lang.dict[Lang.current]) {
-      let v = Lang.dict[Lang.current][key];
-      if (v) return Lang.sub(v, args);
+    if (Lang.dict[Lang.current] && Lang.dict[Lang.current][key] !== undefined) {
+      return Lang.sub(Lang.dict[Lang.current][key], args);
     }
+
     const lang = Lang.current.split('-')[0];
-    if (Lang.dict[lang]) {
-      let v = Lang.dict[lang][key];
-      if (v) return Lang.sub(v, args);
+    if (Lang.dict[lang] && Lang.dict[lang][key] !== undefined) {
+      return Lang.sub(Lang.dict[lang][key], args);
     }
+
+    if (Lang.dict.en && Lang.dict.en[key] !== undefined) {
+      return Lang.sub(Lang.dict.en[key], args);
+    }
+
     console.log('Missing lang key', Lang.current, key);
-    let v = Lang.dict.en[key];
-    if (v) return Lang.sub(v, args);
-    console.log('Missing lang key', 'en', key);
     return `::${key}:${args.join(' ')}::`;
   },
 
@@ -69,221 +179,11 @@ window.Lang = {
     return s;
   },
 
-  dict: {
-    'en': {
-      'LANG': 'English',
-      'language': 'Language',
-      'login': 'Login',
-      'logging-in': 'Logging in',
-      'login-failed': 'Login failed',
-      'register': 'Register',
-      'create-account': 'Create Account',
-      'creating-account': 'Creating Account',
-      'create-account-failed': 'Account creation failed',
-      'recover': 'Recover',
-      'recover-account': 'Recover Account',
-      'recovering-account': 'Recovering Account',
-      'recover-account-failed': 'Account recovery failed',
-      'enter-passphrase-text': '<p>Enter a passphrase to encrypt your app data.</p>',
-      'reenter-passphrase-text': '<p>Unlock your app data</p>',
-      'set-passphrase': 'Confirm',
-      'setting-passphrase': 'Confirming',
-      'skip-passphrase': 'Skip',
-      'form-email': 'Email:',
-      'form-password': 'Password:',
-      'form-new-password': 'New password:',
-      'form-confirm-password': 'Confirm password:',
-      'form-backup-phrase': 'Backup phrase:',
-      'form-backup-keys?': 'Backup keys?',
-      'form-server': 'Server:',
-      'server-placeholder': 'https://your-server-name/',
-      'show': 'Show',
-      'hide': 'Hide',
-      'skip-passphrase-warning': '⚠️  Skipping the passphrase is less secure. Avoid using this option on a public or shared computer. Continue?',
-      'no-key-backup-warning': '⚠️  Your secret key is NOT backed up. You will need a backup phrase next time you login.',
-      'enter-backup-phrase': 'Enter backup phrase:',
-      'account': '👤 ▼',
-      'account-title': 'Account menu',
-      'trash-title': 'Trash',
-      'refresh-title': 'Refresh',
-      'B': '$1 B',
-      'KiB': '$1 KiB',
-      'MiB': '$1 MiB',
-      'GiB': '$1 GiB',
-      'TiB': '$1 TiB',
-      'MB': 'MB',
-      'GB': 'GB',
-      'TB': 'TB',
-      'gallery': 'gallery',
-      'trash': 'trash',
-      'confirm': 'Confirm 👍',
-      'cancel': 'Cancel 🚫',
-      'canceled': 'Canceled',
-      'cache-full': 'Cache is full',
-      'data-saving-on': 'Data saving is enabled on device',
-      'no-wifi': 'Waiting for wifi',
-      'caching-disabled': 'Caching disabled',
-      'ready': 'Ready',
-      'drop-received': 'Processing new files',
-      'upload:': 'Upload: $1',
-      'collection': 'collection',
-      'collection:': '$1',
-      'collection-title': 'collection $1',
-      'file-title': 'file $1',
-      'list': '▤ ',
-      'list-title': 'Display as list',
-      'grid': '▦',
-      'grid-title': 'Display as grid',
-      'settings-title': 'Collection settings',
-      'filename': 'Name',
-      'filesize': 'Size',
-      'creation-time': 'Creation time',
-      'filetype': 'Type',
-      'duration': 'Duration',
-      'shared-with': 'Shared with $1',
-      'empty': 'Empty',
-      'name': 'Name:',
-      'name:': 'Name: $1',
-      'size:': 'Size: $1',
-      'remove': 'Remove',
-      'thumbnail-progress': 'Preparing: $1',
-      'status:': 'Status: $1',
-      'upload-progress': 'Upload: $1',
-      'download-progress': 'Caching: $1',
-      'add-button-title': 'Add items',
-      'upload-files': 'Upload files',
-      'upload': 'Upload',
-      'uploading': 'Uploading',
-      'select-upload': 'Select files to upload (or drag & drop files anywhere):',
-      'profile': 'Profile',
-      'required': 'required',
-      'optional': 'optional',
-      'enable-mfa?': 'Require MFA?',
-      'enable-otp?': 'Enable OTP?',
-      'enable-passkey?': 'Use resident keys\n(e.g. passkeys)?',
-      'enter-code': 'Enter code',
-      'updating': 'Applying changes',
-      'error': 'Error',
-      'new-pass-doesnt-match': 'New password doesn\'t match',
-      'otp-code-required': 'OTP code required',
-      'delete-warning': '<p>⚠️ If you delete your account, all your data will be permanently deleted.</p>',
-      'delete-account': 'Delete my account',
-      'confirm-delete-account': '⚠️ Are you sure you want to permanently delete your account?\nThe operation is not reversible.\n\nEnter your password:',
-      'key-backup': 'Key backup',
-      'enter-current-password': 'Enter your account password:',
-      'key-backup-warning': '<p>⚠️ The backup phrase is your <b>unencrypted</b> secret key.</p><p>It is the most sensitive information in your account. It can be used to recover your account and your data if your secret key is not backed up on the server, or if you forget your password.</p><p>It can also be used to <b>TAKE OVER</b> your account.</p><p>It MUST be kept secret. Write it down on a piece of paper and store it in a safe.</p>',
-      'show-backup-phrase': 'Show backup phrase',
-      'hide-backup-phrase': 'Hide backup phrase',
-      'checking-password': 'Checking password',
-      'key-backup-warning2': '<p>Choose whether to keep an encrypted backup of your secret key on the server.<p><p>If you do NOT keep a backup, you will need to enter your backup phrase every time you login to your account.</p>',
-      'enabled': 'Enabled',
-      'disabled': 'Disabled',
-      'opt-keep-backup': 'Keep a backup on the server (RECOMMENDED)',
-      'opt-dont-keep-backup': '⚠️ Do NOT keep a backup on the server',
-      'prefs': 'Preferences',
-      'choose-cache-pref': '<h1>Cache:</h1>',
-      'opt-encrypted': 'Store encrypted files in a local browser cache. Whole collections can also be cached for offline access. The cache is cleared on logout or when another option is selected. (DEFAULT)',
-      'opt-no-store': 'Disable caching. All files, including thumbnails, are fetched and decrypted each time they are accessed. This is the slowest option.',
-      'opt-private': '⚠️ Use the default browser cache. Decrypted files are stored in the browser\'s cache. This is the option most likely to leak information.',
-      'prefetch-all-thumbnails': 'Cache all thumbnails:',
-      'use-mobile': 'Preload using mobile data:',
-      'max-cache-size': 'Maximum size of cache (MiB):',
-      'cache-usage': 'Current usage: $1 MiB',
-      'choose-notifications-pref': '<h1>Notifications:</h1>',
-      'opt-enable-notifications': 'Enable push notifications for important events like when friends add content to shared collections.',
-      'saved': 'saved',
-      'admin-console': 'Admin console',
-      'email': 'Email',
-      'locked': 'Locked',
-      'approved': 'Approved',
-      'admin': 'Admin',
-      'quota': 'Quota',
-      'open': 'Open',
-      'download-doc': 'Download document',
-      'copy-selected': 'Copy selected files',
-      'move-selected': 'Move selected files',
-      'edit': 'Edit',
-      'edit:': 'Edit: $1',
-      'select': 'Select',
-      'unselect': 'Unselect',
-      'unselect-all': 'Unselect all',
-      'move-to-trash': 'Move to trash',
-      'confirm-move-to-trash': 'Move to trash?',
-      'move-to-gallery': 'Move to gallery',
-      'confirm-move-to-gallery': 'Move to gallery?',
-      'delete-perm': 'Delete permanently',
-      'confirm-delete-perm': '⚠️ Delete permanently?',
-      'use-as-cover': 'Use as cover',
-      'move-to-gallery-only': 'Must move from trash to gallery',
-      'moved-one-file': 'Moved 1 file',
-      'moved-many-files': 'Moved $1 files',
-      'copied-one-file': 'Copied 1 file',
-      'copied-many-files': 'Copied $1 files',
-      'deleted-one-file': 'Deleted 1 file',
-      'deleted-many-files': 'Deleted $1 files',
-      'confirm-leave': '⚠️ Are you sure you want to leave this collection?',
-      'delete': 'Delete',
-      'confirm-delete': '⚠️ Are you sure you want to delete this collection?',
-      'properties': 'Properties',
-      'properties:': 'Properties: $1',
-      'offline-off': 'Available offline ☐',
-      'offline-on': 'Available offline ☑',
-      'create-collection': 'Create collection',
-      'new-collection': 'NEW COLLECTION',
-      'apply-changes': 'Apply changes',
-      'no-changes': 'No changes',
-      'shared': 'Shared:',
-      'yes': 'Yes',
-      'no': 'No',
-      'next': 'Next',
-      'previous': 'Previous',
-      'close': 'Close window',
-      'info': 'Show information',
-      'expand': 'Show more details',
-      'permissions': 'Permissions:',
-      'perm-add': 'Add',
-      'perm-share': 'Share',
-      'perm-copy': 'Copy',
-      'members': 'Members:',
-      'contact-email': 'contact email',
-      'add-member': 'Add',
-      'none': 'none',
-      'lock': 'Lock',
-      'logout': 'Logout',
-      'data-updated': 'Data updated',
-      'network-error': 'offline?',
-      'filter': 'filter',
-      'notification-encrypted-title': 'Notifications ($1)',
-      'notification-encrypted-body': 'New encrypted notifications waiting.',
-      'new-user-title': 'New user: $1',
-      'new-content-body': 'New files added.',
-      'new-collection-body': 'Shared with you.',
-      'new-members-body': 'New members joined.',
-      'push-notifications-title': 'Push notifications',
-      'push-notifications-body': 'Push notifications are enabled.',
-      'security-keys:': 'Security devices:',
-      'add-security-key': 'Register new security key',
-      'add-passkey': 'Register new passkey',
-      'enter-security-key-name': 'Enter a name for the security key',
-      'added': 'Added on',
-      'test': 'Test',
-      'enter-otp': 'Enter your One-Time Passcode (OTP):',
-      'otp-or-sk-required': 'MFA requires OTP or at least one security key',
-      'remote-mfa-title': 'Approval Requested',
-      'remote-mfa-body': 'An action on another device needs approval.',
-      'approve': 'Approve 👍',
-      'deny': 'Deny 🚫',
-      'select-security-key': 'Select the security device to register',
-      'verify-identity': 'Please verify your identity',
-      'cover': 'Cover image:',
-      'cover-selected': 'Selected image',
-      'cover-latest': 'Most recent',
-      'cover-blank': 'No image',
-    },
-//    'fr': {
-//      'LANG': 'Français',
-//    },
-  },
+  dict: {},
 };
 
-Lang.init();
+if (typeof window !== 'undefined') {
+  window.Lang = Lang;
+} else {
+  self.Lang = Lang;
+}

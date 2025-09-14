@@ -21,6 +21,8 @@
 'use strict';
 
 self.importScripts('version.js');
+self.importScripts('lang.js');
+
 console.log(`SW Version ${VERSION}`, DEVEL ? 'DEVEL' : '');
 
 let MANIFEST = [
@@ -43,6 +45,14 @@ let MANIFEST = [
   'thirdparty/filerobot-image-editor.min.js',
   'thirdparty/libs.js',
 ];
+
+for (const lang of Object.keys(Lang.supported)) {
+  MANIFEST.push(`lang/${lang}.json`);
+}
+for (const lang of Object.keys(Lang.supported)) {
+  MANIFEST.push(`lang/filerobot/${lang}.json`);
+}
+
 if (self.location.search.includes('tests')) {
   MANIFEST.push('sw-tests.js');
   MANIFEST.push('sw-tests.html');
@@ -50,7 +60,6 @@ if (self.location.search.includes('tests')) {
 }
 
 self.importScripts('thirdparty/libs.js');
-self.importScripts('lang.js');
 self.importScripts('store2.js');
 self.importScripts('utils.js');
 self.importScripts('c2fmzq-client.js');
@@ -63,6 +72,7 @@ class ServiceWorker {
   #state;
   #store;
   #notifs;
+  #langReady;
   constructor() {
     this.#state = {};
     this.#state.initp = null;
@@ -71,6 +81,7 @@ class ServiceWorker {
     this.#store = new Store2();
     this.#notifs = new Store2('notifications');
     this.#notifs.setPassphrase('notifications');
+    this.#langReady = Lang.loadLanguage('en');
   }
 
   static start() {
@@ -164,18 +175,18 @@ class ServiceWorker {
     return p;
   }
 
-  #checkNotifications() {
+  async #checkNotifications() {
     if (this.#state.checkingNotifications) {
       setTimeout(this.#checkNotifications.bind(this), 500);
       return;
     }
     this.#state.checkingNotifications = true;
-    this.#notifs.keys()
-    .then(keys => keys.filter(k => k.startsWith("notifs/")))
-    .then(keys => {
+    try {
+      const keys = await this.#notifs.keys().then(keys => keys.filter(k => k.startsWith("notifs/")));
       if (keys.length === 0) {
         return;
       }
+      await this.#langReady;
       if (!this.#app) {
         self.showNotif(_T('notification-encrypted-title', keys.length), {
           tag: 'encrypted',
@@ -190,10 +201,9 @@ class ServiceWorker {
           .then(v => this.#app.onpush(v))
           .finally(() => this.#notifs.del(k));
       });
-    })
-    .finally(() => {
+    } finally {
       this.#state.checkingNotifications = false;
-    });
+    }
   }
 
   #checkPushsubscriptionchanges() {
@@ -394,7 +404,7 @@ class ServiceWorker {
         if (event.data.version !== VERSION) {
           console.log(`SW Version mismatch: ${event.data.version} != ${VERSION}`);
         }
-        Lang.current = event.data.lang || 'en-US';
+        this.#langReady = Lang.setLanguage(event.data.lang || 'en');
         if (!event.data.storeKey) {
           this.#sendHello();
         } else {
