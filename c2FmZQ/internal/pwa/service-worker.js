@@ -94,6 +94,9 @@ let MANIFEST = [
   'lang/vi.json',
   'lang/zh-CN.json',
   'lang/zh-TW.json',
+  'lang/filerobot/de.json',
+  'lang/filerobot/es.json',
+  'lang/filerobot/fr.json',
 ];
 if (self.location.search.includes('tests')) {
   MANIFEST.push('sw-tests.js');

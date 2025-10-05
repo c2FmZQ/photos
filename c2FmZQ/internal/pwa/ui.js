@@ -145,26 +145,22 @@ class UI {
 
   async loadFilerobot_() {
     if (!this.fieLoaded_) {
-      const loadScript = (src) => {
-        return new Promise((resolve, reject) => {
-          const e = UI.create('script');
-          e.addEventListener('load', resolve, {once: true});
-          e.addEventListener('error', reject, {once: true});
-          e.src = src;
-          e.type = 'text/javascript';
-          e.async = true;
-          document.body.appendChild(e);
-        });
-      };
-      this.fieLoaded_ = loadScript('filerobot-translations.js')
-        .then(() => loadScript('thirdparty/filerobot-image-editor.min.js'))
-        .then(() => {
+      this.fieLoaded_ = new Promise((resolve, reject) => {
+        console.log('Loading filerobot image editor...');
+        const e = UI.create('script');
+        e.addEventListener('load', () => {
           console.log('filerobot image editor loaded');
-        })
-        .catch(err => {
+          resolve();
+        }, {once: true});
+        e.addEventListener('error', err => {
           console.log('filerobot image editor failed to load', err);
-          throw err;
-        });
+          reject();
+        }, {once: true});
+        e.src = 'thirdparty/filerobot-image-editor.min.js';
+        e.type = 'module';
+        e.async = true;
+        document.body.appendChild(e);
+      });
     }
     return this.fieLoaded_;
   }
@@ -2091,6 +2087,26 @@ class UI {
     });
 
     const filerobotTranslations = window.FilerobotTranslations || {};
+    const getTranslations = async () => {
+      try {
+        let response = await fetch(`lang/filerobot/${Lang.current}.json`);
+        if (response.ok) {
+          return await response.json();
+        }
+        const baseLang = Lang.current.split('-')[0];
+        if (baseLang !== Lang.current) {
+          response = await fetch(`lang/filerobot/${baseLang}.json`);
+          if (response.ok) {
+            return await response.json();
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load Filerobot translations', e);
+      }
+      return {};
+    };
+
+    const translations = await getTranslations();
     const editor = new FilerobotImageEditor(content, {
       source: f.url,
       onSave: (img, state) => {
@@ -2117,7 +2133,7 @@ class UI {
           this.showError_(e);
         });
       },
-      translations: filerobotTranslations[Lang.current] || filerobotTranslations[Lang.current.split('-')[0]],
+      translations,
       tabsIds: ['Adjust', 'Annotate', 'Filters', 'Finetune', 'Resize'],
       defaultTabId: 'Adjust',
       defaultToolId: 'Crop',

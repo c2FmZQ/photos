@@ -1,0 +1,17 @@
+{
+  "name": "Name",
+  "save": "Speichern",
+  "back": "Zurück",
+  "loading": "Wird geladen...",
+  "cancel": "Abbrechen",
+  "apply": "Anwenden",
+  "adjustTab": "Anpassen",
+  "finetuneTab": "Feinabstimmung",
+  "filtersTab": "Filter",
+  "watermarkTab": "Wasserzeichen",
+  "annotateTabLabel": "Anmerken",
+  "resize": "Größe ändern",
+  "cropTool": "Zuschneiden",
+  "rotateTool": "Drehen",
+  "textTool": "Text"
+}
