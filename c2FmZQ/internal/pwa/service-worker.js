@@ -39,7 +39,6 @@ let MANIFEST = [
   'ui.js',
   'utils.js',
   'version.js',
-  'filerobot-translations.js',
   'thirdparty/browser-libs.js',
   'thirdparty/filerobot-image-editor.min.js',
   'thirdparty/libs.js',
@@ -104,7 +103,6 @@ if (self.location.search.includes('tests')) {
 
 self.importScripts('thirdparty/libs.js');
 self.importScripts('lang.js');
-self.importScripts('filerobot-translations.js');
 self.importScripts('store2.js');
 self.importScripts('utils.js');
 self.importScripts('c2fmzq-client.js');

@@ -145,22 +145,26 @@ class UI {
 
   async loadFilerobot_() {
     if (!this.fieLoaded_) {
-      this.fieLoaded_ = new Promise((resolve, reject) => {
-        console.log('Loading filerobot image editor...');
-        const e = UI.create('script');
-        e.addEventListener('load', () => {
+      const loadScript = (src) => {
+        return new Promise((resolve, reject) => {
+          const e = UI.create('script');
+          e.addEventListener('load', resolve, {once: true});
+          e.addEventListener('error', reject, {once: true});
+          e.src = src;
+          e.type = 'text/javascript';
+          e.async = true;
+          document.body.appendChild(e);
+        });
+      };
+      this.fieLoaded_ = loadScript('filerobot-translations.js')
+        .then(() => loadScript('thirdparty/filerobot-image-editor.min.js'))
+        .then(() => {
           console.log('filerobot image editor loaded');
-          resolve();
-        }, {once: true});
-        e.addEventListener('error', err => {
+        })
+        .catch(err => {
           console.log('filerobot image editor failed to load', err);
-          reject();
-        }, {once: true});
-        e.src = 'thirdparty/filerobot-image-editor.min.js';
-        e.type = 'module';
-        e.async = true;
-        document.body.appendChild(e);
-      });
+          throw err;
+        });
     }
     return this.fieLoaded_;
   }
