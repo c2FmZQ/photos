@@ -2086,6 +2086,7 @@ class UI {
       onclose: () => editor.terminate(),
     });
 
+    const filerobotTranslations = window.FilerobotTranslations || {};
     const editor = new FilerobotImageEditor(content, {
       source: f.url,
       onSave: (img, state) => {
@@ -2112,6 +2113,7 @@ class UI {
           this.showError_(e);
         });
       },
+      translations: filerobotTranslations[Lang.current] || filerobotTranslations[Lang.current.split('-')[0]],
       tabsIds: ['Adjust', 'Annotate', 'Filters', 'Finetune', 'Resize'],
       defaultTabId: 'Adjust',
       defaultToolId: 'Crop',
