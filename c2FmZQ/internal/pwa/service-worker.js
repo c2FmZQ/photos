@@ -21,6 +21,8 @@
 'use strict';
 
 self.importScripts('version.js');
+self.importScripts('lang.js');
+
 console.log(`SW Version ${VERSION}`, DEVEL ? 'DEVEL' : '');
 
 let MANIFEST = [
@@ -42,62 +44,15 @@ let MANIFEST = [
   'thirdparty/browser-libs.js',
   'thirdparty/filerobot-image-editor.min.js',
   'thirdparty/libs.js',
-  'lang/ar.json',
-  'lang/bn.json',
-  'lang/ca.json',
-  'lang/cs.json',
-  'lang/da.json',
-  'lang/de-AT.json',
-  'lang/de-CH.json',
-  'lang/de.json',
-  'lang/el.json',
-  'lang/en-AU.json',
-  'lang/en-CA.json',
-  'lang/en-UK.json',
-  'lang/en.json',
-  'lang/es-AR.json',
-  'lang/es-ES.json',
-  'lang/es-MX.json',
-  'lang/es.json',
-  'lang/fa.json',
-  'lang/fi.json',
-  'lang/fr-BE.json',
-  'lang/fr-CA.json',
-  'lang/fr-CH.json',
-  'lang/fr.json',
-  'lang/gsw.json',
-  'lang/he.json',
-  'lang/hi.json',
-  'lang/hu.json',
-  'lang/id.json',
-  'lang/it.json',
-  'lang/ja.json',
-  'lang/ko.json',
-  'lang/mr.json',
-  'lang/ms.json',
-  'lang/nl-BE.json',
-  'lang/nl.json',
-  'lang/no.json',
-  'lang/pl.json',
-  'lang/pt.json',
-  'lang/ro.json',
-  'lang/ru.json',
-  'lang/sk.json',
-  'lang/sv.json',
-  'lang/te.json',
-  'lang/th.json',
-  'lang/tl.json',
-  'lang/tr.json',
-  'lang/ug.json',
-  'lang/uk.json',
-  'lang/ur.json',
-  'lang/vi.json',
-  'lang/zh-CN.json',
-  'lang/zh-TW.json',
-  'lang/filerobot/de.json',
-  'lang/filerobot/es.json',
-  'lang/filerobot/fr.json',
 ];
+
+for (const lang of Object.keys(Lang.supported)) {
+  MANIFEST.push(`lang/${lang}.json`);
+}
+for (const lang of Object.keys(Lang.supported)) {
+  MANIFEST.push(`lang/filerobot/${lang}.json`);
+}
+
 if (self.location.search.includes('tests')) {
   MANIFEST.push('sw-tests.js');
   MANIFEST.push('sw-tests.html');
@@ -105,7 +60,6 @@ if (self.location.search.includes('tests')) {
 }
 
 self.importScripts('thirdparty/libs.js');
-self.importScripts('lang.js');
 self.importScripts('store2.js');
 self.importScripts('utils.js');
 self.importScripts('c2fmzq-client.js');

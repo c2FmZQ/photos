@@ -1,17 +1,1 @@
-{
-  "name": "Nombre",
-  "save": "Guardar",
-  "back": "Atrás",
-  "loading": "Cargando...",
-  "cancel": "Cancelar",
-  "apply": "Aplicar",
-  "adjustTab": "Ajustar",
-  "finetuneTab": "Afinar",
-  "filtersTab": "Filtros",
-  "watermarkTab": "Marca de agua",
-  "annotateTabLabel": "Anotar",
-  "resize": "Redimensionar",
-  "cropTool": "Recortar",
-  "rotateTool": "Girar",
-  "textTool": "Texto"
-}
+{}

@@ -1,17 +1,1 @@
-{
-  "name": "Nom",
-  "save": "Enregistrer",
-  "back": "Retour",
-  "loading": "Chargement...",
-  "cancel": "Annuler",
-  "apply": "Appliquer",
-  "adjustTab": "Ajuster",
-  "finetuneTab": "Affiner",
-  "filtersTab": "Filtres",
-  "watermarkTab": "Filigrane",
-  "annotateTabLabel": "Annoter",
-  "resize": "Redimensionner",
-  "cropTool": "Recadrer",
-  "rotateTool": "Pivoter",
-  "textTool": "Texte"
-}
+{}
