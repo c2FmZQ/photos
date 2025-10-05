@@ -1187,7 +1187,7 @@ class UI {
         const created = new Date(f.dateCreated);
         //const date = created.toLocaleDateString(undefined, {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'});
         const dateFormat = year === created.getFullYear() ? {month: 'long'} : {month: 'long', year: 'numeric'};
-        const date = created.toLocaleDateString(undefined, dateFormat);
+        const date = created.toLocaleDateString(Lang.current, dateFormat);
         if (date !== this.galleryState_.lastDate) {
           this.galleryState_.lastDate = date;
           const dateDiv = UI.create('div', {className:'date', html:'<br clear="all" />'+date+'<br clear="all" />', parent:g});
@@ -1254,7 +1254,7 @@ class UI {
         UI.create('span', {text: this.formatSize_(f.size), parent: size});
 
         const ts = UI.create('div', {className:'time', parent:row});
-        const tsSpan = UI.create('span', {text: (new Date(f.dateCreated)).toLocaleString(), parent:ts});
+        const tsSpan = UI.create('span', {text: (new Date(f.dateCreated)).toLocaleString(Lang.current), parent:ts});
 
         const ctype = UI.create('div', {className:'content-type', parent:row});
         UI.create('span', {text:f.contentType, parent:ctype});
@@ -2962,7 +2962,7 @@ class UI {
           let input = UI.create('input', {type:'text', className:'profile-form-security-key-list-item', value:k.name, parent:skList});
           EL.add(input, 'change', onchange);
           EL.add(input, 'keydown', onchange);
-          let t = UI.create('div', {text:(new Date(k.createdAt)).toLocaleDateString(undefined, {year: 'numeric', month: 'short', day: 'numeric'}), parent:skList});
+          let t = UI.create('div', {text:(new Date(k.createdAt)).toLocaleDateString(Lang.current, {year: 'numeric', month: 'short', day: 'numeric'}), parent:skList});
           let del = UI.create('button', {text:'✖', parent:skList});
           del.style.cursor = 'pointer';
           EL.add(del, 'click', () => {
