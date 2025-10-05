@@ -114,11 +114,11 @@ window.Lang = {
     }
 
     Lang.current = lang;
-    if (window.localStorage) {
+    if (typeof window !== 'undefined' && window.localStorage) {
       window.localStorage.setItem('lang', lang);
     }
 
-    if (Lang.dict[lang]) {
+    if (typeof document !== 'undefined' && Lang.dict[lang]) {
       document.documentElement.lang = lang;
       document.documentElement.dir = Lang.dict[lang].direction || 'ltr';
     }
