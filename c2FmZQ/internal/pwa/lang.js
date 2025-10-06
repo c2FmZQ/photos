@@ -118,7 +118,9 @@ let Lang = {
 
     if (typeof document !== 'undefined' && Lang.dict[lang]) {
       document.documentElement.lang = lang;
-      document.documentElement.dir = Lang.dict[lang].direction || 'ltr';
+      const baseLang = lang.split('-')[0];
+      document.documentElement.dir = Lang.dict[lang].direction || (Lang.dict[baseLang] && Lang.dict[baseLang].direction) || 'ltr';
+
     }
   },
 
@@ -144,19 +146,17 @@ let Lang = {
   },
 
   text: (key, ...args) => {
-    if (Lang.dict[Lang.current] && Lang.dict[Lang.current][key] !== undefined) {
-      return Lang.sub(Lang.dict[Lang.current][key], args);
-    }
+    const langsToTry = [
+      Lang.current,
+      Lang.current.split('-')[0],
+      'en',
+    ];
 
-    const lang = Lang.current.split('-')[0];
-    if (Lang.dict[lang] && Lang.dict[lang][key] !== undefined) {
-      return Lang.sub(Lang.dict[lang][key], args);
+    for (const lang of langsToTry) {
+      if (Lang.dict[lang] && Lang.dict[lang][key] !== undefined) {
+        return Lang.sub(Lang.dict[lang][key], args);
+      }
     }
-
-    if (Lang.dict.en && Lang.dict.en[key] !== undefined) {
-      return Lang.sub(Lang.dict.en[key], args);
-    }
-
     console.log('Missing lang key', Lang.current, key);
     return `::${key}:${args.join(' ')}::`;
   },
