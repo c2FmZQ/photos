@@ -950,3 +950,87 @@ audio.popup-media {
   width: 85vw;
   height: 85vh;
 }
+
+[dir="rtl"] #buttons {
+  right: auto;
+  left: 10px;
+}
+
+[dir="rtl"] #collection-buttons {
+  right: auto;
+  left: 0;
+}
+
+[dir="rtl"] #add-button {
+  right: auto;
+  left: 2em;
+}
+
+[dir="rtl"] #footer {
+  right: auto;
+  left: 0.25em;
+}
+
+[dir="rtl"] #popup-messages {
+  right: auto;
+  left: 0;
+}
+
+[dir="rtl"] .resetdb-button {
+  right: auto;
+  left: 0;
+}
+
+[dir="rtl"] #collection-properties-delete {
+  right: auto;
+  left: 0;
+}
+
+[dir="rtl"] .empty-trash {
+  float: left;
+}
+
+[dir="rtl"] .thumbdiv div.duration {
+  text-align: left;
+}
+
+[dir="rtl"] #gallery-list-div>div.row>div:nth-child(1) {
+  left: auto;
+  right: 0;
+}
+
+[dir="rtl"] #gallery-list-div .size {
+  justify-content: start;
+}
+
+[dir="rtl"] .prompt-confirm-button {
+  justify-self: end;
+}
+
+[dir="rtl"] .prompt-cancel-button {
+  justify-self: start;
+}
+
+[dir="rtl"] .popup-info {
+  text-align: left;
+}
+
+[dir="rtl"] .popup-close {
+  text-align: left;
+}
+
+[dir="rtl"] .popup-content > .arrow.left {
+  left: auto;
+  right: 0%;
+  transform: translate(50%, 0);
+}
+
+[dir="rtl"] .popup-content > .arrow.right {
+  right: auto;
+  left: 0%;
+  transform: translate(-50%, 0);
+}
+
+[dir="rtl"] button.context-menu-item {
+  text-align: right;
+}

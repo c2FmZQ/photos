@@ -27,8 +27,9 @@ if (!('serviceWorker' in navigator)) {
 }
 /* jshint +W060 */
 
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
   console.log(`Version ${VERSION}`, DEVEL ? 'DEVEL' : '');
+  await Lang.init();
   const main = new Main();
   const ui = new UI(main);
   main.setUI(ui);
