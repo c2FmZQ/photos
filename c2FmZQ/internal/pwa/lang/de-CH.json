@@ -1,4 +1,14 @@
 {
   "LANG": "Deutsch (Schweiz)",
-  "direction": "ltr"
+  "trash-title": "Abfallchübel",
+  "trash": "Abfallchübel",
+  "gallery": "Galerie",
+  "confirm": "Bestätige 👍",
+  "cancel": "Abbräche 🚫",
+  "form-password": "Passwort:",
+  "form-new-password": "Neues Passwort:",
+  "form-confirm-password": "Passwort bestätigen:",
+  "move-to-trash": "In Abfallchübel verschiebe",
+  "confirm-move-to-trash": "In Abfallchübel verschiebe?",
+  "use-as-cover": "Als Umschlag bruuche"
 }
