@@ -10,15 +10,6 @@ The language files are organized as follows:
 -   `<lang>.json`: Each supported language has its own JSON file, named with the two-letter language code (e.g., `fr.json`, `de.json`). These files must contain all the keys present in `en.json`.
 -   `<lang>-<REGION>.json`: Regional variations of a language are also supported (e.g., `fr-CA.json`, `de-AT.json`). These files should **only** contain the keys that have a different translation than their base language file. For example, `fr-CA.json` would only contain the keys where the Canadian French translation differs from the standard French translation in `fr.json`.
 
-### A Note on Swiss German vs. Swiss High German
-
-It is important to distinguish between **Swiss German** (ISO 639-3 code: `gsw`) and **Swiss High German** (IETF language tag: `de-CH`).
-
--   **Swiss German (`gsw`)** refers to the various Alemannic dialects spoken in Switzerland. These are primarily spoken languages and do not have a standardized written form.
--   **Swiss High German (`de-CH`)** is the written standard variety of German used in Switzerland. It has specific vocabulary (Helvetisms), grammar, and orthography that differ from Standard German (`de`).
-
-For this application, we use **Swiss High German (`de-CH`)** for our translations to ensure a formal, consistent, and professionally appropriate written language for our Swiss users. Do not use spoken dialect words from `gsw` in the `de-CH.json` file.
-
 ### `filerobot` Subdirectory
 
 The `filerobot` subdirectory contains translations for the Filerobot image editor. The structure of this directory is different from the main language directory.

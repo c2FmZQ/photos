@@ -19,7 +19,7 @@
 /* jshint -W083 */
 'use strict';
 
-window.Lang = {
+let Lang = {
   supported: {
     'ar': 'العربية',
     'bn': 'বাংলা',
@@ -84,7 +84,15 @@ window.Lang = {
         preferredLang = lang;
         break;
       }
-      const baseLang = lang.split('-')[0];
+      const langParts = lang.split('-');
+      if (langParts.length >= 3) {
+        const ll = langParts[0]+'-'+langParts[2];
+        if (Lang.supported[ll]) {
+          preferredLang = ll;
+          break;
+        }
+      }
+      const baseLang = langParts[0];
       if (Lang.supported[baseLang]) {
         preferredLang = baseLang;
         break;
@@ -173,3 +181,9 @@ window.Lang = {
 
   dict: {},
 };
+
+if (typeof window !== 'undefined') {
+  window.Lang = Lang;
+} else {
+  self.Lang = Lang;
+}
