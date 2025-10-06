@@ -70,7 +70,7 @@
   "filetype": "Tiedostotyyppi",
   "duration": "Kesto",
   "shared-with": "Jaettu käyttäjän $1 kanssa",
-  "empty": "Tyhjä",
+  "empty": "Tyhjennä",
   "name": "Nimi:",
   "name:": "Nimi: $1",
   "size:": "Koko: $1",
