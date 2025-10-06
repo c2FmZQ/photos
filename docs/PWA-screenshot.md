@@ -2,7 +2,7 @@
 
 Here is a screenshot of the c2FmZQ PWA with some Creative Commons images. This snapshot itself is licensed under CC0.
 
-![c2FmZQ Demo Screenshot](c2FmZQ-demo.png)
+![c2FmZQ Demo Screenshot](screenshot.png)
 
 ## Image Attributions
 
