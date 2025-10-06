@@ -1,6 +1,6 @@
 # Demo
 
-Here is a screenshot of the c2FmZQ PWA with some Creative Commons images. This snapshot itself is licensed under CC0.
+Here is a screenshot of the c2FmZQ PWA with some [CC0](https://creativecommons.org/public-domain/cc0/)-licensed images.
 
 ![c2FmZQ Demo Screenshot](screenshot.png)
 
