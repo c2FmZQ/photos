@@ -2088,20 +2088,24 @@ class UI {
 
     const filerobotTranslations = window.FilerobotTranslations || {};
     const getTranslations = async () => {
-      try {
-        let response = await fetch(`lang/filerobot/${Lang.current}.json`);
-        if (response.ok) {
-          return await response.json();
-        }
-        const baseLang = Lang.current.split('-')[0];
-        if (baseLang !== Lang.current) {
-          response = await fetch(`lang/filerobot/${baseLang}.json`);
+      const langsToTry = [Lang.current];
+      const baseLang = Lang.current.split('-')[0];
+      if (baseLang !== Lang.current) {
+        langsToTry.push(baseLang);
+      }
+      if (baseLang !== 'en') {
+        langsToTry.push('en');
+      }
+
+      for (const lang of [...new Set(langsToTry)]) {
+        try {
+          const response = await fetch(`lang/filerobot/${lang}.json`);
           if (response.ok) {
             return await response.json();
           }
+        } catch (e) {
+          console.error(`Failed to load Filerobot translations for ${lang}`, e);
         }
-      } catch (e) {
-        console.error('Failed to load Filerobot translations', e);
       }
       return {};
     };

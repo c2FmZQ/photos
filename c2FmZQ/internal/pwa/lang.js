@@ -144,7 +144,6 @@ let Lang = {
       Lang.dict[lang] = await response.json();
     } catch (error) {
       console.error(error);
-      delete Lang.supported[lang];
     }
   },
 

@@ -48,8 +48,6 @@ let MANIFEST = [
 
 for (const lang of Object.keys(Lang.supported)) {
   MANIFEST.push(`lang/${lang}.json`);
-}
-for (const lang of Object.keys(Lang.supported)) {
   MANIFEST.push(`lang/filerobot/${lang}.json`);
 }
 
