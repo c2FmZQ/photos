@@ -76,36 +76,26 @@ let Lang = {
   },
 
   init: async () => {
-    await Lang.loadLanguage('en');
-
-    let preferredLang = 'en';
-    for (let lang of navigator.languages) {
-      if (Lang.supported[lang]) {
-        preferredLang = lang;
-        break;
-      }
-      const langParts = lang.split('-');
-      if (langParts.length >= 3) {
-        const ll = langParts[0]+'-'+langParts[2];
-        if (Lang.supported[ll]) {
-          preferredLang = ll;
-          break;
+    const findSupportedLang = (languages) => {
+      for (const lang of languages) {
+        if (Lang.supported[lang]) return lang;
+        const langParts = lang.split('-');
+        if (langParts.length >= 3) {
+          const regionalLang = `${langParts[0]}-${langParts[2]}`;
+          if (Lang.supported[regionalLang]) return regionalLang;
         }
+        const baseLang = langParts[0];
+        if (Lang.supported[baseLang]) return baseLang;
       }
-      const baseLang = langParts[0];
-      if (Lang.supported[baseLang]) {
-        preferredLang = baseLang;
-        break;
-      }
-    }
-
+      return null;
+    };
+    let preferredLang = findSupportedLang(navigator.languages) || 'en';
     if (window.localStorage) {
       const saved = window.localStorage.getItem('lang');
       if (saved && Lang.supported[saved]) {
         preferredLang = saved;
       }
     }
-
     await Lang.setLanguage(preferredLang);
   },
 
