@@ -9,14 +9,14 @@
   * [Scale and performance](#scale)
   * [How to run the server](#run-server)
   * [DEMO / test drive](#demo)
-  * [Experimental features](#experimental)
-    * [Progressive Web App (PWA)](#webapp)
-    * [Multi-Factor Authentication](#mfa)
-    * [Decoy / duress passwords](#decoy)
+* [Progressive Web App (PWA)](#pwa)
 * [c2FmZQ Client](#c2FmZQ-client)
   * [Mount as fuse filesystem](#fuse)
   * [View content with Web browser](#webbrowser)
   * [Connecting to stingle.org account](#connect-to-stingle)
+* [Experimental features](#experimental)
+  * [Multi-Factor Authentication](#mfa)
+  * [Decoy / duress passwords](#decoy)
 
 # <a name="overview"></a>Overview
 
@@ -245,27 +245,15 @@ Please note that this is **NOT** a secure configuration. Do not use this to stor
 
 ---
 
-## <a name="experimental"></a>Experimental features
-
-The following features are experimental and could change or disappear in the future.
-
-### <a name="webapp"></a>Progressive Web App
+# <a name="pwa"></a>Progressive Web App (PWA)
 
 The PWA is a full-featured client app for c2FmZQ implemented entirely in HTML and javascript.
 
+![PWA Screenshot](docs/screenshot.png)
+
 [Watch the automated test video](https://youtu.be/R_sQ26unlXQ?si=4FolTMKrpdqP6lzb&t=12)
 
-All the cryptographic operations are performed in the browser using 
-[Sodium-Plus](https://github.com/paragonie/sodium-plus), and the app
-implements the same protocol as the c2FmZQ client and the Stingle Photos app.
-
-To access the PWA:
-
-* Open your server URL in a browser: `https://${DOMAIN}/${path-prefix}/`. This requires `--enable-webapp` to be set on the server. Or,
-* Open https://c2fmzq.org/pwa/ and enter your server URL in the `Server` field. This works with or without `--enable-webapp`, Or,
-* Clone https://github.com/c2FmZQ/c2FmZQ.github.io, and publish it on your own web site.
-
-Currently implemented:
+## Features
 
 * All account management features (account creation, recovery, etc).
 * All album management features (creating, sharing, moving files, etc).
@@ -273,6 +261,21 @@ Currently implemented:
 * Uploading files with streaming encryption.
 * Photo editing, using a local [Filerobot Image Editor](https://scaleflex.github.io/filerobot-image-editor/)
 * Optional push notification when new content or new members are added to shared albums.
+
+## Getting Started
+
+To access the PWA:
+
+* Open your server URL in a browser: `https://${DOMAIN}/${path-prefix}/`. This requires `--enable-webapp` to be set on the server. Or,
+* Open https://c2fmzq.org/pwa/ and enter your server URL in the `Server` field. This works with or without `--enable-webapp`, Or,
+* Clone https://github.com/c2FmZQ/c2FmZQ.github.io, and publish it on your own web site.
+
+<details>
+<summary>Technical Details</summary>
+
+All the cryptographic operations are performed in the browser using
+[Sodium-Plus](https://github.com/paragonie/sodium-plus), and the app
+implements the same protocol as the c2FmZQ client and the Stingle Photos app.
 
 Push notification is disabled by default on the server. To enable it, use the `inspect edit ps`
 command, and set the top-level `enable` option to `true` and set `jwtSubject` to a
@@ -287,6 +290,13 @@ or,
 ```
 sudo docker exec -it c2fmzq-server inspect edit ps
 ```
+</details>
+
+---
+
+## <a name="experimental"></a>Experimental features
+
+The following features are experimental and could change or disappear in the future.
 
 ### <a name="mfa"></a>Multi-Factor Authentication
 
