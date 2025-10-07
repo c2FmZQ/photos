@@ -11,13 +11,19 @@ This document provides a high-level overview of the c2FmZQ project's design and 
 
 ## Overview
 
-c2FmZQ is an application that can securely encrypt, store, and share files, including but not limited to pictures and videos.
+c2FmZQ is a self-hostable, end-to-end encrypted file storage and sharing platform, with a strong focus on photos and videos. It is designed for users who want to maintain full control over their personal data without sacrificing the convenience of modern cloud services.
 
-There is a command-line client application, a server application, and a Progressive Web App that can run in most modern browsers.
+The core principle of c2FmZQ is **zero-knowledge privacy**. All encryption and decryption happen on the client-side, meaning that the server only ever stores encrypted data. The server operator (even if that's you) cannot access the plaintext contents of your files.
 
-The server is the central repository where all the encrypted data can be stored. It has no way to access the client's plaintext data. The PWA and the command-line clients are used to import, export, organize, and share files.
+The project consists of three main components:
 
-_This project is **NOT** associated with stingle.org. This is not the code used by stingle.org. The code in this repo was developed by studying the client app's code and reverse engineering the API. Stingle eventually released their [server code](https://github.com/stingle/stingle-api) in April 2023._
+*   **`c2FmZQ-server`**: A lightweight, high-performance backend written in Go. It acts as the central API and storage hub for encrypted data and can be deployed on a wide range of hardware, from a Raspberry Pi to a dedicated cloud server.
+*   **`c2FmZQ-client`**: A powerful command-line interface (CLI) also written in Go. It allows for scripting, bulk operations, and advanced features like mounting your encrypted storage as a local filesystem using FUSE.
+*   **Progressive Web App (PWA)**: A feature-rich web interface that runs in any modern browser. It provides a user-friendly experience for managing photos and videos, including album organization, sharing, and even photo editing, all while performing cryptographic operations directly in the browser.
+
+c2FmZQ implements an API that is compatible with the official **Stingle Photos** Android app, allowing you to use it as a client with your self-hosted c2FmZQ server.
+
+_Disclaimer: This project is an independent implementation of the Stingle API and is **NOT** associated with stingle.org. The original code was developed by studying the official client's behavior. Stingle.org released their own [server code](https://github.com/stingle/stingle-api) in April 2023._
 
 ## Features
 
