@@ -363,6 +363,10 @@ class ServiceWorker {
         .then(p => Promise.all(p))
         .then(r => console.log('SW cache deletes', r))
         .then(() => self.clients.claim())
+        .then(() => {
+          this.#langReady = Lang.loadLanguage('en');
+          return this.#langReady;
+        })
       );
       return;
     }

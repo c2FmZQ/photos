@@ -129,22 +129,21 @@ let Lang = {
       return;
     }
     const url = `lang/${lang}.json`;
-    return caches.match(url).then(resp => {
-      if (resp) {
+    try {
+      let response = await caches.match(url);
+      if (response) {
         console.log(`Lang ${lang} loaded from cache`);
-        return resp;
+      } else {
+        console.log(`Lang ${lang} not cached`);
+        response = await fetch(url);
       }
-      console.log(`Lang ${lang} no cached`);
-      return fetch(url);
-    })
-    .then(resp => {
-      if (!resp.ok) {
+      if (!response.ok) {
         throw new Error(`Failed to load language file: ${lang}`);
       }
-      return resp.json();
-    })
-    .then(js => Lang.dict[lang] = js)
-    .catch(console.error);
+      Lang.dict[lang] = await response.json();
+    } catch (error) {
+      console.error(error);
+    }
   },
 
   current: 'en',
