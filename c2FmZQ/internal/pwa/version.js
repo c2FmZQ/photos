@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2024 TTBT Enterprises LLC
+ * Copyright 2021-2025 TTBT Enterprises LLC
  *
  * This file is part of c2FmZQ (https://c2FmZQ.org/).
  *
@@ -18,7 +18,7 @@
 
 'use strict';
 
-const VERSION = 'v0.4.32';
+const VERSION = 'v0.5.0';
 
 // Indicates that the PWA is only allowed to connect to the server from which
 // it was loaded. Set to false to allow cross-origin connections.
