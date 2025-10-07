@@ -128,15 +128,23 @@ let Lang = {
     if (Lang.dict[lang] || !Lang.supported[lang]) {
       return;
     }
-    try {
-      const response = await fetch(`lang/${lang}.json`);
-      if (!response.ok) {
+    const url = `lang/${lang}.json`;
+    return caches.match(url).then(resp => {
+      if (resp) {
+        console.log(`Lang ${lang} loaded from cache`);
+        return resp;
+      }
+      console.log(`Lang ${lang} no cached`);
+      return fetch(url);
+    })
+    .then(resp => {
+      if (!resp.ok) {
         throw new Error(`Failed to load language file: ${lang}`);
       }
-      Lang.dict[lang] = await response.json();
-    } catch (error) {
-      console.error(error);
-    }
+      return resp.json();
+    })
+    .then(js => Lang.dict[lang] = js)
+    .catch(console.error);
   },
 
   current: 'en',

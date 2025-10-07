@@ -79,7 +79,6 @@ class ServiceWorker {
     this.#store = new Store2();
     this.#notifs = new Store2('notifications');
     this.#notifs.setPassphrase('notifications');
-    this.#langReady = Lang.loadLanguage('en');
   }
 
   static start() {
@@ -155,6 +154,7 @@ class ServiceWorker {
       });
       await app.init();
       this.#app = app;
+      await this.#langReady;
       console.log('SW app ready');
       this.#sendHello();
       await this.#store.release();
@@ -373,6 +373,10 @@ class ServiceWorker {
       .then(p => Promise.all(p))
       .then(r => console.log('SW cache deletes', r))
       .then(() => self.clients.claim())
+      .then(() => {
+        this.#langReady = Lang.loadLanguage('en');
+        return this.#langReady;
+      })
     );
   }
 
