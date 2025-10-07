@@ -458,10 +458,11 @@ func New() *App {
 		},
 		&cli.Command{
 			Name:      "webserver-config",
-			Usage:     "Update the web server configuration.",
+			Usage:     "Update the web server configuration. [DEPRECATED]",
 			ArgsUsage: " ",
 			Action:    app.webServerConfig,
 			Category:  "Mode",
+			Hidden:    true,
 			Flags: []cli.Flag{
 				&cli.StringFlag{
 					Name:  "address",
@@ -504,10 +505,11 @@ func New() *App {
 		},
 		&cli.Command{
 			Name:      "webserver",
-			Usage:     "Run web server to access the files.",
+			Usage:     "Run web server to access the files. [DEPRECATED]",
 			ArgsUsage: " ",
 			Action:    app.webServer,
 			Category:  "Mode",
+			Hidden:    true,
 		},
 	}
 	if enableFuse {
