@@ -50,67 +50,26 @@ its data will be stored, and a passphrase to protect the data. The passphrase
 can be read from a file or retrieved with an external command, otherwise the server
 will prompt for it when it starts.
 
-For TLS, the server also needs the TLS key, and certificates. They can be read from
-files, or directly from letsencrypt.org.
-
 ---
 
 ## <a name="run-server"></a>How to run the server
 
-The server is self-contained. It doesn't depend on any external resources. It
-stores all its data on a local filesystem.
+The server is self-contained and can run on various platforms like Linux, macOS, Windows, or a Raspberry Pi. The recommended way to run the `c2FmZQ-server` is with Docker, using [tlsproxy](https://github.com/c2FmZQ/tlsproxy) to handle HTTPS termination and certificate management.
 
-It can run on AWS ([Howto](HOWTO-AWS.md)) or any other cloud providers. It can run
-in a docker container. It can run on Linux, MacOS, Windows. It can run on a
-raspberry pi, or on a NAS. It can run pretty much on anything that has at least
-1 GB of RAM.
+This approach simplifies deployment by automating TLS certificate acquisition from Let's Encrypt and securely proxying traffic to the `c2FmZQ-server` container.
 
---- 
+An example `docker-compose` setup is available in the [tlsproxy repository](https://github.com/c2FmZQ/tlsproxy/tree/main/examples/docker-compose). This is the easiest and most secure way to get started.
 
-### Pull the docker image
-
-You can find the c2fmzq-server image on [hub.docker.com](https://hub.docker.com/r/c2fmzq/c2fmzq-server/tags).
-
-```
-docker pull c2fmzq/c2fmzq-server:latest
-```
-
-Then run the server with something like:
-```
-docker run \
-    --name=c2fmzq-server \
-    -d \
-    -u 1000:1000 \
-    -p 8080:80 \
-    -p 8443:443 \
-    -e C2FMZQ_DOMAIN="${DOMAIN}" \
-    -e C2FMZQ_PASSPHRASE_FILE="" \
-    -e C2FMZQ_PASSPHRASE="<passphrase>" \
-    -v ${DATABASEDIR}:/data \
-    c2fmzq/c2fmzq-server:latest
-```
-
-The TLS credentials are fetched from [letsencrypt.org](https://letsencrypt.org) automatically.
-
-`${DATABASEDIR}` is where all the encrypted data will be stored. The database passphrase can
-stored in a file, or passed in an environment variable. `${DOMAIN}` is the domain or hostname to
-use.
-
-The domain or hostname must resolve to the IP address where the server will be running,
-and firewall and/or port forwarding rules must be in place to allow TCP connections to
-ports 80 and 443 inside the container. The clients will connect to `https://${DOMAIN}/`.
+For users who prefer to manage TLS manually or use other deployment methods, the server can also be built from source and run as a standalone binary.
 
 ---
 
-### Or, build your own docker image
-
-```bash
-docker build -t c2fmzq/c2fmzq-server .
-```
-
 ---
 
-### Or, build it, and run it locally
+<details>
+<summary>Build and run manually from source</summary>
+
+#### Build and run it locally
 
 ```bash
 cd c2FmZQ/c2FmZQ-server
@@ -146,9 +105,7 @@ GLOBAL OPTIONS:
    --licenses                       Show the software licenses. (default: false)
 ```
 
----
-
-### Or, build a binary for another platform, e.g. windows, raspberry pi, or a NAS
+#### Build a binary for another platform, e.g. windows, raspberry pi, or a NAS
 
 ```bash
 cd c2FmZQ/c2FmZQ-server
@@ -156,6 +113,8 @@ GOOS=windows GOARCH=amd64 go build -o c2FmZQ-server.exe
 GOOS=linux GOARCH=arm go build -o c2FmZQ-server-arm
 GOOS=darwin GOARCH=arm64 go build -o c2FmZQ-server-darwin
 ```
+
+</details>
 
 ---
 
