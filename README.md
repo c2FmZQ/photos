@@ -3,90 +3,39 @@
 # c2FmZQ
 
 * [Overview](#overview)
-* [Notes about security and privacy](#security)
+* [Design and Architecture](#design-and-architecture)
 * [c2FmZQ Server](#c2FmZQ-server)
-  * [Connecting the Stingle Photos app to this server](#stingle)
-  * [Scale and performance](#scale)
   * [How to run the server](#run-server)
   * [DEMO / test drive](#demo)
-  * [Experimental features](#experimental)
-    * [Progressive Web App (PWA)](#webapp)
-    * [Multi-Factor Authentication](#mfa)
-    * [Decoy / duress passwords](#decoy)
+* [Progressive Web App (PWA)](#pwa)
 * [c2FmZQ Client](#c2FmZQ-client)
   * [Mount as fuse filesystem](#fuse)
-  * [View content with Web browser](#webbrowser)
   * [Connecting to stingle.org account](#connect-to-stingle)
+* [Experimental features](#experimental)
+  * [Multi-Factor Authentication](#mfa)
+  * [Decoy / duress passwords](#decoy)
 
 # <a name="overview"></a>Overview
 
-c2FmZQ is an application that can securely encrypt, store, and share
-files, including but not limited to pictures and videos.
+c2FmZQ is a self-hostable, end-to-end encrypted file storage and sharing platform, with a strong focus on photos and videos. It is designed for users who want to maintain full control over their personal data without sacrificing the convenience of modern cloud services.
 
-There is a command-line client application, a server application, and an
-experimental Progressive Web App that can run in most modern browsers.
+The core principle of c2FmZQ is **zero-knowledge privacy**. All encryption and decryption happen on the client-side, meaning that the server only ever stores encrypted data. The server operator (even if that's you) cannot access the plaintext contents of your files.
 
-The server is the central repository where all the encrypted data can be stored.
-It has no way to access the client's plaintext data.
+The project consists of three main components:
 
-The PWA and the command-line clients are used to import, export, organize, and share files.
+*   **`c2FmZQ-server`**: A lightweight, high-performance backend written in Go. It acts as the central API and storage hub for encrypted data and can be deployed on a wide range of hardware, from a Raspberry Pi to a dedicated cloud server.
+*   **`c2FmZQ-client`**: A powerful command-line interface (CLI) also written in Go. It allows for scripting, bulk operations, and advanced features like mounting your encrypted storage as a local filesystem using FUSE.
+*   **Progressive Web App (PWA)**: A feature-rich web interface that runs in any modern browser. It provides a user-friendly experience for managing photos and videos, including album organization, sharing, and even photo editing, all while performing cryptographic operations directly in the browser.
 
-They use an API that's compatible with the Stingle Photos app
-(https://github.com/stingle/stingle-photos-android) published by [stingle.org](https://stingle.org),
-which can also be used with c2FmZQ.
+c2FmZQ implements an API that is compatible with the official **Stingle Photos** Android app, allowing you to use it as a client with your self-hosted c2FmZQ server.
 
-_This project is **NOT** associated with stingle.org. This is not the code used
-by stingle.org. The code in this repo was developed by studying the client app's code and
-reverse engineering the API. Stingle eventually released their [server code](https://github.com/stingle/stingle-api)
-in April 2023._
+_Disclaimer: This project is an independent implementation of the Stingle API and is **NOT** associated with stingle.org. The original code was developed by studying the official client's behavior. Stingle.org released their own [server code](https://github.com/stingle/stingle-api) in April 2023._
 
 ---
 
-# <a name="security"></a>Notes about security and privacy
+# <a name="design-and-architecture"></a>Design and Architecture
 
-**This software has not been reviewed for security.** Review, comments, and
-contributions are welcome.
-
-The server has no way to decrypt the files that are uploaded by the clients.
-It only knows how many files you have, how big they are, and who they're
-shared with.
-
-The clients have to trust the server when sharing albums. The server provides
-the contact search feature (/v2/sync/getContact), which returns a User ID and 
-a public key for the contact. Then, the album is shared with that User ID and
-public key (via /v2/sync/share).
-
-A malicious server _could_ replace the contact's User ID and public key with
-someone else's, and make the user think they're sharing with their friend while
-actually sharing with an attacker. The command-line client application lets the
-user verify the contact's public key before sharing.
-
-When viewing a shared album, the clients have to trust that the shared content is
-"safe". Since the server can't decrypt the content, it has no way to sanitize it
-either. A malicious user _could_ share content that aims to exploit some unpatched
-vulnerability in the client code.
-
-Once an album is shared, there is really no way to completely _unshare_ it. The
-permissions on the album can be changed, but it is impossible to control what
-happens to the files that were previously shared. They could have been downloaded,
-exported, published to the New York Times, etc.
-
-Since c2FmZQ is compatible with the Stingle Photos API, it uses the
-[same cryptographic algorithms](https://stingle.org/security/) for authentication,
-client-server communication, and file encryption, namely:
-
-* [Argon2](https://en.wikipedia.org/wiki/Argon2) for password key derivation on the
-client side; [bcrypt](https://en.wikipedia.org/wiki/Bcrypt) on the server side,
-* [NaCl](https://en.wikipedia.org/wiki/NaCl_(software)) (Curve25519/XSalsa20/Poly1305)
-for client-server authentication and encryption,
-* [Chacha20+Poly1305](https://ieeexplore.ieee.org/document/7927078) and
-[Blake2b](https://en.wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE2) for file
-encryption and key derivation.
-
-Additionally, it uses [AES256-GCM](https://en.wikipedia.org/wiki/Galois/Counter_Mode) and
-[AES256-CBC](https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#CBC) with
-[HMAC-SHA256](https://en.wikipedia.org/wiki/HMAC) to encrypt its own metadata, and
-[PBKDF2](https://en.wikipedia.org/wiki/PBKDF2) for the passphrase key derivation.
+For a detailed explanation of the project's design, architecture, security considerations, and performance characteristics, please see the [DESIGN.md](DESIGN.md) document.
 
 ---
 
@@ -101,87 +50,26 @@ its data will be stored, and a passphrase to protect the data. The passphrase
 can be read from a file or retrieved with an external command, otherwise the server
 will prompt for it when it starts.
 
-For TLS, the server also needs the TLS key, and certificates. They can be read from
-files, or directly from letsencrypt.org.
-
----
-
-## <a name="stingle"></a>Connecting the Stingle Photos app to this server
-
-Starting with v2.10.2, the [Stingle Photos](https://play.google.com/store/apps/details?id=org.stingle.photos) app can connect to this server without any code changes.
-
-On the _Welcome Screen_, click the setting button at the top right corner and then enter the URL of your server.
-
----
-
-## <a name="scale"></a>Scale and performance
-
-The server was designed for personal use, not for large scale deployment or speed.
-On a modern CPU and SSD, it scales to 10+ concurrent users with tens of thousands of
-files per album, while maintaining a response time well under a second (excluding
-network I/O).
-
-On a small device, e.g. a raspberry pi, it scales to a handful of concurrent
-users with a few thousand files per album, and still maintain an acceptable response time.
-
 ---
 
 ## <a name="run-server"></a>How to run the server
 
-The server is self-contained. It doesn't depend on any external resources. It
-stores all its data on a local filesystem.
+The server is self-contained and can run on various platforms like Linux, macOS, Windows, or a Raspberry Pi. The recommended way to run the `c2FmZQ-server` is with Docker, using [tlsproxy](https://github.com/c2FmZQ/tlsproxy) to handle HTTPS termination and certificate management.
 
-It can run on AWS ([Howto](HOWTO-AWS.md)) or any other cloud providers. It can run
-in a docker container. It can run on Linux, MacOS, Windows. It can run on a
-raspberry pi, or on a NAS. It can run pretty much on anything that has at least
-1 GB of RAM.
+This approach simplifies deployment by automating TLS certificate acquisition from Let's Encrypt and securely proxying traffic to the `c2FmZQ-server` container.
 
---- 
+An example `docker-compose` setup is available in the [tlsproxy repository](https://github.com/c2FmZQ/tlsproxy/tree/main/examples/docker-compose). This is the easiest and most secure way to get started.
 
-### Pull the docker image
-
-You can find the c2fmzq-server image on [hub.docker.com](https://hub.docker.com/r/c2fmzq/c2fmzq-server/tags).
-
-```
-docker pull c2fmzq/c2fmzq-server:latest
-```
-
-Then run the server with something like:
-```
-docker run \
-    --name=c2fmzq-server \
-    -d \
-    -u 1000:1000 \
-    -p 8080:80 \
-    -p 8443:443 \
-    -e C2FMZQ_DOMAIN="${DOMAIN}" \
-    -e C2FMZQ_PASSPHRASE_FILE="" \
-    -e C2FMZQ_PASSPHRASE="<passphrase>" \
-    -v ${DATABASEDIR}:/data \
-    c2fmzq/c2fmzq-server:latest
-```
-
-The TLS credentials are fetched from [letsencrypt.org](https://letsencrypt.org) automatically.
-
-`${DATABASEDIR}` is where all the encrypted data will be stored. The database passphrase can
-stored in a file, or passed in an environment variable. `${DOMAIN}` is the domain or hostname to
-use.
-
-The domain or hostname must resolve to the IP address where the server will be running,
-and firewall and/or port forwarding rules must be in place to allow TCP connections to
-ports 80 and 443 inside the container. The clients will connect to `https://${DOMAIN}/`.
+For users who prefer to manage TLS manually or use other deployment methods, the server can also be built from source and run as a standalone binary.
 
 ---
 
-### Or, build your own docker image
-
-```bash
-docker build -t c2fmzq/c2fmzq-server .
-```
-
 ---
 
-### Or, build it, and run it locally
+<details>
+<summary>Build and run manually from source</summary>
+
+#### Build and run it locally
 
 ```bash
 cd c2FmZQ/c2FmZQ-server
@@ -217,9 +105,7 @@ GLOBAL OPTIONS:
    --licenses                       Show the software licenses. (default: false)
 ```
 
----
-
-### Or, build a binary for another platform, e.g. windows, raspberry pi, or a NAS
+#### Build a binary for another platform, e.g. windows, raspberry pi, or a NAS
 
 ```bash
 cd c2FmZQ/c2FmZQ-server
@@ -227,6 +113,8 @@ GOOS=windows GOARCH=amd64 go build -o c2FmZQ-server.exe
 GOOS=linux GOARCH=arm go build -o c2FmZQ-server-arm
 GOOS=darwin GOARCH=arm64 go build -o c2FmZQ-server-darwin
 ```
+
+</details>
 
 ---
 
@@ -245,27 +133,15 @@ Please note that this is **NOT** a secure configuration. Do not use this to stor
 
 ---
 
-## <a name="experimental"></a>Experimental features
-
-The following features are experimental and could change or disappear in the future.
-
-### <a name="webapp"></a>Progressive Web App
+# <a name="pwa"></a>Progressive Web App (PWA)
 
 The PWA is a full-featured client app for c2FmZQ implemented entirely in HTML and javascript.
 
+![PWA Screenshot](docs/screenshot.png)
+
 [Watch the automated test video](https://youtu.be/R_sQ26unlXQ?si=4FolTMKrpdqP6lzb&t=12)
 
-All the cryptographic operations are performed in the browser using 
-[Sodium-Plus](https://github.com/paragonie/sodium-plus), and the app
-implements the same protocol as the c2FmZQ client and the Stingle Photos app.
-
-To access the PWA:
-
-* Open your server URL in a browser: `https://${DOMAIN}/${path-prefix}/`. This requires `--enable-webapp` to be set on the server. Or,
-* Open https://c2fmzq.org/pwa/ and enter your server URL in the `Server` field. This works with or without `--enable-webapp`, Or,
-* Clone https://github.com/c2FmZQ/c2FmZQ.github.io, and publish it on your own web site.
-
-Currently implemented:
+## Features
 
 * All account management features (account creation, recovery, etc).
 * All album management features (creating, sharing, moving files, etc).
@@ -273,6 +149,21 @@ Currently implemented:
 * Uploading files with streaming encryption.
 * Photo editing, using a local [Filerobot Image Editor](https://scaleflex.github.io/filerobot-image-editor/)
 * Optional push notification when new content or new members are added to shared albums.
+
+## Getting Started
+
+To access the PWA:
+
+* Open your server URL in a browser: `https://${DOMAIN}/${path-prefix}/`. This requires `--enable-webapp` to be set on the server. Or,
+* Open https://c2fmzq.org/pwa/ and enter your server URL in the `Server` field. This works with or without `--enable-webapp`, Or,
+* Clone https://github.com/c2FmZQ/c2FmZQ.github.io, and publish it on your own web site.
+
+<details>
+<summary>Technical Details</summary>
+
+All the cryptographic operations are performed in the browser using
+[Sodium-Plus](https://github.com/paragonie/sodium-plus), and the app
+implements the same protocol as the c2FmZQ client and the Stingle Photos app.
 
 Push notification is disabled by default on the server. To enable it, use the `inspect edit ps`
 command, and set the top-level `enable` option to `true` and set `jwtSubject` to a
@@ -287,6 +178,13 @@ or,
 ```
 sudo docker exec -it c2fmzq-server inspect edit ps
 ```
+</details>
+
+---
+
+## <a name="experimental"></a>Experimental features
+
+The following features are experimental and could change or disappear in the future.
 
 ### <a name="mfa"></a>Multi-Factor Authentication
 
@@ -448,52 +346,6 @@ Bulk copy in and out of the fuse filesystem should work as expected with:
 * rsync, with --no-times
 
 When you're done, hit `CTRL-C` where the `mount` command is running to close and unmount the fuse filesystem.
-
----
-
-## <a name="webbrowser"></a>View content with a Web Browser
-
-The c2FmZQ client can export your files via HTTP so that they can be accessed with a Web Browser
-
-```bash
-./c2FmZQ-client webserver
-
-```
-
-The web server can be configured with `webserver-config`
-
-```bash
-./c2FmZQ-client webserver-config -h
-```
-
-```text
-NAME:
-   c2FmZQ-client webserver-config - Update the web server configuration.
-
-USAGE:
-   c2FmZQ-client webserver-config [command options]  
-
-CATEGORY:
-   Mode
-
-OPTIONS:
-   --address value           The TCP address to bind, e.g. :8080
-   --password value          The password to access the files
-   --export-path value       The file path to export
-   --url-prefix value        The URL prefix to use for each endpoint
-   --allow-caching           Allow http caching (default: true)
-   --clear                   Reset the web server configuration to default values (default: false)
-   --autocert-domain value   Enable autocert with this domain
-   --autocert-address value  Use this network address for autocert. It must be externally reachable on port 80
-   --help, -h                show help (default: false)
-```
-
-For example, to export album `Foo` on port `8080` with password `foobar`, use:
-
-```bash
-./c2FmZQ-client webserver-config --export-path=Foo --address=:8080 --password=foobar
-./c2FmZQ-client webserver
-```
 
 ---
 
