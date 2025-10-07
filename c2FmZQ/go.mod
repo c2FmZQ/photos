@@ -1,6 +1,6 @@
 module c2FmZQ
 
-go 1.24.0
+go 1.25.2
 
 require (
 	bazil.org/fuse v0.0.0-20230120002735-62a210ff1fd5

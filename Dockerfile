@@ -12,7 +12,7 @@ RUN CGO_ENABLED=0 go test ./internal/server/...
 RUN go install ./c2FmZQ-server
 RUN go install ./c2FmZQ-server/inspect
 
-FROM alpine:3.21
+FROM alpine:3.22
 RUN apk update && apk upgrade
 RUN apk add ca-certificates
 RUN mkdir -p /app/bin
