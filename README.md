@@ -3,10 +3,8 @@
 # c2FmZQ
 
 * [Overview](#overview)
-* [Notes about security and privacy](#security)
+* [Design and Architecture](#design-and-architecture)
 * [c2FmZQ Server](#c2FmZQ-server)
-  * [Connecting the Stingle Photos app to this server](#stingle)
-  * [Scale and performance](#scale)
   * [How to run the server](#run-server)
   * [DEMO / test drive](#demo)
 * [Progressive Web App (PWA)](#pwa)
@@ -41,51 +39,9 @@ in April 2023._
 
 ---
 
-# <a name="security"></a>Notes about security and privacy
+# <a name="design-and-architecture"></a>Design and Architecture
 
-**This software has not been reviewed for security.** Review, comments, and
-contributions are welcome.
-
-The server has no way to decrypt the files that are uploaded by the clients.
-It only knows how many files you have, how big they are, and who they're
-shared with.
-
-The clients have to trust the server when sharing albums. The server provides
-the contact search feature (/v2/sync/getContact), which returns a User ID and 
-a public key for the contact. Then, the album is shared with that User ID and
-public key (via /v2/sync/share).
-
-A malicious server _could_ replace the contact's User ID and public key with
-someone else's, and make the user think they're sharing with their friend while
-actually sharing with an attacker. The command-line client application lets the
-user verify the contact's public key before sharing.
-
-When viewing a shared album, the clients have to trust that the shared content is
-"safe". Since the server can't decrypt the content, it has no way to sanitize it
-either. A malicious user _could_ share content that aims to exploit some unpatched
-vulnerability in the client code.
-
-Once an album is shared, there is really no way to completely _unshare_ it. The
-permissions on the album can be changed, but it is impossible to control what
-happens to the files that were previously shared. They could have been downloaded,
-exported, published to the New York Times, etc.
-
-Since c2FmZQ is compatible with the Stingle Photos API, it uses the
-[same cryptographic algorithms](https://stingle.org/security/) for authentication,
-client-server communication, and file encryption, namely:
-
-* [Argon2](https://en.wikipedia.org/wiki/Argon2) for password key derivation on the
-client side; [bcrypt](https://en.wikipedia.org/wiki/Bcrypt) on the server side,
-* [NaCl](https://en.wikipedia.org/wiki/NaCl_(software)) (Curve25519/XSalsa20/Poly1305)
-for client-server authentication and encryption,
-* [Chacha20+Poly1305](https://ieeexplore.ieee.org/document/7927078) and
-[Blake2b](https://en.wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE2) for file
-encryption and key derivation.
-
-Additionally, it uses [AES256-GCM](https://en.wikipedia.org/wiki/Galois/Counter_Mode) and
-[AES256-CBC](https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#CBC) with
-[HMAC-SHA256](https://en.wikipedia.org/wiki/HMAC) to encrypt its own metadata, and
-[PBKDF2](https://en.wikipedia.org/wiki/PBKDF2) for the passphrase key derivation.
+For a detailed explanation of the project's design, architecture, security considerations, and performance characteristics, please see the [DESIGN.md](DESIGN.md) document.
 
 ---
 
@@ -102,26 +58,6 @@ will prompt for it when it starts.
 
 For TLS, the server also needs the TLS key, and certificates. They can be read from
 files, or directly from letsencrypt.org.
-
----
-
-## <a name="stingle"></a>Connecting the Stingle Photos app to this server
-
-Starting with v2.10.2, the [Stingle Photos](https://play.google.com/store/apps/details?id=org.stingle.photos) app can connect to this server without any code changes.
-
-On the _Welcome Screen_, click the setting button at the top right corner and then enter the URL of your server.
-
----
-
-## <a name="scale"></a>Scale and performance
-
-The server was designed for personal use, not for large scale deployment or speed.
-On a modern CPU and SSD, it scales to 10+ concurrent users with tens of thousands of
-files per album, while maintaining a response time well under a second (excluding
-network I/O).
-
-On a small device, e.g. a raspberry pi, it scales to a handful of concurrent
-users with a few thousand files per album, and still maintain an acceptable response time.
 
 ---
 
