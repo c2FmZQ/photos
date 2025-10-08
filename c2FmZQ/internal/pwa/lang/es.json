@@ -18,6 +18,8 @@
   "set-passphrase": "Confirmar",
   "setting-passphrase": "Confirmando",
   "skip-passphrase": "Omitir",
+    "passphrase": "Contraseña:",
+  "retype-passphrase": "Vuelva a escribir la contraseña:"
   "form-email": "Correo electrónico:",
   "form-password": "Contraseña:",
   "form-new-password": "Nueva contraseña:",

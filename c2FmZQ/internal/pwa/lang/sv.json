@@ -18,6 +18,8 @@
   "set-passphrase": "Bekräfta",
   "setting-passphrase": "Bekräftar",
   "skip-passphrase": "Hoppa över",
+    "passphrase": "Lösenordsfras:",
+  "retype-passphrase": "Skriv lösenordsfrasen igen:"
   "form-email": "E-post:",
   "form-password": "Lösenord:",
   "form-new-password": "Nytt lösenord:",

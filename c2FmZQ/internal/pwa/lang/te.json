@@ -18,6 +18,8 @@
   "set-passphrase": "నిర్ధారించు",
   "setting-passphrase": "నిర్ధారిస్తోంది",
   "skip-passphrase": "దాటవేయి",
+    "passphrase": "పాస్‌ఫ్రేజ్:",
+  "retype-passphrase": "పాస్‌ఫ్రేజ్‌ని మళ్లీ టైప్ చేయండి:"
   "form-email": "ఇమెయిల్:",
   "form-password": "పాస్‌వర్డ్:",
   "form-new-password": "కొత్త పాస్‌వర్డ్:",

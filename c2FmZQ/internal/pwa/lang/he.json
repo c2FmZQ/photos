@@ -18,6 +18,8 @@
   "set-passphrase": "אישור",
   "setting-passphrase": "מאשר",
   "skip-passphrase": "דלג",
+  "passphrase": "משפט סיסמה:",
+  "retype-passphrase": "הקלד/י מחדש את משפט הסיסמה:",
   "form-email": "אימייל:",
   "form-password": "סיסמה:",
   "form-new-password": "סיסמה חדשה:",

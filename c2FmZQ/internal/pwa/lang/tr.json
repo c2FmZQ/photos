@@ -18,6 +18,8 @@
   "set-passphrase": "Onayla",
   "setting-passphrase": "Onaylanıyor",
   "skip-passphrase": "Atla",
+    "passphrase": "Parola:",
+  "retype-passphrase": "Parolayı yeniden yazın:"
   "form-email": "E-posta:",
   "form-password": "Şifre:",
   "form-new-password": "Yeni şifre:",

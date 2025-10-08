@@ -18,6 +18,8 @@
   "set-passphrase": "Potvrdit",
   "setting-passphrase": "Potvrzování",
   "skip-passphrase": "Přeskočit",
+  "passphrase": "Heslo:",
+  "retype-passphrase": "Zadejte heslo znovu:",
   "form-email": "E-mail:",
   "form-password": "Heslo:",
   "form-new-password": "Nové heslo:",

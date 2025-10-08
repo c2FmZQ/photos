@@ -18,6 +18,8 @@
   "set-passphrase": "تایید",
   "setting-passphrase": "در حال تایید",
   "skip-passphrase": "رد شدن",
+    "passphrase": "رمز عبور:",
+  "retype-passphrase": "رمز عبور را دوباره تایپ کنید:"
   "form-email": "ایمیل:",
   "form-password": "رمز عبور:",
   "form-new-password": "رمز عبور جدید:",

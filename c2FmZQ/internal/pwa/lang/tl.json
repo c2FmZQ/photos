@@ -18,6 +18,8 @@
   "set-passphrase": "Kumpirmahin",
   "setting-passphrase": "Kinukumpirma",
   "skip-passphrase": "Laktawan",
+  "passphrase": "Passphrase:",
+  "retype-passphrase": "I-type muli ang passphrase:",
   "form-email": "Email:",
   "form-password": "Password:",
   "form-new-password": "Bagong password:",

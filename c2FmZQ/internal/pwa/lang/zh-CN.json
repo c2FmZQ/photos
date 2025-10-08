@@ -18,6 +18,8 @@
   "set-passphrase": "确认",
   "setting-passphrase": "正在确认",
   "skip-passphrase": "跳过",
+    "passphrase": "密码:",
+  "retype-passphrase": "重新输入密码:"
   "form-email": "电子邮件:",
   "form-password": "密码:",
   "form-new-password": "新密码:",

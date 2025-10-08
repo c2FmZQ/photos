@@ -18,6 +18,8 @@
   "set-passphrase": "Bekreft",
   "setting-passphrase": "Bekrefter",
   "skip-passphrase": "Hopp over",
+    "passphrase": "Passordfrase:",
+  "retype-passphrase": "Skriv passordfrasen på nytt:"
   "form-email": "E-post:",
   "form-password": "Passord:",
   "form-new-password": "Nytt passord:",

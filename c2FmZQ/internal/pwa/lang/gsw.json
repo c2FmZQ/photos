@@ -18,6 +18,8 @@
   "set-passphrase": "Bestäätige",
   "setting-passphrase": "Am bestäätige",
   "skip-passphrase": "Überspringe",
+    "passphrase": "Passphrasä:",
+  "retype-passphrase": "Passphrasä nomol iigee:"
   "form-email": "E-Mail:",
   "form-password": "Passwort:",
   "form-new-password": "Neus Passwort:",

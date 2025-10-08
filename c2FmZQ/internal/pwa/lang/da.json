@@ -18,6 +18,8 @@
   "set-passphrase": "Bekræft",
   "setting-passphrase": "Bekræfter",
   "skip-passphrase": "Spring over",
+  "passphrase": "Adgangskode:",
+  "retype-passphrase": "Gentag adgangskode:",
   "form-email": "E-mail:",
   "form-password": "Adgangskode:",
   "form-new-password": "Ny adgangskode:",

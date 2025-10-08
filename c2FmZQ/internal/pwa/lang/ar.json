@@ -18,6 +18,8 @@
   "set-passphrase": "يتأكد",
   "setting-passphrase": "تأكيد",
   "skip-passphrase": "يتخطى",
+  "passphrase": "عبارة المرور:",
+  "retype-passphrase": "إعادة كتابة عبارة المرور:",
   "form-email": "بريد إلكتروني:",
   "form-password": "كلمة المرور:",
   "form-new-password": "كلمة المرور الجديدة:",

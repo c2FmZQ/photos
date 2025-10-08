@@ -18,6 +18,8 @@
   "set-passphrase": "megerősít",
   "setting-passphrase": "megerősítés",
   "skip-passphrase": "Kihagyás",
+    "passphrase": "Jelmondat:",
+  "retype-passphrase": "Jelmondat újra:"
   "form-email": "Email:",
   "form-password": "Jelszó:",
   "form-new-password": "Új jelszó:",

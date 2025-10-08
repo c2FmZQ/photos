@@ -18,6 +18,8 @@
   "set-passphrase": "Sahkan",
   "setting-passphrase": "Mengesahkan",
   "skip-passphrase": "Langkau",
+    "passphrase": "Frasa laluan:",
+  "retype-passphrase": "Taip semula frasa laluan:"
   "form-email": "E-mel:",
   "form-password": "Kata Laluan:",
   "form-new-password": "Kata Laluan Baru:",

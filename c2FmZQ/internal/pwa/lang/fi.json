@@ -18,6 +18,8 @@
   "set-passphrase": "Vahvista",
   "setting-passphrase": "Vahvistetaan",
   "skip-passphrase": "Ohita",
+    "passphrase": "Salasana:",
+  "retype-passphrase": "Kirjoita salasana uudelleen:"
   "form-email": "Sähköposti:",
   "form-password": "Salasana:",
   "form-new-password": "Uusi salasana:",

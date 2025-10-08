@@ -18,6 +18,8 @@
   "set-passphrase": "Confirm",
   "setting-passphrase": "Confirming",
   "skip-passphrase": "Skip",
+  "passphrase": "Passphrase:",
+  "retype-passphrase": "Retype passphrase:",
   "form-email": "Email:",
   "form-password": "Password:",
   "form-new-password": "New password:",

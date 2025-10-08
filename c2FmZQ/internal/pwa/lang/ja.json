@@ -18,6 +18,8 @@
   "set-passphrase": "確認",
   "setting-passphrase": "確認中",
   "skip-passphrase": "スキップ",
+    "passphrase": "パスフレーズ:",
+  "retype-passphrase": "パスフレーズを再入力してください:"
   "form-email": "Eメール:",
   "form-password": "パスワード:",
   "form-new-password": "新しいパスワード:",
