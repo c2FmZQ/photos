@@ -207,5 +207,7 @@
   "cover": "تصویر جلد:",
   "cover-selected": "تصویر انتخاب شده",
   "cover-latest": "جدیدترین",
-  "cover-blank": "بدون تصویر"
+  "cover-blank": "بدون تصویر",
+  "passphrase": "عبارت عبور",
+  "retype-passphrase": "عبارت عبور را دوباره تایپ کنید"
 }

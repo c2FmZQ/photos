@@ -207,5 +207,7 @@
   "cover": "Forsidebillede:",
   "cover-selected": "Valgt billede",
   "cover-latest": "Seneste",
-  "cover-blank": "Intet billede"
+  "cover-blank": "Intet billede",
+  "passphrase": "Adgangskode",
+  "retype-passphrase": "Gentag adgangskode"
 }

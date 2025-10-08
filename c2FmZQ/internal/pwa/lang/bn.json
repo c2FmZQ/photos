@@ -207,5 +207,7 @@
   "cover": "কভার ছবি:",
   "cover-selected": "নির্বাচিত ছবি",
   "cover-latest": "সাম্প্রতিকতম",
-  "cover-blank": "কোনো ছবি নেই"
+  "cover-blank": "কোনো ছবি নেই",
+  "passphrase": "পাসফ্রেজ",
+  "retype-passphrase": "পাসফ্রেজ পুনরায় টাইপ করুন"
 }

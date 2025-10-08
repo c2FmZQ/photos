@@ -207,5 +207,7 @@
   "cover": "Kansikuva:",
   "cover-selected": "Valittu kuva",
   "cover-latest": "Uusin",
-  "cover-blank": "Ei kuvaa"
+  "cover-blank": "Ei kuvaa",
+  "passphrase": "Salasana",
+  "retype-passphrase": "Kirjoita salasana uudelleen"
 }

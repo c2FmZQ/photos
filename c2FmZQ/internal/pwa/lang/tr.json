@@ -207,5 +207,7 @@
   "cover": "Kapak resmi:",
   "cover-selected": "Seçilen resim",
   "cover-latest": "En son",
-  "cover-blank": "Resim yok"
+  "cover-blank": "Resim yok",
+  "passphrase": "Parola",
+  "retype-passphrase": "Parolayı yeniden yazın"
 }

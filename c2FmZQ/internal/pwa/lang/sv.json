@@ -207,5 +207,7 @@
   "cover": "Omslagsbild:",
   "cover-selected": "Vald bild",
   "cover-latest": "Senaste",
-  "cover-blank": "Ingen bild"
+  "cover-blank": "Ingen bild",
+  "passphrase": "Lösenfras",
+  "retype-passphrase": "Skriv lösenfras igen"
 }

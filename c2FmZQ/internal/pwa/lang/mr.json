@@ -207,5 +207,7 @@
   "cover": "कव्हर प्रतिमा:",
   "cover-selected": "निवडलेली प्रतिमा",
   "cover-latest": "नवीनतम",
-  "cover-blank": "कोणतीही प्रतिमा नाही"
+  "cover-blank": "कोणतीही प्रतिमा नाही",
+  "passphrase": "पासफ्रेज",
+  "retype-passphrase": "पासफ्रेज पुन्हा टाइप करा"
 }

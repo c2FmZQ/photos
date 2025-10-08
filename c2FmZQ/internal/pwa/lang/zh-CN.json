@@ -207,5 +207,7 @@
   "cover": "封面图片:",
   "cover-selected": "所选图片",
   "cover-latest": "最新",
-  "cover-blank": "无图片"
+  "cover-blank": "无图片",
+  "passphrase": "密码",
+  "retype-passphrase": "重新输入密码"
 }

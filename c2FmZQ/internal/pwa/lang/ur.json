@@ -207,5 +207,7 @@
   "cover": "کور تصویر:",
   "cover-selected": "منتخب تصویر",
   "cover-latest": "تازہ ترین",
-  "cover-blank": "کوئی تصویر نہیں"
+  "cover-blank": "کوئی تصویر نہیں",
+  "passphrase": "پاس ورڈ",
+  "retype-passphrase": "پاس ورڈ دوبارہ ٹائپ کریں"
 }

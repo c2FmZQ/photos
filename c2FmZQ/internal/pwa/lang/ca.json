@@ -207,5 +207,7 @@
   "cover": "Imatge de portada:",
   "cover-selected": "Imatge seleccionada",
   "cover-latest": "La més recent",
-  "cover-blank": "Sense imatge"
+  "cover-blank": "Sense imatge",
+  "passphrase": "Contrasenya",
+  "retype-passphrase": "Reescriviu la contrasenya"
 }

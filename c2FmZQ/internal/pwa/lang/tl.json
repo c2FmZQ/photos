@@ -207,5 +207,7 @@
   "cover": "Larawan sa pabalat:",
   "cover-selected": "Napiling larawan",
   "cover-latest": "Pinakabago",
-  "cover-blank": "Walang larawan"
+  "cover-blank": "Walang larawan",
+  "passphrase": "Passphrase",
+  "retype-passphrase": "I-type muli ang passphrase"
 }

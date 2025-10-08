@@ -207,5 +207,7 @@
   "cover": "صورة الغلاف:",
   "cover-selected": "الصورة المحددة",
   "cover-latest": "الأحدث",
-  "cover-blank": "لا توجد صورة"
+  "cover-blank": "لا توجد صورة",
+  "passphrase": "عبارة المرور",
+  "retype-passphrase": "إعادة كتابة عبارة المرور"
 }

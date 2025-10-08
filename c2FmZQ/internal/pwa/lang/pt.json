@@ -207,5 +207,7 @@
   "cover": "Imagem de capa:",
   "cover-selected": "Imagem selecionada",
   "cover-latest": "Mais recente",
-  "cover-blank": "Nenhuma imagem"
+  "cover-blank": "Nenhuma imagem",
+  "passphrase": "Frase de acesso",
+  "retype-passphrase": "Redigite a frase de acesso"
 }

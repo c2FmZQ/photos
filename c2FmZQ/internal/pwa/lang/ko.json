@@ -207,5 +207,7 @@
   "cover": "표지 이미지:",
   "cover-selected": "선택한 이미지",
   "cover-latest": "최신",
-  "cover-blank": "이미지 없음"
+  "cover-blank": "이미지 없음",
+  "passphrase": "암호",
+  "retype-passphrase": "암호를 다시 입력"
 }

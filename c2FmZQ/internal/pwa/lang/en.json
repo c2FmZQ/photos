@@ -207,5 +207,7 @@
   "cover": "Cover image:",
   "cover-selected": "Selected image",
   "cover-latest": "Most recent",
-  "cover-blank": "No image"
+  "cover-blank": "No image",
+  "passphrase": "Passphrase",
+  "retype-passphrase": "Retype passphrase"
 }

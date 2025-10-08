@@ -207,5 +207,7 @@
   "cover": "Imagine de copertă:",
   "cover-selected": "Imagine selectată",
   "cover-latest": "Cea mai recentă",
-  "cover-blank": "Nicio imagine"
+  "cover-blank": "Nicio imagine",
+  "passphrase": "Fraza de acces",
+  "retype-passphrase": "Reintroduceți fraza de acces"
 }

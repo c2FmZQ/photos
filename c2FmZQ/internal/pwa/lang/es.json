@@ -207,5 +207,7 @@
   "cover": "Imagen de portada:",
   "cover-selected": "Imagen seleccionada",
   "cover-latest": "Más reciente",
-  "cover-blank": "Sin imagen"
+  "cover-blank": "Sin imagen",
+  "passphrase": "Contraseña",
+  "retype-passphrase": "Vuelva a escribir la contraseña"
 }

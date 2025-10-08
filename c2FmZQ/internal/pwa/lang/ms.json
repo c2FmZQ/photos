@@ -207,5 +207,7 @@
   "cover": "Imej penutup:",
   "cover-selected": "Imej yang dipilih",
   "cover-latest": "Terkini",
-  "cover-blank": "Tiada imej"
+  "cover-blank": "Tiada imej",
+  "passphrase": "Frasa laluan",
+  "retype-passphrase": "Taip semula frasa laluan"
 }

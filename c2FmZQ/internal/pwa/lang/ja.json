@@ -207,5 +207,7 @@
   "cover": "カバー画像:",
   "cover-selected": "選択した画像",
   "cover-latest": "最新",
-  "cover-blank": "画像なし"
+  "cover-blank": "画像なし",
+  "passphrase": "パスフレーズ",
+  "retype-passphrase": "パスフレーズを再入力"
 }

@@ -207,5 +207,7 @@
   "cover": "Forsidebilde:",
   "cover-selected": "Valgt bilde",
   "cover-latest": "Siste",
-  "cover-blank": "Ingen bilde"
+  "cover-blank": "Ingen bilde",
+  "passphrase": "Passordfrase",
+  "retype-passphrase": "Gjenta passordfrase"
 }

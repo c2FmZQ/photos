@@ -207,5 +207,7 @@
   "cover": "Borítókép:",
   "cover-selected": "Kiválasztott kép",
   "cover-latest": "Legutóbbi",
-  "cover-blank": "Nincs kép"
+  "cover-blank": "Nincs kép",
+  "passphrase": "Jelmondat",
+  "retype-passphrase": "Jelmondat újra"
 }

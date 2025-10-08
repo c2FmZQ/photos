@@ -207,5 +207,7 @@
   "cover": "Obalový obrázok:",
   "cover-selected": "Vybraný obrázok",
   "cover-latest": "Najnovší",
-  "cover-blank": "Žiadny obrázok"
+  "cover-blank": "Žiadny obrázok",
+  "passphrase": "Heslo",
+  "retype-passphrase": "Znovu zadajte heslo"
 }

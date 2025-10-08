@@ -207,5 +207,7 @@
   "cover": "కవర్ చిత్రం:",
   "cover-selected": "ఎంచుకున్న చిత్రం",
   "cover-latest": "ఇటీవలిది",
-  "cover-blank": "చిత్రం లేదు"
+  "cover-blank": "చిత్రం లేదు",
+  "passphrase": "పాస్‌ఫ్రేజ్",
+  "retype-passphrase": "పాస్‌ఫ్రేజ్‌ని మళ్లీ టైప్ చేయండి"
 }

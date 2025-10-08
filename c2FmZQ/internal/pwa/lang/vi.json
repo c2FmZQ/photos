@@ -207,5 +207,7 @@
   "cover": "Ảnh bìa:",
   "cover-selected": "Ảnh đã chọn",
   "cover-latest": "Mới nhất",
-  "cover-blank": "Không có ảnh"
+  "cover-blank": "Không có ảnh",
+  "passphrase": "Cụm mật khẩu",
+  "retype-passphrase": "Nhập lại cụm mật khẩu"
 }

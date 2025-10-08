@@ -207,5 +207,7 @@
   "cover": "Εικόνα εξωφύλλου:",
   "cover-selected": "Επιλεγμένη εικόνα",
   "cover-latest": "Πιο πρόσφατη",
-  "cover-blank": "Χωρίς εικόνα"
+  "cover-blank": "Χωρίς εικόνα",
+  "passphrase": "Συνθηματικό",
+  "retype-passphrase": "Πληκτρολογήστε ξανά το συνθηματικό"
 }

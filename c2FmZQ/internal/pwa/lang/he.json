@@ -207,5 +207,7 @@
   "cover": "תמונת כריכה:",
   "cover-selected": "תמונה נבחרה",
   "cover-latest": "האחרונה",
-  "cover-blank": "אין תמונה"
+  "cover-blank": "אין תמונה",
+  "passphrase": "סיסמה",
+  "retype-passphrase": "הקלד סיסמה שוב"
 }
