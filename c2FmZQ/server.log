@@ -1,3 +1,0 @@
-I1008 212620.449 c2FmZQ-server/main.go:260] Starting server WITHOUT TLS
-F1008 212620.450 c2FmZQ-server/main.go:262] s.Run: listen tcp :8080: bind: address already in use
-exit status 1
