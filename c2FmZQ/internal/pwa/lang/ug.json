@@ -207,5 +207,7 @@
   "cover": "مۇقاۋا رەسىمى:",
   "cover-selected": "تاللانغان رەسىم",
   "cover-latest": "ئەڭ يېڭى",
-  "cover-blank": "رەسىم يوق"
+  "cover-blank": "رەسىم يوق",
+  "passphrase": "پارول",
+  "retype-passphrase": "پارولنى قايتا يېזىڭ"
 }

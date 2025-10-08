@@ -61,10 +61,8 @@ class UI {
     this.title_ = document.querySelector('title');
     this.passphraseInput_ = document.querySelector('#passphrase-input');
     this.passphraseInputLabel_ = document.querySelector('#passphrase-input-label');
-    this.passphraseInputLabel_.textContent = _T('passphrase');
     this.passphraseInput2_ = document.querySelector('#passphrase-input2');
     this.passphraseInput2Label_ = document.querySelector('#passphrase-input2-label');
-    this.passphraseInput2Label_.textContent = _T('retype-passphrase');
     this.setPassphraseButton_ = document.querySelector('#set-passphrase-button');
     this.showPassphraseButton_ = document.querySelector('#show-passphrase-button');
     this.showPassphraseButton_.textContent = _T('show');

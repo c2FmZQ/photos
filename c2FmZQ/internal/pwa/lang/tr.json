@@ -15,8 +15,6 @@
   "recover-account-failed": "Hesap kurtarma başarısız",
   "enter-passphrase-text": "<p>Uygulama verilerinizi şifrelemek için bir parola girin.</p>",
   "reenter-passphrase-text": "<p>Uygulama verilerinizin kilidini açın</p>",
-  "passphrase": "Parola:",
-  "retype-passphrase": "Parolayı tekrar yaz:",
   "set-passphrase": "Onayla",
   "setting-passphrase": "Onaylanıyor",
   "skip-passphrase": "Atla",
@@ -209,5 +207,7 @@
   "cover": "Kapak resmi:",
   "cover-selected": "Seçilen resim",
   "cover-latest": "En son",
-  "cover-blank": "Resim yok"
+  "cover-blank": "Resim yok",
+  "passphrase": "Parola",
+  "retype-passphrase": "Parolayı yeniden yazın"
 }

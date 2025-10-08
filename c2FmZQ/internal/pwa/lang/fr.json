@@ -15,8 +15,6 @@
   "recover-account-failed": "Échec de la récupération de compte",
   "enter-passphrase-text": "<p>Saisissez une phrase secrète pour chiffrer les données de votre application.</p>",
   "reenter-passphrase-text": "<p>Déverrouillez les données de votre application</p>",
-  "passphrase": "Phrase secrète :",
-  "retype-passphrase": "Retapez la phrase secrète :",
   "set-passphrase": "Confirmer",
   "setting-passphrase": "Confirmation en cours",
   "skip-passphrase": "Ignorer",
@@ -209,5 +207,7 @@
   "cover": "Image de couverture :",
   "cover-selected": "Image sélectionnée",
   "cover-latest": "La plus récente",
-  "cover-blank": "Aucune image"
+  "cover-blank": "Aucune image",
+  "passphrase": "Phrase de passe",
+  "retype-passphrase": "Retapez la phrase de passe"
 }

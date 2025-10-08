@@ -15,8 +15,6 @@
   "recover-account-failed": "Recupero account non riuscito",
   "enter-passphrase-text": "<p>Inserisci una passphrase per crittografare i dati della tua app.</p>",
   "reenter-passphrase-text": "<p>Sblocca i dati della tua app</p>",
-  "passphrase": "Passphrase:",
-  "retype-passphrase": "Reinserisci la passphrase:",
   "set-passphrase": "Conferma",
   "setting-passphrase": "Conferma in corso",
   "skip-passphrase": "Salta",
@@ -209,5 +207,7 @@
   "cover": "Immagine di copertina:",
   "cover-selected": "Immagine selezionata",
   "cover-latest": "Più recente",
-  "cover-blank": "Nessuna immagine"
+  "cover-blank": "Nessuna immagine",
+  "passphrase": "Passphrase",
+  "retype-passphrase": "Reinserisci la passphrase"
 }

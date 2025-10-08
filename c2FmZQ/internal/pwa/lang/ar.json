@@ -15,8 +15,6 @@
   "recover-account-failed": "فشل استرداد الحساب",
   "enter-passphrase-text": "<p>أدخل عبارة مرور لتشفير بيانات تطبيقك.</p>",
   "reenter-passphrase-text": "<p>افتح بيانات تطبيقك</p>",
-  "passphrase": "عبارة المرور:",
-  "retype-passphrase": "إعادة كتابة عبارة المرور:",
   "set-passphrase": "يتأكد",
   "setting-passphrase": "تأكيد",
   "skip-passphrase": "يتخطى",
@@ -209,5 +207,7 @@
   "cover": "صورة الغلاف:",
   "cover-selected": "الصورة المحددة",
   "cover-latest": "الأحدث",
-  "cover-blank": "لا توجد صورة"
+  "cover-blank": "لا توجد صورة",
+  "passphrase": "عبارة المرور",
+  "retype-passphrase": "إعادة كتابة عبارة المرور"
 }

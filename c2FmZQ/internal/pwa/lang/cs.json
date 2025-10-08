@@ -15,8 +15,6 @@
   "recover-account-failed": "Obnovení účtu se nezdařilo",
   "enter-passphrase-text": "<p>Zadejte heslo pro zašifrování dat vaší aplikace.</p>",
   "reenter-passphrase-text": "<p>Odemkněte data vaší aplikace</p>",
-  "passphrase": "Heslo:",
-  "retype-passphrase": "Zadejte heslo znovu:",
   "set-passphrase": "Potvrdit",
   "setting-passphrase": "Potvrzování",
   "skip-passphrase": "Přeskočit",
@@ -209,5 +207,7 @@
   "cover": "Obalový obrázek:",
   "cover-selected": "Vybraný obrázek",
   "cover-latest": "Nejnovější",
-  "cover-blank": "Žádný obrázek"
+  "cover-blank": "Žádný obrázek",
+  "passphrase": "Heslo",
+  "retype-passphrase": "Znovu zadejte heslo"
 }

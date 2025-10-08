@@ -15,8 +15,6 @@
   "recover-account-failed": "Gjenoppretting av konto mislyktes",
   "enter-passphrase-text": "<p>Angi en passfrase for å kryptere appdataene dine.</p>",
   "reenter-passphrase-text": "<p>Lås opp appdataene dine</p>",
-  "passphrase": "Passfrase:",
-  "retype-passphrase": "Gjenta passfrase:",
   "set-passphrase": "Bekreft",
   "setting-passphrase": "Bekrefter",
   "skip-passphrase": "Hopp over",
@@ -209,5 +207,7 @@
   "cover": "Forsidebilde:",
   "cover-selected": "Valgt bilde",
   "cover-latest": "Siste",
-  "cover-blank": "Ingen bilde"
+  "cover-blank": "Ingen bilde",
+  "passphrase": "Passordfrase",
+  "retype-passphrase": "Gjenta passordfrase"
 }

@@ -15,8 +15,6 @@
   "recover-account-failed": "Det gick inte att återställa kontot",
   "enter-passphrase-text": "<p>Ange en lösenfras för att kryptera dina appdata.</p>",
   "reenter-passphrase-text": "<p>Lås upp dina appdata</p>",
-  "passphrase": "Lösenfras:",
-  "retype-passphrase": "Skriv lösenfras igen:",
   "set-passphrase": "Bekräfta",
   "setting-passphrase": "Bekräftar",
   "skip-passphrase": "Hoppa över",
@@ -209,5 +207,7 @@
   "cover": "Omslagsbild:",
   "cover-selected": "Vald bild",
   "cover-latest": "Senaste",
-  "cover-blank": "Ingen bild"
+  "cover-blank": "Ingen bild",
+  "passphrase": "Lösenfras",
+  "retype-passphrase": "Skriv lösenfras igen"
 }

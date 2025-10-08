@@ -15,8 +15,6 @@
   "recover-account-failed": "การกู้คืนบัญชีล้มเหลว",
   "enter-passphrase-text": "<p>ป้อนข้อความรหัสผ่านเพื่อเข้ารหัสข้อมูลแอปของคุณ</p>",
   "reenter-passphrase-text": "<p>ปลดล็อกข้อมูลแอปของคุณ</p>",
-  "passphrase": "รหัสผ่าน:",
-  "retype-passphrase": "พิมพ์รหัสผ่านอีกครั้ง:",
   "set-passphrase": "ยืนยัน",
   "setting-passphrase": "กำลังยืนยัน",
   "skip-passphrase": "ข้าม",
@@ -209,5 +207,7 @@
   "cover": "ภาพหน้าปก:",
   "cover-selected": "ภาพที่เลือก",
   "cover-latest": "ล่าสุด",
-  "cover-blank": "ไม่มีภาพ"
+  "cover-blank": "ไม่มีภาพ",
+  "passphrase": "รหัสผ่าน",
+  "retype-passphrase": "พิมพ์รหัสผ่านอีกครั้ง"
 }

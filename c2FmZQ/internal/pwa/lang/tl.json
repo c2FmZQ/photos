@@ -15,8 +15,6 @@
   "recover-account-failed": "Nabigo ang pagbabalik ng account",
   "enter-passphrase-text": "<p>Magpasok ng passphrase para i-encrypt ang data ng iyong app.</p>",
   "reenter-passphrase-text": "<p>I-unlock ang data ng iyong app</p>",
-  "passphrase": "Passphrase:",
-  "retype-passphrase": "I-type muli ang passphrase:",
   "set-passphrase": "Kumpirmahin",
   "setting-passphrase": "Kinukumpirma",
   "skip-passphrase": "Laktawan",
@@ -209,5 +207,7 @@
   "cover": "Larawan sa pabalat:",
   "cover-selected": "Napiling larawan",
   "cover-latest": "Pinakabago",
-  "cover-blank": "Walang larawan"
+  "cover-blank": "Walang larawan",
+  "passphrase": "Passphrase",
+  "retype-passphrase": "I-type muli ang passphrase"
 }

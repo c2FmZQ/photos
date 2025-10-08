@@ -15,8 +15,6 @@
   "recover-account-failed": "Odzyskiwanie konta nie powiodło się",
   "enter-passphrase-text": "<p>Wprowadź hasło, aby zaszyfrować dane aplikacji.</p>",
   "reenter-passphrase-text": "<p>Odblokuj dane aplikacji</p>",
-  "passphrase": "Fraza hasłowa:",
-  "retype-passphrase": "Powtórz frazę hasłową:",
   "set-passphrase": "Potwierdź",
   "setting-passphrase": "Potwierdzanie",
   "skip-passphrase": "Pomiń",
@@ -209,5 +207,7 @@
   "cover": "Zdjęcie okładki:",
   "cover-selected": "Wybrane zdjęcie",
   "cover-latest": "Najnowsze",
-  "cover-blank": "Brak zdjęcia"
+  "cover-blank": "Brak zdjęcia",
+  "passphrase": "Hasło",
+  "retype-passphrase": "Wpisz ponownie hasło"
 }

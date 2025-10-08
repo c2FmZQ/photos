@@ -15,8 +15,6 @@
   "recover-account-failed": "Error al recuperar la cuenta",
   "enter-passphrase-text": "<p>Ingrese una frase de contraseña para cifrar los datos de su aplicación.</p>",
   "reenter-passphrase-text": "<p>Desbloquee los datos de su aplicación</p>",
-  "passphrase": "Contraseña:",
-  "retype-passphrase": "Vuelva a escribir la contraseña:",
   "set-passphrase": "Confirmar",
   "setting-passphrase": "Confirmando",
   "skip-passphrase": "Omitir",
@@ -209,5 +207,7 @@
   "cover": "Imagen de portada:",
   "cover-selected": "Imagen seleccionada",
   "cover-latest": "Más reciente",
-  "cover-blank": "Sin imagen"
+  "cover-blank": "Sin imagen",
+  "passphrase": "Contraseña",
+  "retype-passphrase": "Vuelva a escribir la contraseña"
 }

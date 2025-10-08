@@ -15,8 +15,6 @@
   "recover-account-failed": "Gagal Memulihkan Akaun",
   "enter-passphrase-text": "<p>Masukkan frasa laluan untuk menyulitkan data aplikasi anda.</p>",
   "reenter-passphrase-text": "<p>Buka kunci data aplikasi anda</p>",
-  "passphrase": "Frasa laluan:",
-  "retype-passphrase": "Taip semula frasa laluan:",
   "set-passphrase": "Sahkan",
   "setting-passphrase": "Mengesahkan",
   "skip-passphrase": "Langkau",
@@ -209,5 +207,7 @@
   "cover": "Imej penutup:",
   "cover-selected": "Imej yang dipilih",
   "cover-latest": "Terkini",
-  "cover-blank": "Tiada imej"
+  "cover-blank": "Tiada imej",
+  "passphrase": "Frasa laluan",
+  "retype-passphrase": "Taip semula frasa laluan"
 }

@@ -15,8 +15,6 @@
   "recover-account-failed": "खाते पुनर्प्राप्ती अयशस्वी",
   "enter-passphrase-text": "<p>आपला अॅप डेटा एनक्रिप्ट करण्यासाठी पासफ्रेज प्रविष्ट करा.</p>",
   "reenter-passphrase-text": "<p>आपला अॅप डेटा अनलॉक करा</p>",
-  "passphrase": "पासफ्रेज:",
-  "retype-passphrase": "पासफ्रेज पुन्हा टाइप करा:",
   "set-passphrase": "पुष्टी करा",
   "setting-passphrase": "पुष्टी करत आहे",
   "skip-passphrase": "वगळा",
@@ -209,5 +207,7 @@
   "cover": "कव्हर प्रतिमा:",
   "cover-selected": "निवडलेली प्रतिमा",
   "cover-latest": "नवीनतम",
-  "cover-blank": "कोणतीही प्रतिमा नाही"
+  "cover-blank": "कोणतीही प्रतिमा नाही",
+  "passphrase": "पासफ्रेज",
+  "retype-passphrase": "पासफ्रेज पुन्हा टाइप करा"
 }

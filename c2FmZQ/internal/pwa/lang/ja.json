@@ -15,8 +15,6 @@
   "recover-account-failed": "アカウントの回復に失敗しました",
   "enter-passphrase-text": "<p>アプリのデータを暗号化するためのパスフレーズを入力してください。</p>",
   "reenter-passphrase-text": "<p>アプリのデータのロックを解除します</p>",
-  "passphrase": "パスフレーズ:",
-  "retype-passphrase": "パスフレーズを再入力してください:",
   "set-passphrase": "確認",
   "setting-passphrase": "確認中",
   "skip-passphrase": "スキップ",
@@ -209,5 +207,7 @@
   "cover": "カバー画像:",
   "cover-selected": "選択した画像",
   "cover-latest": "最新",
-  "cover-blank": "画像なし"
+  "cover-blank": "画像なし",
+  "passphrase": "パスフレーズ",
+  "retype-passphrase": "パスフレーズを再入力"
 }

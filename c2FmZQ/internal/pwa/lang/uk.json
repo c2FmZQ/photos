@@ -15,8 +15,6 @@
   "recover-account-failed": "Не вдалося відновити обліковий запис",
   "enter-passphrase-text": "<p>Введіть парольну фразу, щоб зашифрувати дані вашої програми.</p>",
   "reenter-passphrase-text": "<p>Розблокуйте дані вашої програми</p>",
-  "passphrase": "Парольна фраза:",
-  "retype-passphrase": "Повторіть парольну фразу:",
   "set-passphrase": "Підтвердити",
   "setting-passphrase": "Підтвердження",
   "skip-passphrase": "Пропустити",
@@ -209,5 +207,7 @@
   "cover": "Зображення обкладинки:",
   "cover-selected": "Вибране зображення",
   "cover-latest": "Найновіший",
-  "cover-blank": "Немає зображення"
+  "cover-blank": "Немає зображення",
+  "passphrase": "Парольна фраза",
+  "retype-passphrase": "Повторіть парольну фразу"
 }

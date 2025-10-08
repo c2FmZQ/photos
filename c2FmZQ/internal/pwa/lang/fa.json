@@ -15,8 +15,6 @@
   "recover-account-failed": "بازیابی حساب ناموفق بود",
   "enter-passphrase-text": "<p>برای رمزگذاری داده های برنامه خود یک عبارت عبور وارد کنید.</p>",
   "reenter-passphrase-text": "<p>داده های برنامه خود را باز کنید</p>",
-  "passphrase": "رمز عبور:",
-  "retype-passphrase": "رمز عبور را دوباره تایپ کنید:",
   "set-passphrase": "تایید",
   "setting-passphrase": "در حال تایید",
   "skip-passphrase": "رد شدن",
@@ -209,5 +207,7 @@
   "cover": "تصویر جلد:",
   "cover-selected": "تصویر انتخاب شده",
   "cover-latest": "جدیدترین",
-  "cover-blank": "بدون تصویر"
+  "cover-blank": "بدون تصویر",
+  "passphrase": "عبارت عبور",
+  "retype-passphrase": "عبارت عبور را دوباره تایپ کنید"
 }

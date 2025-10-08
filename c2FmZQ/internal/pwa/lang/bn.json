@@ -15,8 +15,6 @@
   "recover-account-failed": "অ্যাকাউন্ট পুনরুদ্ধার ব্যর্থ হয়েছে",
   "enter-passphrase-text": "<p>আপনার অ্যাপ ডেটা এনক্রিপ্ট করতে একটি পাসফ্রেজ লিখুন।</p>",
   "reenter-passphrase-text": "<p>আপনার অ্যাপ ডেটা আনলক করুন</p>",
-  "passphrase": "পাসফ্রেজ:",
-  "retype-passphrase": "পাসফ্রেজ পুনরায় টাইপ করুন:",
   "set-passphrase": "নিশ্চিত করুন",
   "setting-passphrase": "নিশ্চিত করা হচ্ছে",
   "skip-passphrase": "এড়িয়ে যান",
@@ -209,5 +207,7 @@
   "cover": "কভার ছবি:",
   "cover-selected": "নির্বাচিত ছবি",
   "cover-latest": "সাম্প্রতিকতম",
-  "cover-blank": "কোনো ছবি নেই"
+  "cover-blank": "কোনো ছবি নেই",
+  "passphrase": "পাসফ্রেজ",
+  "retype-passphrase": "পাসফ্রেজ পুনরায় টাইপ করুন"
 }

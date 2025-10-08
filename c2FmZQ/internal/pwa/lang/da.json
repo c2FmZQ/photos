@@ -15,8 +15,6 @@
   "recover-account-failed": "Gendannelse af konto mislykkedes",
   "enter-passphrase-text": "<p>Indtast en adgangskode for at kryptere dine appdata.</p>",
   "reenter-passphrase-text": "<p>Lås dine appdata op</p>",
-  "passphrase": "Adgangskode:",
-  "retype-passphrase": "Gentag adgangskode:",
   "set-passphrase": "Bekræft",
   "setting-passphrase": "Bekræfter",
   "skip-passphrase": "Spring over",
@@ -209,5 +207,7 @@
   "cover": "Forsidebillede:",
   "cover-selected": "Valgt billede",
   "cover-latest": "Seneste",
-  "cover-blank": "Intet billede"
+  "cover-blank": "Intet billede",
+  "passphrase": "Adgangskode",
+  "retype-passphrase": "Gentag adgangskode"
 }

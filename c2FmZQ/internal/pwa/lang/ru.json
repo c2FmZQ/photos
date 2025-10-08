@@ -15,8 +15,6 @@
   "recover-account-failed": "Не удалось восстановить аккаунт",
   "enter-passphrase-text": "<p>Введите парольную фразу для шифрования данных вашего приложения.</p>",
   "reenter-passphrase-text": "<p>Разблокируйте данные вашего приложения</p>",
-  "passphrase": "Парольная фраза:",
-  "retype-passphrase": "Повторите парольную фразу:",
   "set-passphrase": "Подтвердить",
   "setting-passphrase": "Подтверждение",
   "skip-passphrase": "Пропустить",
@@ -209,5 +207,7 @@
   "cover": "Изображение обложки:",
   "cover-selected": "Выбранное изображение",
   "cover-latest": "Самое последнее",
-  "cover-blank": "Нет изображения"
+  "cover-blank": "Нет изображения",
+  "passphrase": "Парольная фраза",
+  "retype-passphrase": "Повторите парольную фразу"
 }

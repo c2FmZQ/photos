@@ -15,8 +15,6 @@
   "recover-account-failed": "שחזור חשבון נכשל",
   "enter-passphrase-text": "<p>הזן מילת סיסמה כדי להצפין את נתוני האפליקציה שלך.</p>",
   "reenter-passphrase-text": "<p>בטל את נעילת נתוני האפליקציה שלך</p>",
-  "passphrase": "מילת סיסמה:",
-  "retype-passphrase": "הקלד שוב את מילת הסיסמה:",
   "set-passphrase": "אישור",
   "setting-passphrase": "מאשר",
   "skip-passphrase": "דלג",
@@ -209,5 +207,7 @@
   "cover": "תמונת כריכה:",
   "cover-selected": "תמונה נבחרה",
   "cover-latest": "האחרונה",
-  "cover-blank": "אין תמונה"
+  "cover-blank": "אין תמונה",
+  "passphrase": "סיסמה",
+  "retype-passphrase": "הקלד סיסמה שוב"
 }

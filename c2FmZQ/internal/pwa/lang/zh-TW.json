@@ -15,8 +15,6 @@
   "recover-account-failed": "帳戶復原失敗",
   "enter-passphrase-text": "<p>輸入密碼以加密您的應用程式資料。</p>",
   "reenter-passphrase-text": "<p>解鎖您的應用程式資料</p>",
-  "passphrase": "密碼:",
-  "retype-passphrase": "重新輸入密碼:",
   "set-passphrase": "確認",
   "setting-passphrase": "正在確認",
   "skip-passphrase": "略過",
@@ -209,5 +207,7 @@
   "cover": "封面圖片:",
   "cover-selected": "所選圖片",
   "cover-latest": "最新",
-  "cover-blank": "無圖片"
+  "cover-blank": "無圖片",
+  "passphrase": "密碼",
+  "retype-passphrase": "重新輸入密碼"
 }

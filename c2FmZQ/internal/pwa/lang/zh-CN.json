@@ -15,8 +15,6 @@
   "recover-account-failed": "账户恢复失败",
   "enter-passphrase-text": "<p>输入密码以加密您的应用数据。</p>",
   "reenter-passphrase-text": "<p>解锁您的应用数据</p>",
-  "passphrase": "密码:",
-  "retype-passphrase": "重新输入密码:",
   "set-passphrase": "确认",
   "setting-passphrase": "正在确认",
   "skip-passphrase": "跳过",
@@ -209,5 +207,7 @@
   "cover": "封面图片:",
   "cover-selected": "所选图片",
   "cover-latest": "最新",
-  "cover-blank": "无图片"
+  "cover-blank": "无图片",
+  "passphrase": "密码",
+  "retype-passphrase": "重新输入密码"
 }

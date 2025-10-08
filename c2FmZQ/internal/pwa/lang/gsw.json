@@ -207,5 +207,7 @@
   "cover": "Coverbild:",
   "cover-selected": "Uswähltes Bild",
   "cover-latest": "Neuschts",
-  "cover-blank": "Keis Bild"
+  "cover-blank": "Keis Bild",
+  "passphrase": "Passwort",
+  "retype-passphrase": "Passwort nomol iigee"
 }

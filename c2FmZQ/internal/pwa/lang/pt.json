@@ -15,8 +15,6 @@
   "recover-account-failed": "Falha ao recuperar conta",
   "enter-passphrase-text": "<p>Introduza uma frase-passe para encriptar os dados da sua aplicação.</p>",
   "reenter-passphrase-text": "<p>Desbloqueie os dados da sua aplicação</p>",
-  "passphrase": "Frase-passe:",
-  "retype-passphrase": "Reescreva a frase-passe:",
   "set-passphrase": "Confirmar",
   "setting-passphrase": "A confirmar",
   "skip-passphrase": "Saltar",
@@ -209,5 +207,7 @@
   "cover": "Imagem de capa:",
   "cover-selected": "Imagem selecionada",
   "cover-latest": "Mais recente",
-  "cover-blank": "Nenhuma imagem"
+  "cover-blank": "Nenhuma imagem",
+  "passphrase": "Frase de acesso",
+  "retype-passphrase": "Redigite a frase de acesso"
 }

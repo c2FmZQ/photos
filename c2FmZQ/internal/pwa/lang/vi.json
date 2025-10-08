@@ -15,8 +15,6 @@
   "recover-account-failed": "Khôi phục tài khoản thất bại",
   "enter-passphrase-text": "<p>Nhập cụm mật khẩu để mã hóa dữ liệu ứng dụng của bạn.</p>",
   "reenter-passphrase-text": "<p>Mở khóa dữ liệu ứng dụng của bạn</p>",
-  "passphrase": "Cụm mật khẩu:",
-  "retype-passphrase": "Nhập lại cụm mật khẩu:",
   "set-passphrase": "Xác nhận",
   "setting-passphrase": "Đang xác nhận",
   "skip-passphrase": "Bỏ qua",
@@ -209,5 +207,7 @@
   "cover": "Ảnh bìa:",
   "cover-selected": "Ảnh đã chọn",
   "cover-latest": "Mới nhất",
-  "cover-blank": "Không có ảnh"
+  "cover-blank": "Không có ảnh",
+  "passphrase": "Cụm mật khẩu",
+  "retype-passphrase": "Nhập lại cụm mật khẩu"
 }

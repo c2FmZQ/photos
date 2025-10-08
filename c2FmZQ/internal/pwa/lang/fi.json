@@ -15,8 +15,6 @@
   "recover-account-failed": "Tilin palautus epäonnistui",
   "enter-passphrase-text": "<p>Anna salasana salataksesi sovelluksesi tiedot.</p>",
   "reenter-passphrase-text": "<p>Avaa sovelluksesi tiedot</p>",
-  "passphrase": "Salasana:",
-  "retype-passphrase": "Kirjoita salasana uudelleen:",
   "set-passphrase": "Vahvista",
   "setting-passphrase": "Vahvistetaan",
   "skip-passphrase": "Ohita",
@@ -209,5 +207,7 @@
   "cover": "Kansikuva:",
   "cover-selected": "Valittu kuva",
   "cover-latest": "Uusin",
-  "cover-blank": "Ei kuvaa"
+  "cover-blank": "Ei kuvaa",
+  "passphrase": "Salasana",
+  "retype-passphrase": "Kirjoita salasana uudelleen"
 }

@@ -15,8 +15,6 @@
   "recover-account-failed": "Kontowiederherstellung fehlgeschlagen",
   "enter-passphrase-text": "<p>Geben Sie eine Passphrase ein, um Ihre App-Daten zu verschlüsseln.</p>",
   "reenter-passphrase-text": "<p>Entsperren Sie Ihre App-Daten</p>",
-  "passphrase": "Passwort:",
-  "retype-passphrase": "Passwort erneut eingeben:",
   "set-passphrase": "Bestätigen",
   "setting-passphrase": "Bestätigung",
   "skip-passphrase": "Überspringen",
@@ -209,5 +207,7 @@
   "cover": "Titelbild:",
   "cover-selected": "Ausgewähltes Bild",
   "cover-latest": "Neuestes",
-  "cover-blank": "Kein Bild"
+  "cover-blank": "Kein Bild",
+  "passphrase": "Passwort",
+  "retype-passphrase": "Passwort erneut eingeben"
 }

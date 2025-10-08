@@ -15,8 +15,6 @@
   "recover-account-failed": "Obnovenie účtu zlyhalo",
   "enter-passphrase-text": "<p>Zadajte prístupovú frázu na zašifrovanie údajov aplikácie.</p>",
   "reenter-passphrase-text": "<p>Odomknite údaje aplikácie</p>",
-  "passphrase": "Prístupová fráza:",
-  "retype-passphrase": "Zadajte znova prístupovú frázu:",
   "set-passphrase": "Potvrdiť",
   "setting-passphrase": "Potvrdzovanie",
   "skip-passphrase": "Preskočiť",
@@ -209,5 +207,7 @@
   "cover": "Obalový obrázok:",
   "cover-selected": "Vybraný obrázok",
   "cover-latest": "Najnovší",
-  "cover-blank": "Žiadny obrázok"
+  "cover-blank": "Žiadny obrázok",
+  "passphrase": "Heslo",
+  "retype-passphrase": "Znovu zadajte heslo"
 }

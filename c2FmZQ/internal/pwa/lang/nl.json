@@ -15,8 +15,6 @@
   "recover-account-failed": "Account herstellen mislukt",
   "enter-passphrase-text": "<p>Voer een wachtwoordzin in om uw app-gegevens te versleutelen.</p>",
   "reenter-passphrase-text": "<p>Ontgrendel uw app-gegevens</p>",
-  "passphrase": "Wachtwoordzin:",
-  "retype-passphrase": "Wachtwoordzin opnieuw invoeren:",
   "set-passphrase": "Bevestigen",
   "setting-passphrase": "Bevestigen",
   "skip-passphrase": "Overslaan",
@@ -209,5 +207,7 @@
   "cover": "Omslagafbeelding:",
   "cover-selected": "Geselecteerde afbeelding",
   "cover-latest": "Meest recente",
-  "cover-blank": "Geen afbeelding"
+  "cover-blank": "Geen afbeelding",
+  "passphrase": "Wachtwoordzin",
+  "retype-passphrase": "Typ wachtwoordzin opnieuw"
 }

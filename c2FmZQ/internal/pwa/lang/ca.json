@@ -15,8 +15,6 @@
   "recover-account-failed": "Error en recuperar el compte",
   "enter-passphrase-text": "<p>Introdueix una contrasenya per xifrar les dades de la teva aplicació.</p>",
   "reenter-passphrase-text": "<p>Desbloca les dades de la teva aplicació</p>",
-  "passphrase": "Contrasenya:",
-  "retype-passphrase": "Reescriu la contrasenya:",
   "set-passphrase": "Confirma",
   "setting-passphrase": "Confirmant",
   "skip-passphrase": "Omet",
@@ -209,5 +207,7 @@
   "cover": "Imatge de portada:",
   "cover-selected": "Imatge seleccionada",
   "cover-latest": "La més recent",
-  "cover-blank": "Sense imatge"
+  "cover-blank": "Sense imatge",
+  "passphrase": "Contrasenya",
+  "retype-passphrase": "Reescriviu la contrasenya"
 }
