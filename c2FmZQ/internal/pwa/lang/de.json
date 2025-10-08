@@ -18,8 +18,8 @@
   "set-passphrase": "Bestätigen",
   "setting-passphrase": "Bestätigung",
   "skip-passphrase": "Überspringen",
-    "passphrase": "Passwort:",
-  "retype-passphrase": "Passwort erneut eingeben:"
+"  "passphrase": "Passwort:",
+  "retype-passphrase": "Passwort erneut eingeben:",
   "form-email": "E-Mail:",
   "form-password": "Passwort:",
   "form-new-password": "Neues Passwort:",

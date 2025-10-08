@@ -18,9 +18,9 @@
   "set-passphrase": "Conferma",
   "setting-passphrase": "Conferma in corso",
   "skip-passphrase": "Salta",
-    "passphrase": ""passphrase": "Passphrase:",
+"  "passphrase": ""passphrase": "Passphrase:",
   "retype-passphrase": "Reinserisci la passphrase:"",
-  "retype-passphrase": "Reinserisci la passphrase:"
+  "retype-passphrase": "Reinserisci la passphrase:",
   "form-email": "Email:",
   "form-password": "Password:",
   "form-new-password": "Nuova password:",

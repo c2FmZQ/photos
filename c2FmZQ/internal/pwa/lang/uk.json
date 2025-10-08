@@ -18,8 +18,8 @@
   "set-passphrase": "Підтвердити",
   "setting-passphrase": "Підтвердження",
   "skip-passphrase": "Пропустити",
-    "passphrase": "Парольна фраза:",
-  "retype-passphrase": "Повторіть парольну фразу:"
+"  "passphrase": "Парольна фраза:",
+  "retype-passphrase": "Повторіть парольну фразу:",
   "form-email": "Електронна пошта:",
   "form-password": "Пароль:",
   "form-new-password": "Новий пароль:",

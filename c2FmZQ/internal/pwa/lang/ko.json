@@ -18,8 +18,8 @@
   "set-passphrase": "확인",
   "setting-passphrase": "확인 중",
   "skip-passphrase": "건너뛰기",
-    "passphrase": "암호:",
-  "retype-passphrase": "암호를 다시 입력하십시오:"
+"  "passphrase": "암호:",
+  "retype-passphrase": "암호를 다시 입력하십시오:",
   "form-email": "이메일:",
   "form-password": "비밀번호:",
   "form-new-password": "새 비밀번호:",
