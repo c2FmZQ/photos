@@ -35,6 +35,38 @@ class c2FmZQClient {
   #capabilities;
   #state;
 
+  #serverMessages = {
+    "You are not the owner of the album": "server-error-not-album-owner",
+    "Account is not approved yet": "server-error-account-not-approved",
+    "You are not allow to share the album": "server-error-sharing-not-allowed",
+    "You can't leave your own album": "server-error-cannot-leave-own-album",
+    "You are not a member of this album": "server-error-not-album-member",
+    "MFA failed": "server-error-mfa-failed",
+    "Invalid credentials": "server-error-invalid-credentials",
+    "code is invalid": "server-error-invalid-code",
+    "Your app is too far out of sync. Upload your changes, then wipe your data, and login again.": "server-error-app-out-of-sync",
+    "Too many files": "server-error-too-many-files",
+    "Can only move from trash to gallery": "server-error-move-from-trash-only",
+    "Can only move to trash, not copy": "server-error-move-to-trash-not-copy",
+    "Copying from this album is not permitted": "server-error-copy-not-permitted",
+    "Removing items from this album is not permitted": "server-error-remove-not-permitted",
+    "Adding to this album is not permitted": "server-error-add-not-permitted",
+    "Quota exceeded": "server-error-quota-exceeded",
+    "Data outdated": "server-error-data-outdated",
+    "You are not logged in": "server-error-not-logged-in",
+    "This functionality is not yet implemented in the server": "server-error-not-implemented",
+    "MFA enabled": "server-info-mfa-enabled",
+    "MFA disabled": "server-info-mfa-disabled",
+    "MFA OK": "server-info-mfa-ok",
+    "Your account hasn't been approved yet. Some features are disabled.": "server-info-account-not-approved",
+    "Password updated": "server-info-password-updated",
+    "Email updated": "server-info-email-updated",
+    "OTP disabled": "server-info-otp-disabled",
+    "OTP enabled": "server-info-otp-enabled",
+    "Security device registered": "server-info-security-device-registered",
+    "Security devices updated": "server-info-security-devices-updated"
+  };
+
   constructor(options) {
     options = options || {};
     options.pathPrefix = options.pathPrefix || '/';
@@ -45,6 +77,15 @@ class c2FmZQClient {
     this.#state = {};
     this.vars_ = {};
     this.resetDB_();
+  }
+
+  #translateFromServerMessage_(msg) {
+    const key = this.#serverMessages[msg];
+    if (key) {
+      return _T(key, msg);
+    }
+    console.warn('SW: un-translated server message:', msg);
+    return msg;
   }
 
   /*
@@ -1749,10 +1790,12 @@ class c2FmZQClient {
     })
     .then(resp => {
       if (resp.infos.length > 0) {
-        this.#sw.sendMessage(clientId, {type: 'info', msg: resp.infos.join('\n')});
+        const translatedInfos = resp.infos.map(info => this.#translateFromServerMessage_(info)).join('\n');
+        this.#sw.sendMessage(clientId, {type: 'info', msg: translatedInfos});
       }
       if (resp.errors.length > 0) {
-        this.#sw.sendMessage(clientId, {type: 'error', msg: resp.errors.join('\n')});
+        const translatedErrors = resp.errors.map(error => this.#translateFromServerMessage_(error)).join('\n');
+        this.#sw.sendMessage(clientId, {type: 'error', msg: translatedErrors});
       }
       if (!data.mfa && resp.status === 'nok' && resp.parts.mfa) {
         console.log(`SW got request for MFA on ${endpoint}`);
