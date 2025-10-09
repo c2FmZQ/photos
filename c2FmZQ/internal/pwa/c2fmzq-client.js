@@ -35,15 +35,15 @@ class c2FmZQClient {
   #capabilities;
   #state;
 
-  #serverMessages = {
+  static #serverMessages = {
     "You are not the owner of the album": "server-error-not-album-owner",
     "Account is not approved yet": "server-error-account-not-approved",
-    "You are not allow to share the album": "server-error-sharing-not-allowed",
+    "You are not allowed to share the album": "server-error-sharing-not-allowed",
     "You can't leave your own album": "server-error-cannot-leave-own-album",
     "You are not a member of this album": "server-error-not-album-member",
     "MFA failed": "server-error-mfa-failed",
     "Invalid credentials": "server-error-invalid-credentials",
-    "code is invalid": "server-error-invalid-code",
+    "Code is invalid": "server-error-invalid-code",
     "Your app is too far out of sync. Upload your changes, then wipe your data, and login again.": "server-error-app-out-of-sync",
     "Too many files": "server-error-too-many-files",
     "Can only move from trash to gallery": "server-error-move-from-trash-only",

@@ -229,7 +229,7 @@
   "decryption-error": "Erro de descriptografia",
   "server-error-not-album-owner": "Você não é o proprietário do álbum",
   "server-error-account-not-approved": "A conta ainda não foi aprovada",
-  "server-error-sharing-not-allowed": "Você не tem permissão para compartilhar este álbum",
+  "server-error-sharing-not-allowed": "Você não tem permissão para compartilhar este álbum",
   "server-error-cannot-leave-own-album": "Você não pode sair do seu próprio álbum",
   "server-error-not-album-member": "Você não é um membro deste álbum",
   "server-error-mfa-failed": "MFA falhou",

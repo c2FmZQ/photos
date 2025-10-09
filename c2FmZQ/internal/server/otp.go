@@ -95,7 +95,7 @@ func (s *Server) handleSetOTP(user database.User, req *http.Request) *stingle.Re
 
 	if !validateOTP(key, code) {
 		return stingle.ResponseNOK().
-			AddError("code is invalid")
+			AddError("Code is invalid")
 	}
 	if err := s.db.MutateUser(user.UserID, func(user *database.User) error {
 		user.OTPKey = key
