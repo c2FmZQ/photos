@@ -19,5 +19,5 @@ package pwa
 
 import "embed"
 
-//go:embed *.html *.css *.js *.png *.webmanifest thirdparty/* lang/*
+//go:embed *.html *.css *.js *.png *.webmanifest thirdparty/* lang/* icons/*
 var FS embed.FS
