@@ -36,35 +36,35 @@ class c2FmZQClient {
   #state;
 
   static #serverMessages = {
-    "You are not the owner of the album": "server-error-not-album-owner",
     "Account is not approved yet": "server-error-account-not-approved",
-    "You are not allowed to share the album": "server-error-sharing-not-allowed",
-    "You can't leave your own album": "server-error-cannot-leave-own-album",
-    "You are not a member of this album": "server-error-not-album-member",
-    "MFA failed": "server-error-mfa-failed",
-    "Invalid credentials": "server-error-invalid-credentials",
-    "Code is invalid": "server-error-invalid-code",
-    "Your app is too far out of sync. Upload your changes, then wipe your data, and login again.": "server-error-app-out-of-sync",
-    "Too many files": "server-error-too-many-files",
+    "Adding to this album is not permitted": "server-error-add-not-permitted",
     "Can only move from trash to gallery": "server-error-move-from-trash-only",
     "Can only move to trash, not copy": "server-error-move-to-trash-not-copy",
+    "Code is invalid": "server-error-invalid-code",
     "Copying from this album is not permitted": "server-error-copy-not-permitted",
-    "Removing items from this album is not permitted": "server-error-remove-not-permitted",
-    "Adding to this album is not permitted": "server-error-add-not-permitted",
-    "Quota exceeded": "server-error-quota-exceeded",
     "Data outdated": "server-error-data-outdated",
-    "You are not logged in": "server-error-not-logged-in",
-    "This functionality is not yet implemented in the server": "server-error-not-implemented",
-    "MFA enabled": "server-info-mfa-enabled",
-    "MFA disabled": "server-info-mfa-disabled",
-    "MFA OK": "server-info-mfa-ok",
-    "Your account hasn't been approved yet. Some features are disabled.": "server-info-account-not-approved",
-    "Password updated": "server-info-password-updated",
     "Email updated": "server-info-email-updated",
+    "Invalid credentials": "server-error-invalid-credentials",
+    "MFA disabled": "server-info-mfa-disabled",
+    "MFA enabled": "server-info-mfa-enabled",
+    "MFA failed": "server-error-mfa-failed",
+    "MFA OK": "server-info-mfa-ok",
     "OTP disabled": "server-info-otp-disabled",
     "OTP enabled": "server-info-otp-enabled",
+    "Password updated": "server-info-password-updated",
+    "Quota exceeded": "server-error-quota-exceeded",
+    "Removing items from this album is not permitted": "server-error-remove-not-permitted",
     "Security device registered": "server-info-security-device-registered",
-    "Security devices updated": "server-info-security-devices-updated"
+    "Security devices updated": "server-info-security-devices-updated",
+    "This functionality is not yet implemented in the server": "server-error-not-implemented",
+    "Too many files": "server-error-too-many-files",
+    "You are not allowed to share the album": "server-error-sharing-not-allowed",
+    "You are not a member of this album": "server-error-not-album-member",
+    "You are not logged in": "server-error-not-logged-in",
+    "You are not the owner of the album": "server-error-not-album-owner",
+    "You can't leave your own album": "server-error-cannot-leave-own-album",
+    "Your account hasn't been approved yet. Some features are disabled.": "server-info-account-not-approved",
+    "Your app is too far out of sync. Upload your changes, then wipe your data, and login again.": "server-error-app-out-of-sync"
   };
 
   constructor(options) {
@@ -79,8 +79,8 @@ class c2FmZQClient {
     this.resetDB_();
   }
 
-  #translateFromServerMessage_(msg) {
-    const key = this.#serverMessages[msg];
+  #translateFromServerMessage(msg) {
+    const key = c2FmZQClient.#serverMessages[msg];
     if (key) {
       return _T(key, msg);
     }
@@ -1790,11 +1790,11 @@ class c2FmZQClient {
     })
     .then(resp => {
       if (resp.infos.length > 0) {
-        const translatedInfos = resp.infos.map(info => this.#translateFromServerMessage_(info)).join('\n');
+        const translatedInfos = resp.infos.map(info => this.#translateFromServerMessage(info)).join('\n');
         this.#sw.sendMessage(clientId, {type: 'info', msg: translatedInfos});
       }
       if (resp.errors.length > 0) {
-        const translatedErrors = resp.errors.map(error => this.#translateFromServerMessage_(error)).join('\n');
+        const translatedErrors = resp.errors.map(error => this.#translateFromServerMessage(error)).join('\n');
         this.#sw.sendMessage(clientId, {type: 'error', msg: translatedErrors});
       }
       if (!data.mfa && resp.status === 'nok' && resp.parts.mfa) {
