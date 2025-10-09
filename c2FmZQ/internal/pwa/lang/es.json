@@ -127,6 +127,7 @@
   "approved": "Aprobado",
   "admin": "Admin",
   "quota": "Cuota",
+  "default-quota": "Cuota por defecto:",
   "open": "Abrir",
   "download-doc": "Descargar documento",
   "copy-selected": "Copiar archivos seleccionados",

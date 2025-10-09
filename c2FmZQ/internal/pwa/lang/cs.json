@@ -127,6 +127,7 @@
   "approved": "Schváleno",
   "admin": "Administrátor",
   "quota": "Kvóta",
+  "default-quota": "Výchozí kvóta:",
   "open": "Otevřít",
   "download-doc": "Stáhnout dokument",
   "copy-selected": "Kopírovat vybrané soubory",

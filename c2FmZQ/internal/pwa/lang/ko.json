@@ -127,6 +127,7 @@
   "approved": "승인됨",
   "admin": "관리자",
   "quota": "할당량",
+  "default-quota": "기본 할당량:",
   "open": "열기",
   "download-doc": "문서 다운로드",
   "copy-selected": "선택한 파일 복사",

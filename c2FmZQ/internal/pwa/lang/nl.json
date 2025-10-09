@@ -127,6 +127,7 @@
   "approved": "Goedgekeurd",
   "admin": "Beheerder",
   "quota": "Quota",
+  "default-quota": "Standaardquotum:",
   "open": "Openen",
   "download-doc": "Document downloaden",
   "copy-selected": "Geselecteerde bestanden kopiëren",

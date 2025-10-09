@@ -127,6 +127,7 @@
   "approved": "Aprobat",
   "admin": "Administrator",
   "quota": "Cotă",
+  "default-quota": "Cotă implicită:",
   "open": "Deschide",
   "download-doc": "Descărcare document",
   "copy-selected": "Copiere fișiere selectate",

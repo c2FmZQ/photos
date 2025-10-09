@@ -127,6 +127,7 @@
   "approved": "承認済み",
   "admin": "管理者",
   "quota": "クォータ",
+  "default-quota": "デフォルトのクォータ:",
   "open": "開く",
   "download-doc": "ドキュメントをダウンロード",
   "copy-selected": "選択したファイルをコピー",

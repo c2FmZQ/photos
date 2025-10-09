@@ -127,6 +127,7 @@
   "approved": "Godkjent",
   "admin": "Administrator",
   "quota": "Kvote",
+  "default-quota": "Standardkvote:",
   "open": "Åpne",
   "download-doc": "Last ned dokument",
   "copy-selected": "Kopier valgte filer",

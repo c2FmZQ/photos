@@ -127,6 +127,7 @@
   "approved": "Jóváhagyva",
   "admin": "Rendszergazda",
   "quota": "Kvóta",
+  "default-quota": "Alapértelmezett kvóta:",
   "open": "Megnyitás",
   "download-doc": "Dokumentum letöltése",
   "copy-selected": "Kiválasztott fájlok másolása",

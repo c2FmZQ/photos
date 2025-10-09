@@ -127,6 +127,7 @@
   "approved": "Genehmigt",
   "admin": "Administrator",
   "quota": "Kontingent",
+  "default-quota": "Standardkontingent:",
   "open": "Öffnen",
   "download-doc": "Dokument herunterladen",
   "copy-selected": "Ausgewählte Dateien kopieren",

@@ -127,6 +127,7 @@
   "approved": "Hyväksytty",
   "admin": "Järjestelmänvalvoja",
   "quota": "Kiintiö",
+  "default-quota": "Oletuskiintiö:",
   "open": "Avaa",
   "download-doc": "Lataa asiakirja",
   "copy-selected": "Kopioi valitut tiedostot",

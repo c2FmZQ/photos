@@ -127,6 +127,7 @@
   "approved": "Disetujui",
   "admin": "Admin",
   "quota": "Kuota",
+  "default-quota": "Kuota default:",
   "open": "Buka",
   "download-doc": "Unduh dokumen",
   "copy-selected": "Salin file yang dipilih",

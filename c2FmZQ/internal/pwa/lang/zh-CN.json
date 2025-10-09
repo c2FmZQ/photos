@@ -127,6 +127,7 @@
   "approved": "已批准",
   "admin": "管理员",
   "quota": "配额",
+  "default-quota": "默认配额：",
   "open": "打开",
   "download-doc": "下载文档",
   "copy-selected": "复制所选文件",

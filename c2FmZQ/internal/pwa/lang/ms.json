@@ -127,6 +127,7 @@
   "approved": "Diluluskan",
   "admin": "Pentadbir",
   "quota": "Kuota",
+  "default-quota": "Kuota lalai:",
   "open": "Buka",
   "download-doc": "Muat turun dokumen",
   "copy-selected": "Salin fail yang dipilih",

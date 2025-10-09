@@ -127,6 +127,7 @@
   "approved": "Đã phê duyệt",
   "admin": "Quản trị viên",
   "quota": "Hạn ngạch",
+  "default-quota": "Hạn ngạch mặc định:",
   "open": "Mở",
   "download-doc": "Tải xuống tài liệu",
   "copy-selected": "Sao chép các tệp đã chọn",

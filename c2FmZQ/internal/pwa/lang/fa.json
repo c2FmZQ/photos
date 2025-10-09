@@ -127,6 +127,7 @@
   "approved": "تایید شده",
   "admin": "مدیر",
   "quota": "سهمیه",
+  "default-quota": "سهمیه پیش فرض:",
   "open": "باز کردن",
   "download-doc": "دانلود سند",
   "copy-selected": "کپی فایل های انتخاب شده",

@@ -127,6 +127,7 @@
   "approved": "Zatwierdzony",
   "admin": "Administrator",
   "quota": "Limit",
+  "default-quota": "Domyślny limit:",
   "open": "Otwórz",
   "download-doc": "Pobierz dokument",
   "copy-selected": "Kopiuj wybrane pliki",

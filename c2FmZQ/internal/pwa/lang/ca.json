@@ -127,6 +127,7 @@
   "approved": "Aprovat",
   "admin": "Administrador",
   "quota": "Quota",
+  "default-quota": "Quota per defecte:",
   "open": "Obre",
   "download-doc": "Descarrega el document",
   "copy-selected": "Copia els fitxers seleccionats",

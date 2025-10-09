@@ -127,6 +127,7 @@
   "approved": "מאושר",
   "admin": "מנהל",
   "quota": "מכסה",
+  "default-quota": "מכסת ברירת מחדל:",
   "open": "פתח",
   "download-doc": "הורד מסמך",
   "copy-selected": "העתק קבצים נבחרים",

@@ -127,6 +127,7 @@
   "approved": "已核准",
   "admin": "管理員",
   "quota": "配額",
+  "default-quota": "默認配額：",
   "open": "開啟",
   "download-doc": "下載文件",
   "copy-selected": "複製所選檔案",

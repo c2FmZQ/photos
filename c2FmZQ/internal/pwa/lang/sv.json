@@ -127,6 +127,7 @@
   "approved": "Godkänd",
   "admin": "Administratör",
   "quota": "Kvot",
+  "default-quota": "Standardkvot:",
   "open": "Öppna",
   "download-doc": "Ladda ner dokument",
   "copy-selected": "Kopiera valda filer",

@@ -3343,7 +3343,7 @@ class UI {
     };
 
     const defQuotaDiv = UI.create('div', {id:'admin-console-default-quota-div', parent:content});
-    UI.create('label', {htmlFor:'admin-console-default-quota-value', text:'Default quota:', parent:defQuotaDiv});
+    UI.create('label', {htmlFor:'admin-console-default-quota-value', text:_T('default-quota'), parent:defQuotaDiv});
     const defQuotaValue = UI.create('input', {id:'admin-console-default-quota-value', type:'number', size:5, value:data.defaultQuota, parent:defQuotaDiv});
     EL.add(defQuotaValue, 'change', () => {
       const v = parseInt(defQuotaValue.value);

@@ -127,6 +127,7 @@
   "approved": "Onaylandı",
   "admin": "Yönetici",
   "quota": "Kota",
+  "default-quota": "Varsayılan kota:",
   "open": "Aç",
   "download-doc": "Belgeyi indir",
   "copy-selected": "Seçili dosyaları kopyala",
