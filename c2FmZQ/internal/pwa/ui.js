@@ -349,7 +349,7 @@ class UI {
     });
     this.accountButton_.addEventListener('click', this.showAccountMenu_.bind(this));
     this.accountButton_.addEventListener('contextmenu', this.showAccountMenu_.bind(this));
-        this.accountButton_.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> ▼';
+        this.accountButton_.innerHTML = '<img src="icons/user.svg" alt="Account" class="icon"> ▼';
     this.accountButton_.title = _T('account-title');
     this.accountButton_.setAttribute('aria-label', _T('account-title'));
 
@@ -513,7 +513,7 @@ class UI {
     const div = UI.create('div', {className:className || 'error', role:opt.role || 'status'});
     div.style.position = 'relative';
     div.style.zIndex = this.popupZindex_++;
-    const v = UI.create('span', {text:'✖',parent:div});
+    const v = UI.create('span', {html:'<img src="icons/x.svg" alt="Close" class="icon">',parent:div});
     v.style = 'float: right;';
     const m = UI.create('div', {className:'popup-message',parent:div});
     if (message instanceof Element) {
@@ -971,7 +971,7 @@ class UI {
     const formatButton = UI.create('button', {
       id: 'format-button',
       className: 'button',
-      html: this.galleryState_.format === 'list' ? '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-grid"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>' : '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>',
+      html: this.galleryState_.format === 'list' ? '<img src="icons/grid.svg" alt="Grid" class="icon">' : '<img src="icons/list.svg" alt="List" class="icon">',
       title: this.galleryState_.format === 'list' ? _T('grid-title') : _T('list-title'),
       parent: collButtons,
     });
@@ -989,7 +989,7 @@ class UI {
       const settingsButton = UI.create('button', {
         id: 'settings-button',
         className: 'button',
-        html: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-settings"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>',
+        html: '<img src="icons/settings.svg" alt="Settings" class="icon">',
         title: _T('settings-title'),
       });
       EL.add(settingsButton, 'click', () => {
@@ -1000,7 +1000,7 @@ class UI {
     g.appendChild(collButtons);
 
     if (currentCollection.isOwner || currentCollection.canAdd) {
-      const addDiv = UI.create('div', {id:'add-button', html: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-plus"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>', tabindex:'0', role:'link', title: _T('add-button-title'), parent:g});
+      const addDiv = UI.create('div', {id:'add-button', html: '<img src="icons/plus.svg" alt="Add" class="icon">', tabindex:'0', role:'link', title: _T('add-button-title'), parent:g});
       EL.add(addDiv, 'keydown', e => {
         if (e.key === 'Enter') {
           this.showAddMenu_(e);
@@ -1733,8 +1733,8 @@ class UI {
     const popup = UI.create('div', {className:params.className || 'popup'});
     const popupHeader = UI.create('div', {className:'popup-header', parent:popup});
     const popupName = UI.create('div', {className:'popup-name', text:params.title || _T('popup-default-title'), parent:popupHeader});
-    const popupInfo = UI.create('div', {className:'popup-info', html:'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-info"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>', tabindex:'0', role:'button', title:_T('info')});
-    const popupClose = UI.create('div', {className:'popup-close', html:'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>', tabindex:'0', role:'button', title:_T('close')});
+    const popupInfo = UI.create('div', {className:'popup-info', html:'<img src="icons/info.svg" alt="Info" class="icon">', tabindex:'0', role:'button', title:_T('info')});
+    const popupClose = UI.create('div', {className:'popup-close', html:'<img src="icons/x.svg" alt="Close" class="icon">', tabindex:'0', role:'button', title:_T('close')});
     const popupContent = UI.create('div', {className:'popup-content', parent:popup});
 
     const body = document.body;
@@ -1997,7 +1997,7 @@ class UI {
       event.preventDefault();
     }, true);
     if (i > 0) {
-      const leftButton = UI.create('div', {className:'arrow left',html:'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>',tabindex:"0",title:_T('previous'),role:'button',parent:content});
+      const leftButton = UI.create('div', {className:'arrow left',html:'<img src="icons/arrow-left.svg" alt="Previous" class="icon">',tabindex:"0",title:_T('previous'),role:'button',parent:content});
       EL.add(leftButton, 'click', goLeft);
       EL.add(leftButton, 'keydown', e => {
         if (e.key === 'Enter') {
@@ -2006,7 +2006,7 @@ class UI {
       });
     }
     if (i+1 < max) {
-      const rightButton = UI.create('div', {className:'arrow right',html:'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>',tabindex:"0",title:_T('next'),role:'button',parent:content});
+      const rightButton = UI.create('div', {className:'arrow right',html:'<img src="icons/arrow-right.svg" alt="Next" class="icon">',tabindex:"0",title:_T('next'),role:'button',parent:content});
       EL.add(rightButton, 'click', goRight);
       EL.add(rightButton, 'keydown', e => {
         if (e.key === 'Enter') {
@@ -2062,7 +2062,7 @@ class UI {
       const lon = `${data.GPSLongitudeRef.value} ${data.GPSLongitude.description}°`;
       pos.textContent = `${lat} ${lon}`;
     }
-    const more = UI.create('div', {className:'exif-more-details',html: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-plus"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>', tabindex:'0', role:'button', title:_T('expand'), parent:div});
+    const more = UI.create('div', {className:'exif-more-details',html: '<img src="icons/plus.svg" alt="Expand" class="icon">', tabindex:'0', role:'button', title:_T('expand'), parent:div});
     let expanded = false;
     const onclick = () => {
       details.classList.toggle('hidden');
@@ -2276,7 +2276,7 @@ class UI {
     };
 
     if (!c.create) {
-      const deleteButton = UI.create('button', {id:'collection-properties-delete',className: 'button',html:'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>',parent:content});
+      const deleteButton = UI.create('button', {id:'collection-properties-delete',className: 'button',html:'<img src="icons/trash-2.svg" alt="Delete" class="icon">',parent:content});
       EL.add(deleteButton, 'click', () => {
         if (c.isOwner) {
           this.deleteCollection_(c.collection).then(() => close());
@@ -2455,7 +2455,7 @@ class UI {
       for (let i = 0; i < members.length; i++) {
         const div = UI.create('div', {parent:membersDiv});
         if (c.isOwner) {
-          const del = UI.create('button', {className: 'button', html:'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>', parent:div});
+          const del = UI.create('button', {className: 'button', html:'<img src="icons/x.svg" alt="Delete" class="icon">', parent:div});
           del.style.cursor = 'pointer';
           EL.add(del, 'click', () => deleteMember(i));
         }
@@ -2993,7 +2993,7 @@ class UI {
           EL.add(input, 'change', onchange);
           EL.add(input, 'keydown', onchange);
           let t = UI.create('div', {text:(new Date(k.createdAt)).toLocaleDateString(Lang.current, {year: 'numeric', month: 'short', day: 'numeric'}), parent:skList});
-          let del = UI.create('button', {className: 'button', text:'✖', parent:skList});
+          let del = UI.create('button', {className: 'button', html:'<img src="icons/x.svg" alt="Delete" class="icon">', parent:skList});
           del.style.cursor = 'pointer';
           EL.add(del, 'click', () => {
             keyList[k.id].deleted = !keyList[k.id].deleted;

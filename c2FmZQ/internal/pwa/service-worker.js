@@ -44,6 +44,17 @@ let MANIFEST = [
   'thirdparty/browser-libs.js',
   'thirdparty/filerobot-image-editor.min.js',
   'thirdparty/libs.js',
+  'icons/arrow-left.svg',
+  'icons/arrow-right.svg',
+  'icons/grid.svg',
+  'icons/info.svg',
+  'icons/list.svg',
+  'icons/plus.svg',
+  'icons/refresh-cw.svg',
+  'icons/settings.svg',
+  'icons/trash-2.svg',
+  'icons/user.svg',
+  'icons/x.svg',
 ];
 
 for (const lang of Object.keys(Lang.supported)) {
