@@ -210,5 +210,21 @@
   "cover-latest": "La plus récente",
   "cover-blank": "Aucune image",
   "passphrase": "Phrase de passe",
-  "retype-passphrase": "Retapez la phrase de passe"
+  "retype-passphrase": "Retapez la phrase de passe",
+  "gallery-title": "Galerie",
+  "popup-default-title": "Titre",
+  "otp-key-label": "CLÉ : ",
+  "wrong-passphrase": "Mauvaise phrase secrète",
+  "incorrect-password": "Mot de passe incorrect",
+  "incorrect-backup-phrase": "Phrase de sauvegarde incorrecte",
+  "mfa-update-failed": "La mise à jour MFA a échoué",
+  "otp-update-failed": "La mise à jour OTP a échoué",
+  "email-update-failed": "La mise à jour de l'e-mail a échoué",
+  "password-update-failed": "La mise à jour du mot de passe a échoué",
+  "key-update-failed": "La mise à jour de la clé a échoué",
+  "list-security-keys-failed": "Impossible de lister les clés de sécurité",
+  "add-security-key-failed": "Impossible d'ajouter la clé de sécurité",
+  "mfa-status-failed": "Impossible d'obtenir le statut MFA",
+  "mfa-check-failed": "La vérification MFA a échoué",
+  "decryption-error": "Erreur de déchiffrement"
 }

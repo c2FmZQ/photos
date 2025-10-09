@@ -210,5 +210,21 @@
   "cover-latest": "最新",
   "cover-blank": "画像なし",
   "passphrase": "パスフレーズ",
-  "retype-passphrase": "パスフレーズを再入力"
+  "retype-passphrase": "パスフレーズを再入力してください",
+  "gallery-title": "ギャラリー",
+  "popup-default-title": "タイトル",
+  "otp-key-label": "キー: ",
+  "wrong-passphrase": "パスフレーズが間違っています",
+  "incorrect-password": "パスワードが正しくありません",
+  "incorrect-backup-phrase": "バックアップフレーズが正しくありません",
+  "mfa-update-failed": "MFAの更新に失敗しました",
+  "otp-update-failed": "OTPの更新に失敗しました",
+  "email-update-failed": "メールアドレスの更新に失敗しました",
+  "password-update-failed": "パスワードの更新に失敗しました",
+  "key-update-failed": "キーの更新に失敗しました",
+  "list-security-keys-failed": "セキュリティキーのリスト表示に失敗しました",
+  "add-security-key-failed": "セキュリティキーの追加に失敗しました",
+  "mfa-status-failed": "MFAステータスの取得に失敗しました",
+  "mfa-check-failed": "MFAチェックに失敗しました",
+  "decryption-error": "復号エラー"
 }

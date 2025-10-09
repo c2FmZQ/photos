@@ -210,5 +210,21 @@
   "cover-latest": "Mais recente",
   "cover-blank": "Nenhuma imagem",
   "passphrase": "Frase de acesso",
-  "retype-passphrase": "Redigite a frase de acesso"
+  "retype-passphrase": "Digite novamente a frase de acesso",
+  "gallery-title": "Galeria",
+  "popup-default-title": "Título",
+  "otp-key-label": "CHAVE: ",
+  "wrong-passphrase": "Frase de acesso incorreta",
+  "incorrect-password": "Senha incorreta",
+  "incorrect-backup-phrase": "Frase de backup incorreta",
+  "mfa-update-failed": "A atualização do MFA falhou",
+  "otp-update-failed": "A atualização do OTP falhou",
+  "email-update-failed": "A atualização do e-mail falhou",
+  "password-update-failed": "A atualização da senha falhou",
+  "key-update-failed": "A atualização da chave falhou",
+  "list-security-keys-failed": "Falha ao listar as chaves de segurança",
+  "add-security-key-failed": "Falha ao adicionar a chave de segurança",
+  "mfa-status-failed": "Falha ao obter o status do MFA",
+  "mfa-check-failed": "A verificação do MFA falhou",
+  "decryption-error": "Erro de descriptografia"
 }

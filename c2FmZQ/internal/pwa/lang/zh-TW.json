@@ -210,5 +210,21 @@
   "cover-latest": "最新",
   "cover-blank": "無圖片",
   "passphrase": "密碼",
-  "retype-passphrase": "重新輸入密碼"
+  "retype-passphrase": "重新輸入密碼",
+  "gallery-title": "畫廊",
+  "popup-default-title": "標題",
+  "otp-key-label": "鑰匙：",
+  "wrong-passphrase": "密碼錯誤",
+  "incorrect-password": "密碼不正確",
+  "incorrect-backup-phrase": "備份短語不正確",
+  "mfa-update-failed": "MFA 更新失敗",
+  "otp-update-failed": "OTP 更新失敗",
+  "email-update-failed": "電子郵件更新失敗",
+  "password-update-failed": "密碼更新失敗",
+  "key-update-failed": "密鑰更新失敗",
+  "list-security-keys-failed": "無法列出安全密鑰",
+  "add-security-key-failed": "無法添加安全密鑰",
+  "mfa-status-failed": "無法獲取 MFA 狀態",
+  "mfa-check-failed": "MFA 檢查失敗",
+  "decryption-error": "解密錯誤"
 }

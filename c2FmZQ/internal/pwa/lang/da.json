@@ -210,5 +210,21 @@
   "cover-latest": "Seneste",
   "cover-blank": "Intet billede",
   "passphrase": "Adgangskode",
-  "retype-passphrase": "Gentag adgangskode"
+  "retype-passphrase": "Indtast adgangskode igen",
+  "gallery-title": "Galleri",
+  "popup-default-title": "Titel",
+  "otp-key-label": "NØGLE: ",
+  "wrong-passphrase": "Forkert adgangskode",
+  "incorrect-password": "Forkert adgangskode",
+  "incorrect-backup-phrase": "Forkert backup-sætning",
+  "mfa-update-failed": "MFA-opdatering mislykkedes",
+  "otp-update-failed": "OTP-opdatering mislykkedes",
+  "email-update-failed": "E-mailopdatering mislykkedes",
+  "password-update-failed": "Adgangskodeopdatering mislykkedes",
+  "key-update-failed": "Nøgleopdatering mislykkedes",
+  "list-security-keys-failed": "Kunne ikke liste sikkerhedsnøgler",
+  "add-security-key-failed": "Kunne ikke tilføje sikkerhedsnøgle",
+  "mfa-status-failed": "Kunne ikke hente MFA-status",
+  "mfa-check-failed": "MFA-tjek mislykkedes",
+  "decryption-error": "Dekrypteringsfejl"
 }

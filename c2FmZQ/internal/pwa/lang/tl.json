@@ -210,5 +210,21 @@
   "cover-latest": "Pinakabago",
   "cover-blank": "Walang larawan",
   "passphrase": "Passphrase",
-  "retype-passphrase": "I-type muli ang passphrase"
+  "retype-passphrase": "I-type muli ang passphrase",
+  "gallery-title": "Gallery",
+  "popup-default-title": "Pamagat",
+  "otp-key-label": "KEY: ",
+  "wrong-passphrase": "Maling passphrase",
+  "incorrect-password": "Maling password",
+  "incorrect-backup-phrase": "Maling backup phrase",
+  "mfa-update-failed": "Nabigo ang pag-update ng MFA",
+  "otp-update-failed": "Nabigo ang pag-update ng OTP",
+  "email-update-failed": "Nabigo ang pag-update ng email",
+  "password-update-failed": "Nabigo ang pag-update ng password",
+  "key-update-failed": "Nabigo ang pag-update ng key",
+  "list-security-keys-failed": "Nabigong ilista ang mga security key",
+  "add-security-key-failed": "Nabigong idagdag ang security key",
+  "mfa-status-failed": "Nabigong makuha ang status ng MFA",
+  "mfa-check-failed": "Nabigo ang pagsusuri ng MFA",
+  "decryption-error": "Error sa pag-decryption"
 }

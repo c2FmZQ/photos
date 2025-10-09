@@ -210,5 +210,21 @@
   "cover-latest": "最新",
   "cover-blank": "无图片",
   "passphrase": "密码",
-  "retype-passphrase": "重新输入密码"
+  "retype-passphrase": "重新输入密码",
+  "gallery-title": "画廊",
+  "popup-default-title": "标题",
+  "otp-key-label": "密钥: ",
+  "wrong-passphrase": "密码错误",
+  "incorrect-password": "密码不正确",
+  "incorrect-backup-phrase": "备份短语不正确",
+  "mfa-update-failed": "MFA 更新失败",
+  "otp-update-failed": "OTP 更新失败",
+  "email-update-failed": "电子邮件更新失败",
+  "password-update-failed": "密码更新失败",
+  "key-update-failed": "密钥更新失败",
+  "list-security-keys-failed": "无法列出安全密钥",
+  "add-security-key-failed": "无法添加安全密钥",
+  "mfa-status-failed": "无法获取 MFA 状态",
+  "mfa-check-failed": "MFA 检查失败",
+  "decryption-error": "解密错误"
 }

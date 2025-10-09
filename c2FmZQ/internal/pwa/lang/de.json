@@ -210,5 +210,21 @@
   "cover-latest": "Neuestes",
   "cover-blank": "Kein Bild",
   "passphrase": "Passwort",
-  "retype-passphrase": "Passwort erneut eingeben"
+  "retype-passphrase": "Passwort erneut eingeben",
+  "gallery-title": "Galerie",
+  "popup-default-title": "Titel",
+  "otp-key-label": "SCHLÜSSEL: ",
+  "wrong-passphrase": "Falsches Passwort",
+  "incorrect-password": "Falsches Passwort",
+  "incorrect-backup-phrase": "Falsche Backup-Passphrase",
+  "mfa-update-failed": "MFA-Update fehlgeschlagen",
+  "otp-update-failed": "OTP-Update fehlgeschlagen",
+  "email-update-failed": "E-Mail-Update fehlgeschlagen",
+  "password-update-failed": "Passwort-Update fehlgeschlagen",
+  "key-update-failed": "Schlüssel-Update fehlgeschlagen",
+  "list-security-keys-failed": "Sicherheitsschlüssel konnten nicht aufgelistet werden",
+  "add-security-key-failed": "Sicherheitsschlüssel konnte nicht hinzugefügt werden",
+  "mfa-status-failed": "MFA-Status konnte nicht abgerufen werden",
+  "mfa-check-failed": "MFA-Prüfung fehlgeschlagen",
+  "decryption-error": "Entschlüsselungsfehler"
 }

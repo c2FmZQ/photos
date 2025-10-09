@@ -210,5 +210,21 @@
   "cover-latest": "Senaste",
   "cover-blank": "Ingen bild",
   "passphrase": "Lösenfras",
-  "retype-passphrase": "Skriv lösenfras igen"
+  "retype-passphrase": "Skriv lösenfrasen igen",
+  "gallery-title": "Galleri",
+  "popup-default-title": "Titel",
+  "otp-key-label": "NYCKEL: ",
+  "wrong-passphrase": "Fel lösenfras",
+  "incorrect-password": "Fel lösenord",
+  "incorrect-backup-phrase": "Felaktig säkerhetskopieringsfras",
+  "mfa-update-failed": "MFA-uppdatering misslyckades",
+  "otp-update-failed": "OTP-uppdatering misslyckades",
+  "email-update-failed": "E-postuppdatering misslyckades",
+  "password-update-failed": "Lösenordsuppdatering misslyckades",
+  "key-update-failed": "Nyckeluppdatering misslyckades",
+  "list-security-keys-failed": "Kunde inte lista säkerhetsnycklar",
+  "add-security-key-failed": "Kunde inte lägga till säkerhetsnyckel",
+  "mfa-status-failed": "Kunde inte hämta MFA-status",
+  "mfa-check-failed": "MFA-kontroll misslyckades",
+  "decryption-error": "Dekrypteringsfel"
 }

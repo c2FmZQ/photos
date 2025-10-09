@@ -210,5 +210,21 @@
   "cover-latest": "Più recente",
   "cover-blank": "Nessuna immagine",
   "passphrase": "Passphrase",
-  "retype-passphrase": "Reinserisci la passphrase"
+  "retype-passphrase": "Reinserisci la passphrase",
+  "gallery-title": "Galleria",
+  "popup-default-title": "Titolo",
+  "otp-key-label": "CHIAVE: ",
+  "wrong-passphrase": "Passphrase errata",
+  "incorrect-password": "Password errata",
+  "incorrect-backup-phrase": "Frase di backup errata",
+  "mfa-update-failed": "Aggiornamento MFA non riuscito",
+  "otp-update-failed": "Aggiornamento OTP non riuscito",
+  "email-update-failed": "Aggiornamento email non riuscito",
+  "password-update-failed": "Aggiornamento password non riuscito",
+  "key-update-failed": "Aggiornamento chiave non riuscito",
+  "list-security-keys-failed": "Impossibile elencare le chiavi di sicurezza",
+  "add-security-key-failed": "Impossibile aggiungere la chiave di sicurezza",
+  "mfa-status-failed": "Impossibile ottenere lo stato MFA",
+  "mfa-check-failed": "Controllo MFA non riuscito",
+  "decryption-error": "Errore di decrittazione"
 }

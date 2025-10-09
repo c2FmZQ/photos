@@ -210,5 +210,21 @@
   "cover-latest": "Terbaru",
   "cover-blank": "Tidak ada gambar",
   "passphrase": "Frasa sandi",
-  "retype-passphrase": "Ketik ulang frasa sandi"
+  "retype-passphrase": "Ketik ulang frasa sandi",
+  "gallery-title": "Galeri",
+  "popup-default-title": "Judul",
+  "otp-key-label": "KUNCI: ",
+  "wrong-passphrase": "Frasa sandi salah",
+  "incorrect-password": "Kata sandi salah",
+  "incorrect-backup-phrase": "Frasa cadangan salah",
+  "mfa-update-failed": "Pembaruan MFA gagal",
+  "otp-update-failed": "Pembaruan OTP gagal",
+  "email-update-failed": "Pembaruan email gagal",
+  "password-update-failed": "Pembaruan kata sandi gagal",
+  "key-update-failed": "Pembaruan kunci gagal",
+  "list-security-keys-failed": "Gagal menampilkan daftar kunci keamanan",
+  "add-security-key-failed": "Gagal menambahkan kunci keamanan",
+  "mfa-status-failed": "Gagal mendapatkan status MFA",
+  "mfa-check-failed": "Pemeriksaan MFA gagal",
+  "decryption-error": "Kesalahan dekripsi"
 }

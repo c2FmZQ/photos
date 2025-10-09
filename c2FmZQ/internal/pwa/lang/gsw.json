@@ -210,5 +210,21 @@
   "cover-latest": "Neuschts",
   "cover-blank": "Keis Bild",
   "passphrase": "Passwort",
-  "retype-passphrase": "Passwort nomol iigee"
+  "retype-passphrase": "Passwort nomal iigee",
+  "gallery-title": "Galeri",
+  "popup-default-title": "Titel",
+  "otp-key-label": "SCHLÜSSEL: ",
+  "wrong-passphrase": "Falschs Passwort",
+  "incorrect-password": "Falschs Passwort",
+  "incorrect-backup-phrase": "Falschi Backup-Passphrasä",
+  "mfa-update-failed": "MFA-Update fählgschlage",
+  "otp-update-failed": "OTP-Update fählgschlage",
+  "email-update-failed": "E-Mail-Update fählgschlage",
+  "password-update-failed": "Passwort-Update fählgschlage",
+  "key-update-failed": "Schlüssel-Update fählgschlage",
+  "list-security-keys-failed": "Sicherheitsschlüssel händ nöd chönne glischtet wärde",
+  "add-security-key-failed": "Sicherheitsschlüssel het nöd chönne hinzuegfüegt wärde",
+  "mfa-status-failed": "MFA-Status het nöd chönne abgruefe wärde",
+  "mfa-check-failed": "MFA-Überprüefig fählgschlage",
+  "decryption-error": "Entschlüsselig-Fähler"
 }

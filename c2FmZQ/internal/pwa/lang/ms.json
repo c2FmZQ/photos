@@ -210,5 +210,21 @@
   "cover-latest": "Terkini",
   "cover-blank": "Tiada imej",
   "passphrase": "Frasa laluan",
-  "retype-passphrase": "Taip semula frasa laluan"
+  "retype-passphrase": "Taip semula frasa laluan",
+  "gallery-title": "Galeri",
+  "popup-default-title": "Tajuk",
+  "otp-key-label": "KUNCI: ",
+  "wrong-passphrase": "Frasa laluan salah",
+  "incorrect-password": "Kata laluan salah",
+  "incorrect-backup-phrase": "Frasa sandaran salah",
+  "mfa-update-failed": "Kemas kini MFA gagal",
+  "otp-update-failed": "Kemas kini OTP gagal",
+  "email-update-failed": "Kemas kini e-mel gagal",
+  "password-update-failed": "Kemas kini kata laluan gagal",
+  "key-update-failed": "Kemas kini kunci gagal",
+  "list-security-keys-failed": "Gagal menyenaraikan kunci keselamatan",
+  "add-security-key-failed": "Gagal menambah kunci keselamatan",
+  "mfa-status-failed": "Gagal mendapatkan status MFA",
+  "mfa-check-failed": "Semakan MFA gagal",
+  "decryption-error": "Ralat penyahsulitan"
 }

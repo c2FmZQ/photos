@@ -210,5 +210,21 @@
   "cover-latest": "ئەڭ يېڭى",
   "cover-blank": "رەسىم يوق",
   "passphrase": "پارول",
-  "retype-passphrase": "پارولنى قايتا يېזىڭ"
+  "retype-passphrase": "ئۆتۈشمە سۆزنى قايتا يېזىڭ",
+  "gallery-title": "رەسىم ئامبىرى",
+  "popup-default-title": "ماۋزۇ",
+  "otp-key-label": "ئاچقۇچ: ",
+  "wrong-passphrase": "خاتا ئۆتۈشمە سۆز",
+  "incorrect-password": "خاتا ئىم",
+  "incorrect-backup-phrase": "خاتا زاپاسلاش جۈملىسى",
+  "mfa-update-failed": "MFA يېڭىلاش مەغلۇپ بولدى",
+  "otp-update-failed": "OTP يېڭىلاش مەغلۇپ بولدى",
+  "email-update-failed": "ئېلخەت يېڭىلاش مەغلۇپ بولدى",
+  "password-update-failed": "ئىم يېڭىلاش مەغلۇپ بولدى",
+  "key-update-failed": "ئاچقۇچ يېڭىلاش مەغلۇپ بولدى",
+  "list-security-keys-failed": "بىخەتەرلىк ئاчқۇچىنى تىزىش مەغلۇپ بولدى",
+  "add-security-key-failed": "بىخەتەرلىк ئاچқۇچىنى قوشۇش مەغلۇپ بولدى",
+  "mfa-status-failed": "MFA ھالىتىنى ئېلىش مەغلۇپ بولدى",
+  "mfa-check-failed": "MFA تەكشۈرۈش مەغلۇپ بولدى",
+  "decryption-error": "شىفىر يېشىش خاتالىقى"
 }

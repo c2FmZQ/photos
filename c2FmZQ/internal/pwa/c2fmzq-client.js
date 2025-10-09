@@ -370,7 +370,7 @@ class c2FmZQClient {
 
   async changeKeyBackup(clientId, password, doBackup) {
     if (!await this.checkPassword_(password)) {
-      throw new Error('incorrect password');
+      throw new Error(_T('incorrect-password'));
     }
     console.log('SW reuploading keys');
     const params = {
@@ -395,7 +395,7 @@ class c2FmZQClient {
         return this.checkKey_(clientId, this.vars_.email, this.vars_.pk, sk)
           .then(res => {
             if (res !== true) {
-              throw new Error('incorrect backup phrase');
+              throw new Error(_T('incorrect-backup-phrase'));
             }
             this.enableNotifications(clientId, this.vars_.enableNotifications);
             return this.#encrypt(sk);
@@ -459,7 +459,7 @@ class c2FmZQClient {
       .then(() => this.login(clientId, args))
       .then(v => {
         if (!enableBackup) {
-          this.#sw.sendMessage(clientId, {type: 'info', msg: 'Your secret key is NOT backed up. You will need a backup phrase next time you login.'});
+          this.#sw.sendMessage(clientId, {type: 'info', msg: _T('no-key-backup-warning')});
         }
         return v;
       });
@@ -474,7 +474,7 @@ class c2FmZQClient {
     const sk = await so.hex2bin(bip39.mnemonicToEntropy(backupPhrase));
     const pk = await so.box_publickey_from_secretkey(sk);
     if (await this.checkKey_(clientId, email, pk, sk) !== true) {
-      throw new Error('incorrect backup phrase');
+      throw new Error(_T('incorrect-backup-phrase'));
     }
     await this.#setSessionKey({reset:true});
     args.resetSkey = false;
@@ -529,7 +529,7 @@ class c2FmZQClient {
           params: this.makeParams_(params),
         });
         if (resp.status !== 'ok') {
-          throw new Error('MFA update failed');
+          throw new Error(_T('mfa-update-failed'));
         }
       }
     };
@@ -547,7 +547,7 @@ class c2FmZQClient {
         params: this.makeParams_(params),
       });
       if (resp.status !== 'ok') {
-        throw new Error('OTP update failed');
+        throw new Error(_T('otp-update-failed'));
       }
     }
     if (this.vars_.email !== args.email) {
@@ -556,7 +556,7 @@ class c2FmZQClient {
         params: this.makeParams_({newEmail: args.email}),
       });
       if (resp.status !== 'ok') {
-        throw new Error('email update failed');
+        throw new Error(_T('email-update-failed'));
       }
       this.vars_.email = args.email;
     }
@@ -574,7 +574,7 @@ class c2FmZQClient {
         params: this.makeParams_(params),
       });
       if (resp.status !== 'ok') {
-        throw new Error('password update failed');
+        throw new Error(_T('password-update-failed'));
       }
       this.vars_.loginSalt = salt.toString('hex').toUpperCase();
       this.vars_.etoken = await this.#encryptString(resp.parts.token);
@@ -591,7 +591,7 @@ class c2FmZQClient {
         params: this.makeParams_(params),
       });
       if (resp.status !== 'ok') {
-        throw new Error('key update failed');
+        throw new Error(_T('key-update-failed'));
       }
     }
     if (args.setMFA) {
@@ -606,7 +606,7 @@ class c2FmZQClient {
       token: this.#token(),
     });
     if (resp.status !== 'ok') {
-      throw new Error('error');
+      throw new Error(_T('list-security-keys-failed'));
     }
     return resp.parts.keys;
   }
@@ -614,7 +614,7 @@ class c2FmZQClient {
   async addSecurityKey(clientId, args) {
     console.log('SW addSecurityKey');
     if (!args?.password || args.attestationObject && !await this.checkPassword_(args.password)) {
-      throw new Error('incorrect password');
+      throw new Error(_T('incorrect-password'));
     }
     const params = {};
     if (args?.keyName) {
@@ -631,7 +631,7 @@ class c2FmZQClient {
       params: this.makeParams_(params),
     });
     if (resp.status !== 'ok') {
-      throw new Error('error');
+      throw new Error(_T('add-security-key-failed'));
     }
     return resp.parts.attestationOptions;
   }
@@ -640,7 +640,7 @@ class c2FmZQClient {
     console.log('SW mfaStatus');
     const resp = await this.sendRequest_(clientId, 'v2x/mfa/status', {token: this.#token()});
     if (resp.status !== 'ok') {
-      throw new Error('error');
+      throw new Error(_T('mfa-status-failed'));
     }
     return resp.parts;
   }
@@ -654,7 +654,7 @@ class c2FmZQClient {
       }),
     });
     if (resp.status !== 'ok') {
-      throw new Error('error');
+      throw new Error(_T('mfa-check-failed'));
     }
     return true;
   }
@@ -710,7 +710,7 @@ class c2FmZQClient {
     return this.checkPassword_(password)
     .then(async ok => {
       if (!ok) {
-        throw new Error('incorrect password');
+        throw new Error(_T('incorrect-password'));
       }
       return bip39.entropyToMnemonic(await this.#sk());
     });
@@ -2251,7 +2251,7 @@ class c2FmZQClient {
   async cancelUpload(clientId) {
     this.#state.cancelUpload.cancel = true;
     this.#state.uploadData.forEach(b => {
-      b.err = 'canceled';
+      b.err = _T('canceled');
     });
   }
 
@@ -2263,7 +2263,7 @@ class c2FmZQClient {
       this.#state.cancelUpload = { cancel: false };
     }
     if (this.#state.uploadData?.length > 0 && this.#state.cancelUpload.cancel) {
-      return Promise.reject('canceled');
+      return Promise.reject(_T('canceled'));
     }
     this.#state.cancelUpload.cancel = false;
 
@@ -2368,7 +2368,7 @@ class c2FmZQClient {
     const rs = new ReadableStream(new UploadStream(boundary, hdr, hdrBin, hdrBase64, collection, file, await this.#token(), this.#state.cancelUpload));
 
     if (this.#state.cancelUpload.cancel) {
-      throw new Error('canceled');
+      throw new Error(_T('canceled'));
     }
 
     let body = rs;
@@ -2404,7 +2404,7 @@ class c2FmZQClient {
     })
     .catch(err => {
       if (this.#state.cancelUpload.cancel) {
-        return Promise.reject('canceled');
+        return Promise.reject(_T('canceled'));
       }
       const t = Date.now() - t1;
       if (err instanceof TypeError && t < 10 && this.#state.streamingUploadWorks && !opt_noStreaming) {
@@ -2566,7 +2566,7 @@ class Decrypter {
       }
       controller.enqueue(dec);
     } catch (e) {
-      controller.error(new Error('decryption error'));
+      controller.error(new Error(_T('decryption-error')));
       console.error('SW decryptChunk', e);
       this.cancel();
     }
@@ -2642,7 +2642,7 @@ class UploadStream {
       controller.close();
       return;
     }
-    if (this.checkCanceled()) return Promise.reject('canceled');
+    if (this.checkCanceled()) return Promise.reject(_T('canceled'));
 
     return new Promise(async (resolve, reject) => {
       const q = this.queue_[0];
@@ -2657,7 +2657,7 @@ class UploadStream {
       }
       let eof = false;
       while (q.buf.byteLength < q.chunkSize) {
-        if (this.checkCanceled()) return reject('canceled');
+        if (this.checkCanceled()) return reject(_T('canceled'));
         let {done, value} = await q.reader.read();
         if (done) {
           eof = true;
@@ -2669,7 +2669,7 @@ class UploadStream {
         q.buf = tmp;
       }
       while (q.buf.byteLength >= q.chunkSize) {
-        if (this.checkCanceled()) return reject('canceled');
+        if (this.checkCanceled()) return reject(_T('canceled'));
         let chunk = q.buf.slice(0, q.chunkSize);
         q.buf = q.buf.slice(q.chunkSize);
         this.file_.uploadedBytes += chunk.byteLength;
@@ -2677,7 +2677,7 @@ class UploadStream {
         q.n++;
       }
       if (eof) {
-        if (this.checkCanceled()) return reject('canceled');
+        if (this.checkCanceled()) return reject(_T('canceled'));
         if (q.buf.byteLength > 0) {
           this.file_.uploadedBytes += q.buf.byteLength;
           controller.enqueue(await this.encryptChunk_(q.n, q.buf, q.key));

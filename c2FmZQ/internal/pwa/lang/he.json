@@ -210,5 +210,21 @@
   "cover-latest": "האחרונה",
   "cover-blank": "אין תמונה",
   "passphrase": "סיסמה",
-  "retype-passphrase": "הקלד סיסמה שוב"
+  "retype-passphrase": "הקלד שוב את ביטוי הסיסמה",
+  "gallery-title": "גלריה",
+  "popup-default-title": "כותרת",
+  "otp-key-label": "מפתח: ",
+  "wrong-passphrase": "סיסמה שגויה",
+  "incorrect-password": "סיסמה שגויה",
+  "incorrect-backup-phrase": "ביטוי גיבוי שגוי",
+  "mfa-update-failed": "עדכון MFA נכשל",
+  "otp-update-failed": "עדכון OTP נכשל",
+  "email-update-failed": "עדכון דוא\"ל נכשל",
+  "password-update-failed": "עדכון סיסמה נכשל",
+  "key-update-failed": "עדכון מפתח נכשל",
+  "list-security-keys-failed": "רישום מפתחות אבטחה נכשל",
+  "add-security-key-failed": "הוספת מפתח אבטחה נכשל",
+  "mfa-status-failed": "קבלת סטטוס MFA נכשלה",
+  "mfa-check-failed": "בדיקת MFA נכשלה",
+  "decryption-error": "שגיאת פענוח"
 }

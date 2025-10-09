@@ -210,5 +210,21 @@
   "cover-latest": "جدیدترین",
   "cover-blank": "بدون تصویر",
   "passphrase": "عبارت عبور",
-  "retype-passphrase": "عبارت عبور را دوباره تایپ کنید"
+  "retype-passphrase": "رمز عبور را دوباره تایپ کنید",
+  "gallery-title": "گالری",
+  "popup-default-title": "عنوان",
+  "otp-key-label": "کلید: ",
+  "wrong-passphrase": "رمز عبور اشتباه است",
+  "incorrect-password": "رمز عبور نادرست است",
+  "incorrect-backup-phrase": "عبارت پشتیبان نادرست است",
+  "mfa-update-failed": "به روز رسانی MFA ناموفق بود",
+  "otp-update-failed": "به روز رسانی OTP ناموفق بود",
+  "email-update-failed": "به روز رسانی ایمیل ناموفق بود",
+  "password-update-failed": "به روز رسانی رمز عبور ناموفق بود",
+  "key-update-failed": "به روز رسانی کلید ناموفق بود",
+  "list-security-keys-failed": "لیست کلیدهای امنیتی ناموفق بود",
+  "add-security-key-failed": "افزودن کلید امنیتی ناموفق بود",
+  "mfa-status-failed": "دریافت وضعیت MFA ناموفق بود",
+  "mfa-check-failed": "بررسی MFA ناموفق بود",
+  "decryption-error": "خطای رمزگشایی"
 }

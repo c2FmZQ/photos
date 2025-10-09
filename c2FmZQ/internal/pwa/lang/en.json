@@ -210,5 +210,21 @@
   "cover-latest": "Most recent",
   "cover-blank": "No image",
   "passphrase": "Passphrase",
-  "retype-passphrase": "Retype passphrase"
+  "retype-passphrase": "Retype passphrase",
+  "gallery-title": "Gallery",
+  "popup-default-title": "Title",
+  "otp-key-label": "KEY: ",
+  "wrong-passphrase": "Wrong passphrase",
+  "incorrect-password": "Incorrect password",
+  "incorrect-backup-phrase": "Incorrect backup phrase",
+  "mfa-update-failed": "MFA update failed",
+  "otp-update-failed": "OTP update failed",
+  "email-update-failed": "Email update failed",
+  "password-update-failed": "Password update failed",
+  "key-update-failed": "Key update failed",
+  "list-security-keys-failed": "Failed to list security keys",
+  "add-security-key-failed": "Failed to add security key",
+  "mfa-status-failed": "Failed to get MFA status",
+  "mfa-check-failed": "MFA check failed",
+  "decryption-error": "Decryption error"
 }

@@ -210,5 +210,21 @@
   "cover-latest": "সাম্প্রতিকতম",
   "cover-blank": "কোনো ছবি নেই",
   "passphrase": "পাসফ্রেজ",
-  "retype-passphrase": "পাসফ্রেজ পুনরায় টাইপ করুন"
+  "retype-passphrase": "পাসফ্রেজ পুনরায় টাইপ করুন",
+  "gallery-title": "গ্যালারি",
+  "popup-default-title": "শিরোনাম",
+  "otp-key-label": "চাবি: ",
+  "wrong-passphrase": "ভুল পাসফ্রেজ",
+  "incorrect-password": "ভুল পাসওয়ার্ড",
+  "incorrect-backup-phrase": "ভুল ব্যাকআপ শব্দগুচ্ছ",
+  "mfa-update-failed": "MFA আপডেট ব্যর্থ হয়েছে",
+  "otp-update-failed": "OTP আপডেট ব্যর্থ হয়েছে",
+  "email-update-failed": "ইমেল আপডেট ব্যর্থ হয়েছে",
+  "password-update-failed": "পাসওয়ার্ড আপডেট ব্যর্থ হয়েছে",
+  "key-update-failed": "কী আপডেট ব্যর্থ হয়েছে",
+  "list-security-keys-failed": "নিরাপত্তা কী তালিকাভুক্ত করতে ব্যর্থ",
+  "add-security-key-failed": "নিরাপত্তা কী যোগ করতে ব্যর্থ",
+  "mfa-status-failed": "MFA স্ট্যাটাস পেতে ব্যর্থ",
+  "mfa-check-failed": "MFA চেক ব্যর্থ হয়েছে",
+  "decryption-error": "ডিক্রিপশন ত্রুটি"
 }
