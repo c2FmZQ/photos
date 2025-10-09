@@ -119,7 +119,7 @@ class ServiceWorker {
       try {
         if (!reset && dbList.length && !dbList.includes(storeName)) {
           console.log('SW Wrong passphrase (new storeName)');
-          this.#sendHello('Wrong passphrase');
+          this.#sendHello(_T('wrong-passphrase'));
           return resolve();
         }
         this.#store.setName(storeName);
@@ -128,7 +128,7 @@ class ServiceWorker {
         if (!await this.#store.check()) {
           console.log('SW Wrong passphrase');
           this.#store.lock();
-          this.#sendHello('Wrong passphrase');
+          this.#sendHello(_T('wrong-passphrase'));
           return resolve();
         }
       } catch (err) {

@@ -609,7 +609,7 @@ class UI {
   }
 
   showLoggedIn_() {
-    this.title_.textContent = 'Gallery';
+    this.title_.textContent = _T('gallery-title');
     document.querySelector('#loggedout-div').className = 'hidden';
     document.querySelector('#passphrase-div').className = 'hidden';
     document.querySelector('#loggedin-div').className = '';
@@ -1730,7 +1730,7 @@ class UI {
     const EL = params.EL || new EventListeners();
     const popup = UI.create('div', {className:params.className || 'popup'});
     const popupHeader = UI.create('div', {className:'popup-header', parent:popup});
-    const popupName = UI.create('div', {className:'popup-name', text:params.title || 'Title', parent:popupHeader});
+    const popupName = UI.create('div', {className:'popup-name', text:params.title || _T('popup-default-title'), parent:popupHeader});
     const popupInfo = UI.create('div', {className:'popup-info', text:'ⓘ', tabindex:'0', role:'button', title:_T('info')});
     const popupClose = UI.create('div', {className:'popup-close', text:'✖', tabindex:'0', role:'button', title:_T('close')});
     const popupContent = UI.create('div', {className:'popup-content', parent:popup});
@@ -2934,7 +2934,7 @@ class UI {
           const image = new Image();
           image.src = img;
           otpDiv.appendChild(image);
-          const keyDiv = UI.create('div', {id:'profile-form-otp-key', text:'KEY: ' + key, parent:otpDiv});
+          const keyDiv = UI.create('div', {id:'profile-form-otp-key', text:_T('otp-key-label') + key, parent:otpDiv});
           const code = UI.create('input', {id:'profile-form-otp-code', type:'text', placeholder:_T('enter-code'), parent:otpDiv});
           EL.add(code, 'keydown', onchange);
           EL.add(code, 'change', onchange);
@@ -3343,7 +3343,7 @@ class UI {
     };
 
     const defQuotaDiv = UI.create('div', {id:'admin-console-default-quota-div', parent:content});
-    UI.create('label', {htmlFor:'admin-console-default-quota-value', text:'Default quota:', parent:defQuotaDiv});
+    UI.create('label', {htmlFor:'admin-console-default-quota-value', text:_T('default-quota'), parent:defQuotaDiv});
     const defQuotaValue = UI.create('input', {id:'admin-console-default-quota-value', type:'number', size:5, value:data.defaultQuota, parent:defQuotaDiv});
     EL.add(defQuotaValue, 'change', () => {
       const v = parseInt(defQuotaValue.value);
