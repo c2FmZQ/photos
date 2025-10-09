@@ -268,7 +268,7 @@ func (s *Server) handleShare(user database.User, req *http.Request) *stingle.Res
 		}
 		return stingle.ResponseOK()
 	}
-	return stingle.ResponseNOK().AddError("You are not allow to share the album")
+	return stingle.ResponseNOK().AddError("You are not allowed to share the album")
 
 }
 
