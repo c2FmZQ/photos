@@ -1163,6 +1163,12 @@ audio.popup-media {
     height: 85vh;
 }
 
+.icon {
+  width: 2.5rem;
+  height: 1.5rem;
+  vertical-align: top;
+}
+
 [dir="rtl"] #buttons {
   right: auto;
   left: 10px;
