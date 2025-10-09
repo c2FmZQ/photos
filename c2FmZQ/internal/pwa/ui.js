@@ -970,6 +970,7 @@ class UI {
     const collButtons = UI.create('div', {id:'collection-buttons'});
     const formatButton = UI.create('button', {
       id: 'format-button',
+      className: 'button',
       text: this.galleryState_.format === 'list' ? _T('grid') : _T('list'),
       title: this.galleryState_.format === 'list' ? _T('grid-title') : _T('list-title'),
       parent: collButtons,
@@ -979,7 +980,7 @@ class UI {
       this.refreshGallery_(true);
     });
     if (this.galleryState_.collection === 'trash') {
-      const emptyButton = UI.create('button', {className:'empty-trash',text:_T('empty'),parent:collButtons});
+      const emptyButton = UI.create('button', {className:'empty-trash button',text:_T('empty'),parent:collButtons});
       EL.add(emptyButton, 'click', e => {
         this.emptyTrash_(e.target);
       });
@@ -987,6 +988,7 @@ class UI {
     if (this.galleryState_.collection !== 'gallery' && this.galleryState_.collection !== 'trash') {
       const settingsButton = UI.create('button', {
         id: 'settings-button',
+        className: 'button',
         text: '⚙',
         title: _T('settings-title'),
       });
@@ -1533,7 +1535,7 @@ class UI {
       if (params.items[i].onclick) {
         const item = UI.create('button', {
           id: params.items[i].id,
-          className: 'context-menu-item',
+          className: 'context-menu-item button',
           text: params.items[i].text,
           tabindex: '0',
           role: 'menuitem',
@@ -1657,8 +1659,8 @@ class UI {
     }
 
     const buttons = UI.create('div', {className:'prompt-button-row button-group',parent:win});
-    const canc = UI.create('button', {className:'prompt-cancel-button', text:params.cancelText || _T('cancel'), tabindex:'0', parent:buttons});
-    const conf = UI.create('button', {className:'prompt-confirm-button', text:params.confirmText || _T('confirm'), tabindex:'0', parent:buttons});
+    const canc = UI.create('button', {className:'prompt-cancel-button button', text:params.cancelText || _T('cancel'), tabindex:'0', parent:buttons});
+    const conf = UI.create('button', {className:'prompt-confirm-button button', text:params.confirmText || _T('confirm'), tabindex:'0', parent:buttons});
 
     body.appendChild(win);
     if (input) input.focus();
@@ -2274,7 +2276,7 @@ class UI {
     };
 
     if (!c.create) {
-      const deleteButton = UI.create('button', {id:'collection-properties-delete',text:'🗑',parent:content});
+      const deleteButton = UI.create('button', {id:'collection-properties-delete',className: 'button',text:'🗑',parent:content});
       EL.add(deleteButton, 'click', () => {
         if (c.isOwner) {
           this.deleteCollection_(c.collection).then(() => close());
@@ -2381,7 +2383,7 @@ class UI {
     const membersDiv = UI.create('div', {id:'collection-properties-members', className:'sharing-setting', parent:content});
     membersDiv.style.display = c.isShared ? '' : 'none';
 
-    const applyButton = UI.create('button', {id:'collection-properties-apply-button', text:_T('no-changes'), disabled: true, parent:content});
+    const applyButton = UI.create('button', {id:'collection-properties-apply-button', className: 'button', text:_T('no-changes'), disabled: true, parent:content});
     EL.add(applyButton, 'click', applyChanges);
 
     const deleteMember = i => {
@@ -2407,7 +2409,7 @@ class UI {
 
         const input = UI.create('input', {id:'collection-properties-members-input', type:'search', placeholder:_T('contact-email'), list:'collection-properties-members-contacts', parent:membersDiv});
 
-        const addButton = UI.create('button', {id:'collection-properties-members-add-button', text:_T('add-member'), parent:membersDiv});
+        const addButton = UI.create('button', {id:'collection-properties-members-add-button', className: 'button', text:_T('add-member'), parent:membersDiv});
         const addFunc = () => {
           const c = contacts.find(e => e.email === input.value);
           if (c) {
@@ -2453,7 +2455,7 @@ class UI {
       for (let i = 0; i < members.length; i++) {
         const div = UI.create('div', {parent:membersDiv});
         if (c.isOwner) {
-          const del = UI.create('button', {text:'✖', parent:div});
+          const del = UI.create('button', {className: 'button', text:'✖', parent:div});
           del.style.cursor = 'pointer';
           EL.add(del, 'click', () => deleteMember(i));
         }
@@ -2611,7 +2613,7 @@ class UI {
         UI.create('span', {text:_T('name:', f.name), parent:div});
         UI.create('span', {text:_T('size:', this.formatSize_(f.size)), parent:div});
         const errSpan = UI.create('span', {text:_T('status:', '...'), parent:div});
-        const removeButton = UI.create('button', {className:'upload-item-remove-button', disabled:true, text:_T('remove'), parent:div});
+        const removeButton = UI.create('button', {className:'upload-item-remove-button button', disabled:true, text:_T('remove'), parent:div});
         EL.add(removeButton, 'click', () => {
           files = files.filter(f => f.elem !== elem);
           processFiles([]);
@@ -2643,7 +2645,7 @@ class UI {
       const list = document.querySelector('#upload-file-list');
       UI.clearElement_(list);
       if (files.length > 0) {
-        const uploadButton = UI.create('button', {className:'upload-file-list-upload-button', text:_T('upload'), disabled:true, parent:list});
+        const uploadButton = UI.create('button', {className:'upload-file-list-upload-button button', text:_T('upload'), disabled:true, parent:list});
         EL.add(uploadButton, 'click', () => {
           let toUpload = [];
           for (let i = 0; i < files.length; i++) {
@@ -2910,7 +2912,7 @@ class UI {
       form.querySelectorAll('.hide-no-mfa').forEach(e => e.style.display = mfa.checked ? '' : 'none');
       onchange();
     });
-    const testButton = UI.create('button', {id:'profile-form-test-mfa', className:'hide-no-mfa', text:_T('test'), parent:mfaDiv});
+    const testButton = UI.create('button', {id:'profile-form-test-mfa', className:'hide-no-mfa button', text:_T('test'), parent:mfaDiv});
     EL.add(testButton, 'click', () => {
       testButton.disabled = true;
       this.#main.sendRPC('mfaCheck', passkey.checked).finally(() => {
@@ -2962,7 +2964,7 @@ class UI {
     UI.create('label', {className:'hide-no-mfa', forHtml:'profile-form-add-security-key-button', text:_T('security-keys:'), parent:form});
     const skDiv = UI.create('div', {id:'profile-form-security-keys-div', className:'hide-no-mfa', parent:form});
 
-    const addSkButton = UI.create('button', {id:'profile-form-add-security-key-button', text:passkey.checked ? _T('add-passkey') : _T('add-security-key'), parent:skDiv});
+    const addSkButton = UI.create('button', {id:'profile-form-add-security-key-button', className: 'button', text:passkey.checked ? _T('add-passkey') : _T('add-security-key'), parent:skDiv});
     EL.add(addSkButton, 'click', () => {
       addSkButton.disabled = true;
       this.getCurrentPassword()
@@ -2991,7 +2993,7 @@ class UI {
           EL.add(input, 'change', onchange);
           EL.add(input, 'keydown', onchange);
           let t = UI.create('div', {text:(new Date(k.createdAt)).toLocaleDateString(Lang.current, {year: 'numeric', month: 'short', day: 'numeric'}), parent:skList});
-          let del = UI.create('button', {text:'✖', parent:skList});
+          let del = UI.create('button', {className: 'button', text:'✖', parent:skList});
           del.style.cursor = 'pointer';
           EL.add(del, 'click', () => {
             keyList[k.id].deleted = !keyList[k.id].deleted;
@@ -3007,7 +3009,7 @@ class UI {
     };
     updateKeyList();
 
-    const button = UI.create('button', {id:'profile-form-button', text:_T('no-changes'), disabled:true, parent:form});
+    const button = UI.create('button', {id:'profile-form-button', className: 'button', text:_T('no-changes'), disabled:true, parent:form});
     EL.add(button, 'click', async () => {
       if ((newPass.value !== '' || newPass2.value !== '') && newPass.value !== newPass2.value) {
         this.popupMessage(_T('new-pass-doesnt-match'));
@@ -3080,7 +3082,7 @@ class UI {
 
     UI.create('div', {html:'<hr>' + _T('delete-warning'), parent:content});
 
-    const delButton = UI.create('button', {id:'profile-form-delete-button', text:_T('delete-account'), parent:content});
+    const delButton = UI.create('button', {id:'profile-form-delete-button', className: 'button', text:_T('delete-account'), parent:content});
     EL.add(delButton, 'click', () => {
       email.disabled = true;
       newPass.disabled = true;
@@ -3115,7 +3117,7 @@ class UI {
     const warning = UI.create('div', {id:'backup-phrase-warning', className:'warning', html:_T('key-backup-warning'), parent:content});
     const phrase = UI.create('div', {id:'backup-phrase-value', parent:content});
 
-    const button = UI.create('button', {id:'backup-phrase-show-button', text:_T('show-backup-phrase'), parent:content});
+    const button = UI.create('button', {id:'backup-phrase-show-button', className: 'button', text:_T('show-backup-phrase'), parent:content});
     EL.add(button, 'click', () => {
       if (phrase.textContent === '') {
         button.disabled = true;
@@ -3466,7 +3468,7 @@ class UI {
 
     const table = UI.create('div', {id:'admin-console-table', parent:content});
 
-    const saveButton = UI.create('button', {id:'admin-console-save-button', text:_T('no-changes'), disabled:true, parent:content});
+    const saveButton = UI.create('button', {id:'admin-console-save-button', className: 'button', text:_T('no-changes'), disabled:true, parent:content});
     EL.add(saveButton, 'click', () => {
       const c = changes();
       content.querySelectorAll('input,select').forEach(elem => {
