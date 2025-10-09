@@ -92,7 +92,7 @@ func TestNoBackupKeys(t *testing.T) {
 	wd.click("#login-button")
 	wd.waitFor("#gallery")
 
-	wd.waitPopupMessage("Your secret key is NOT backed up. You will need a backup phrase next time you login.")
+	wd.waitPopupMessage("⚠️ Your secret key is NOT backed up. You will need a backup phrase next time you login.")
 
 	t.Log("Getting backup phrase")
 	wd.click("#account-button")
