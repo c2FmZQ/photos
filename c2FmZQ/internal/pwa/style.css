@@ -757,8 +757,6 @@ button.context-menu-item {
 
 #upload-files-div {
     margin: 1em;
-    display: flex;
-    flex-direction: column;
 }
 
 .upload-thumbnail {
@@ -1080,6 +1078,10 @@ button.deleted-key {
 
 #admin-console-table>div.row>div:nth-child(n+2):nth-child(-n+4) {
     text-align: center;
+}
+
+#upload-file-input {
+    opacity: 0;
 }
 
 .quota-cell {

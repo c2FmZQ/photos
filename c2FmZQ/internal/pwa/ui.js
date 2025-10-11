@@ -2643,6 +2643,12 @@ class UI {
         );
       }
       const list = document.querySelector('#upload-file-list');
+      for (let i = 0; i < files.length; i++) {
+        const f = files[i];
+        if (list.contains(f.elem)) {
+          list.removeChild(f.elem);
+        }
+      }
       UI.clearElement_(list);
       if (files.length > 0) {
         const uploadButton = UI.create('button', {className:'upload-file-list-upload-button button', text:_T('upload'), disabled:true, parent:list});
@@ -2682,13 +2688,13 @@ class UI {
         list.appendChild(f.elem);
       }
     };
-    const fileInputs = UI.create('div', {id:'upload-files-div', parent:content});
-
-    UI.create('label', {forHtml:'files', text:_T('select-upload'), parent:fileInputs});
-    const input = UI.create('input', {id:'upload-file-input', type:'file', name:'files', multiple:true, parent:fileInputs});
+    const input = UI.create('input', {id:'upload-file-input', type:'file', name:'files', multiple:true, parent:content});
     EL.add(input, 'change', e => {
       processFiles(e.target.files);
     });
+    const fileInputs = UI.create('div', {id:'upload-files-div', parent:content});
+    const pickFiles = UI.create('button', {text:_T('select-upload'), parent:fileInputs});
+    EL.add(pickFiles, 'click', e => input.click(e));
 
     EL.add(popup, 'drop', e => {
       e.preventDefault();
@@ -3521,7 +3527,6 @@ class EventListeners {
       delete it.listener;
     }
     this.list_ = [];
-    //console.log(`XXX EL clear ${EL_added - EL_removed} added=${EL_added} removed=${EL_removed}`);
   }
 }
 
