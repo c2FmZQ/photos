@@ -585,7 +585,6 @@ div.row.selected>div {
     overflow: visible;
     display: flex;
     flex-direction: column;
-    resize: both;
 }
 
 .popup-header {
