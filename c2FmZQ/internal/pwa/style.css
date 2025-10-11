@@ -369,8 +369,7 @@ div.row.selected>div {
 
 #collection-buttons {
     position: absolute;
-    right: 0;
-    font-size: 12pt;
+    right: 10px;
 }
 
 #collection-buttons button {
@@ -1176,7 +1175,7 @@ audio.popup-media {
 
 [dir="rtl"] #collection-buttons {
   right: auto;
-  left: 0;
+  left: 10px;
 }
 
 [dir="rtl"] #add-button {
