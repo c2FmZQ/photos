@@ -622,8 +622,8 @@ div.row.selected>div {
 }
 
 .popup-content {
-    overflow: hidden;
-    resize: both;
+    overflow-x: hidden;
+    overflow-y: scroll;
 }
 
 .popup-content > .arrow {
