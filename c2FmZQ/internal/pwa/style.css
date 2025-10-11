@@ -53,7 +53,7 @@ a:hover {
 
 button {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: lightblue;
+    background-color: #cce4f6;
     border: 1px solid #005cb2;
     color: black;
     border-radius: 5px;
@@ -735,8 +735,8 @@ button.context-menu-item {
     position: fixed;
     bottom: 2em;
     right: 10px;
-    background-color: lightblue;
-    color: white;
+    background-color: #cce4f6;
+    color: black;
     font-size: 200%;
     font-weight: bolder;
     border: 1px solid #005cb2;
@@ -1181,7 +1181,7 @@ audio.popup-media {
 
 [dir="rtl"] #add-button {
   right: auto;
-  left: 2em;
+  left: 10px;
 }
 
 [dir="rtl"] #footer {
