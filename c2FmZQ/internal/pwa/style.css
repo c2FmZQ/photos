@@ -53,9 +53,9 @@ a:hover {
 
 button {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: #005cb2;
-    color: white;
-    border: none;
+    background-color: #cce4f6;
+    border: 1px solid #005cb2;
+    color: black;
     border-radius: 5px;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
@@ -369,8 +369,7 @@ div.row.selected>div {
 
 #collection-buttons {
     position: absolute;
-    right: 0;
-    font-size: 12pt;
+    right: 10px;
 }
 
 #collection-buttons button {
@@ -734,9 +733,9 @@ button.context-menu-item {
 #add-button {
     position: fixed;
     bottom: 2em;
-    right: 2em;
-    background-color: #005cb2;
-    color: white;
+    right: 10px;
+    background-color: #cce4f6;
+    color: black;
     font-size: 200%;
     font-weight: bolder;
     border: 1px solid #005cb2;
@@ -1176,12 +1175,12 @@ audio.popup-media {
 
 [dir="rtl"] #collection-buttons {
   right: auto;
-  left: 0;
+  left: 10px;
 }
 
 [dir="rtl"] #add-button {
   right: auto;
-  left: 2em;
+  left: 10px;
 }
 
 [dir="rtl"] #footer {
