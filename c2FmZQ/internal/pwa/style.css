@@ -585,6 +585,7 @@ div.row.selected>div {
     overflow: visible;
     display: flex;
     flex-direction: column;
+    resize: both;
 }
 
 .popup-header {
@@ -622,8 +623,8 @@ div.row.selected>div {
 }
 
 .popup-content {
-    overflow: hidden;
-    resize: both;
+    overflow-x: hidden;
+    overflow-y: scroll;
 }
 
 .popup-content > .arrow {
