@@ -1,7 +1,9 @@
 name: Go
 on: 
-  - push
-  - pull_request
+  pull_request:
+  push:
+    branches:
+    - main
 jobs:
   build-and-run-tests:
     if: github.ref_type == 'branch'
