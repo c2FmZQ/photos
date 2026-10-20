@@ -61,6 +61,7 @@ func (s *Server) handleUpload(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "Internal Error", http.StatusInternalServerError)
 		return
 	}
+	defer up.cleanup()
 	_, user, err := s.checkToken(up.token, "session")
 	if err != nil || !user.ValidTokens[token.Hash(up.token)] {
 		log.Errorf("handleUpload: checkToken failed: %v", err)
@@ -160,7 +161,7 @@ func (s *Server) handleMoveFile(user database.User, req *http.Request) *stingle.
 			return stingle.ResponseNOK().AddError("Can only move to trash, not copy")
 		}
 	}
-	if p.AlbumIDFrom != "" {
+	if p.SetFrom == stingle.AlbumSet {
 		albumSpec, err := s.db.Album(user, p.AlbumIDFrom)
 		if err != nil {
 			log.Errorf("db.Album(%q, %q) failed: %v", user.Email, p.AlbumIDFrom, err)
@@ -173,7 +174,7 @@ func (s *Server) handleMoveFile(user database.User, req *http.Request) *stingle.
 			return stingle.ResponseNOK().AddError("Removing items from this album is not permitted")
 		}
 	}
-	if p.AlbumIDTo != "" {
+	if p.SetTo == stingle.AlbumSet {
 		albumSpec, err := s.db.Album(user, p.AlbumIDTo)
 		if err != nil {
 			log.Errorf("db.Album(%q, %q) failed: %v", user.Email, p.AlbumIDTo, err)
@@ -243,7 +244,7 @@ func (s *Server) handleDelete(user database.User, req *http.Request) *stingle.Re
 	}
 	count := parseInt(params["count"], 0)
 	if count > 100000 {
-		stingle.ResponseNOK().AddError("Too many files")
+		return stingle.ResponseNOK().AddError("Too many files")
 	}
 	files := []string{}
 	for i := int64(0); i < count; i++ {
@@ -275,8 +276,9 @@ func (s *Server) handleDownload(w http.ResponseWriter, req *http.Request) {
 	defer timer.ObserveDuration()
 	req.ParseForm()
 
-	_, user, err := s.checkToken(req.PostFormValue("token"), "session")
-	if err != nil {
+	tok := req.PostFormValue("token")
+	_, user, err := s.checkToken(tok, "session")
+	if err != nil || !user.ValidTokens[token.Hash(tok)] {
 		log.Errorf("%s %s (INVALID TOKEN: %v)", req.Method, req.URL, err)
 		stingle.ResponseOK().AddPart("logout", "1").Send(w)
 		reqStatus.WithLabelValues(req.Method, req.URL.String(), "nok").Inc()
@@ -360,6 +362,9 @@ func (s *Server) handleTokenDownload(w http.ResponseWriter, req *http.Request) {
 		reqStatus.WithLabelValues(req.Method, baseURI, "nok").Inc()
 		return
 	}
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Content-Security-Policy", "default-src 'none'; sandbox")
 	if r := req.Header.Get("Range"); r != "" {
 		s.tryToHandleRange(w, r, f)
 	}

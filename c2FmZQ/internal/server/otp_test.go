@@ -40,6 +40,47 @@ func TestOTP(t *testing.T) {
 	}
 }
 
+func TestSecurityOTPRequireMFABypass(t *testing.T) {
+	sock, shutdown := startServer(t)
+	defer shutdown()
+
+	c, err := createAccountAndLogin(sock, "alice")
+	if err != nil {
+		t.Fatalf("createAccountAndLogin failed: %v", err)
+	}
+
+	// Register only a WebAuthn security key (OTPKey remains empty) and enable requireMFA.
+	if err := c.registerSecurityKey("testkey", false); err != nil {
+		t.Fatalf("c.registerSecurityKey failed: %v", err)
+	}
+	params := map[string]string{
+		"requireMFA": "1",
+	}
+	form := url.Values{}
+	form.Set("token", c.token)
+	form.Set("params", c.encodeParams(params))
+	sr, err := c.sendRequest("/v2x/mfa/enable", form)
+	if err != nil {
+		t.Fatalf("mfa/enable failed: %v", err)
+	}
+	if sr.Status != "ok" {
+		t.Fatalf("mfa/enable returned %v", sr)
+	}
+
+	// Attempt to bypass WebAuthn MFA during login by supplying an OTP code when OTPKey is not configured (SEC-02).
+	loginForm := url.Values{}
+	loginForm.Set("email", c.email)
+	loginForm.Set("password", c.password)
+	loginForm.Set("mfa", `{"otp":"123456"}`)
+	sr, err = c.sendRequest("/v2/login/login", loginForm)
+	if err != nil {
+		t.Fatalf("login failed: %v", err)
+	}
+	if sr.Status != "nok" {
+		t.Errorf("Expected login with arbitrary OTP to fail when OTP is unconfigured, got status %q", sr.Status)
+	}
+}
+
 func (c *client) registerOTP() error {
 	key, err := c.generateOTP()
 	if err != nil {

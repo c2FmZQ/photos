@@ -60,10 +60,12 @@ func (c *Client) StreamImport(name string, dst ListItem) (*FuseImportWriter, err
 		if dst.Album.IsOwner != "1" && !stingle.Permissions(dst.Album.Permissions).AllowAdd() {
 			return nil, syscall.EPERM
 		}
-		var err error
-		if pk, err = dst.Album.PK(); err != nil {
+		ask, err := c.SKForAlbum(dst.Album)
+		if err != nil {
 			return nil, err
 		}
+		pk = ask.PublicKey()
+		ask.Wipe()
 	}
 
 	thumbName := name
@@ -81,6 +83,8 @@ func (c *Client) StreamImport(name string, dst ListItem) (*FuseImportWriter, err
 	hdrs[1].FileType = hdrs[0].FileType
 	encHdrs, err := stingle.EncryptBase64Headers(hdrs[:], pk)
 	if err != nil {
+		hdrs[0].Wipe()
+		hdrs[1].Wipe()
 		return nil, err
 	}
 	ts := strconv.FormatInt(time.Now().UnixNano()/1000000, 10)
@@ -97,41 +101,53 @@ func (c *Client) StreamImport(name string, dst ListItem) (*FuseImportWriter, err
 
 	commit, fs, err := c.fileSetForUpdate(dst.FileSet)
 	if err != nil {
+		hdrs[0].Wipe()
+		hdrs[1].Wipe()
 		return nil, err
 	}
 	fs.Files[sFile.File] = &sFile
 	if err := commit(true, nil); err != nil {
+		hdrs[0].Wipe()
+		hdrs[1].Wipe()
 		return nil, err
 	}
 
 	fn := c.blobPath(sFile.File, false)
 	dir, _ := filepath.Split(fn)
 	if err := os.MkdirAll(dir, 0700); err != nil {
+		hdrs[0].Wipe()
+		hdrs[1].Wipe()
 		return nil, err
 	}
 	thumbnail, err := c.GenericThumbnail(thumbName)
 	if err != nil {
+		hdrs[0].Wipe()
+		hdrs[1].Wipe()
 		return nil, err
 	}
 	if err := c.encryptFile(bytes.NewBuffer(thumbnail), sFile.File, hdrs[1], pk, true); err != nil {
+		hdrs[0].Wipe()
 		return nil, err
 	}
 
 	out, err := os.OpenFile(fn, os.O_WRONLY|os.O_CREATE|os.O_EXCL|os.O_SYNC, 0600)
 	if err != nil {
+		hdrs[0].Wipe()
 		return nil, err
 	}
 	if err := stingle.EncryptHeader(out, hdrs[0], pk); err != nil {
+		hdrs[0].Wipe()
 		out.Close()
 		return nil, err
 	}
+	origFilename := append([]byte(nil), hdrs[0].Filename...)
 	return &FuseImportWriter{
 		c:            c,
 		w:            stingle.EncryptFile(out, hdrs[0]),
 		sfile:        sFile.File,
 		albumID:      sFile.AlbumID,
 		fs:           dst.FileSet,
-		origFilename: hdrs[0].Filename,
+		origFilename: origFilename,
 	}, nil
 }
 
@@ -194,11 +210,11 @@ func (iw *FuseImportWriter) processNewFile() (retErr error) {
 	if err != nil {
 		return err
 	}
+	defer commit(false, &retErr)
 	file, ok := fs.Files[iw.sfile]
 	if !ok {
 		return fmt.Errorf("file is not in the fileset anymore: %s", iw.origFilename)
 	}
-	defer commit(false, &retErr)
 
 	hdrs, err := stingle.DecryptBase64Headers(file.Headers, sk)
 	if err != nil {
@@ -270,6 +286,7 @@ func (iw *FuseImportWriter) processNewFile() (retErr error) {
 	}
 	file.Headers = encHdrs
 	file.DateCreated = json.Number(strconv.FormatInt(creationTime.UnixNano()/1000000, 10))
+	delete(fs.RemoteFiles, iw.sfile)
 
 	// Rewrite the thumbnail.
 	if err := iw.c.encryptFile(bytes.NewBuffer(thumbnail), file.File, hdrs[1], pk, true); err != nil {

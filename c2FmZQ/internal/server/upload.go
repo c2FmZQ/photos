@@ -39,6 +39,21 @@ type upload struct {
 	albumID string
 }
 
+func (u *upload) cleanup() {
+	if u.FileSpec.StoreFile != "" {
+		if err := os.Remove(u.FileSpec.StoreFile); err != nil && !errors.Is(err, os.ErrNotExist) {
+			log.Errorf("os.Remove(%q): %v", u.FileSpec.StoreFile, err)
+		}
+		u.FileSpec.StoreFile = ""
+	}
+	if u.FileSpec.StoreThumb != "" {
+		if err := os.Remove(u.FileSpec.StoreThumb); err != nil && !errors.Is(err, os.ErrNotExist) {
+			log.Errorf("os.Remove(%q): %v", u.FileSpec.StoreThumb, err)
+		}
+		u.FileSpec.StoreThumb = ""
+	}
+}
+
 // receiveUpload processes a multipart/form-data.
 func (s *Server) receiveUpload(dir string, req *http.Request) (*upload, error) {
 	ctx := req.Context()
@@ -55,18 +70,42 @@ func (s *Server) receiveUpload(dir string, req *http.Request) (*upload, error) {
 			break
 		}
 		if err != nil {
+			upload.cleanup()
 			return nil, err
 		}
 		if p.FileName() != "" {
+			switch p.FormName() {
+			case "file":
+				if upload.FileSpec.StoreFile != "" {
+					p.Close()
+					upload.cleanup()
+					return nil, errors.New("duplicate file part")
+				}
+			case "thumb":
+				if upload.FileSpec.StoreThumb != "" {
+					p.Close()
+					upload.cleanup()
+					return nil, errors.New("duplicate thumb part")
+				}
+			default:
+				p.Close()
+				upload.cleanup()
+				return nil, fmt.Errorf("unexpected file part: %q", p.FormName())
+			}
 			f, name, err := s.db.TempFile(dir)
 			if err != nil {
+				p.Close()
+				upload.cleanup()
 				return nil, err
 			}
 			size, err := s.copyWithCtx(ctx, f, p)
+			closeErr := f.Close()
+			pCloseErr := p.Close()
 			if err != nil {
 				if err := os.Remove(name); err != nil {
 					log.Errorf("os.Remove(%q): %v", name, err)
 				}
+				upload.cleanup()
 				return nil, err
 			}
 
@@ -79,16 +118,20 @@ func (s *Server) receiveUpload(dir string, req *http.Request) (*upload, error) {
 				upload.FileSpec.StoreThumbSize = size
 			}
 
-			if err := f.Close(); err != nil {
-				return nil, err
+			if closeErr != nil {
+				upload.cleanup()
+				return nil, closeErr
 			}
-			if err := p.Close(); err != nil {
-				return nil, err
+			if pCloseErr != nil {
+				upload.cleanup()
+				return nil, pCloseErr
 			}
 		} else {
 			buf := make([]byte, 2048)
 			sz, err := io.ReadFull(p, buf)
+			p.Close()
 			if err != io.ErrUnexpectedEOF && err != io.EOF {
+				upload.cleanup()
 				return nil, fmt.Errorf("received input is more than 2KB in size: sz=%d,%q=%q", sz, p.FormName(), string(buf[:sz]))
 			}
 			slurp := string(buf[:sz])
@@ -100,12 +143,14 @@ func (s *Server) receiveUpload(dir string, req *http.Request) (*upload, error) {
 				upload.set = slurp
 			case "dateCreated":
 				if upload.FileSpec.DateCreated, err = strconv.ParseInt(slurp, 10, 64); err != nil {
+					upload.cleanup()
 					return nil, err
 				}
 			case "albumId":
 				upload.albumID = slurp
 			case "dateModified":
 				if upload.FileSpec.DateModified, err = strconv.ParseInt(slurp, 10, 64); err != nil {
+					upload.cleanup()
 					return nil, err
 				}
 			case "version":
@@ -116,6 +161,11 @@ func (s *Server) receiveUpload(dir string, req *http.Request) (*upload, error) {
 				log.Errorf("receiveUpload: unexpected form input: %q=%q", p.FormName(), slurp)
 			}
 		}
+	}
+
+	if upload.FileSpec.StoreFile == "" || upload.FileSpec.StoreThumb == "" {
+		upload.cleanup()
+		return nil, errors.New("missing file or thumb part")
 	}
 
 	return &upload, nil

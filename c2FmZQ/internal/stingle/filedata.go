@@ -179,6 +179,9 @@ func (r *StreamReader) readChunk() error {
 	in := make([]byte, r.hdr.ChunkSize+chunkOverhead)
 	n, err := io.ReadFull(r.r, in)
 	if n > 0 {
+		if n < chunkOverhead {
+			return io.ErrUnexpectedEOF
+		}
 		nonce := in[:chacha20poly1305.NonceSizeX]
 		enc := in[chacha20poly1305.NonceSizeX:n]
 
@@ -197,6 +200,9 @@ func (r *StreamReader) readChunk() error {
 	}
 	if n > 0 && err == io.EOF {
 		err = nil
+	}
+	if err == io.EOF && r.hdr.DataSize > 0 && r.off+int64(len(r.buf)) < r.hdr.DataSize {
+		return io.ErrUnexpectedEOF
 	}
 	return err
 }

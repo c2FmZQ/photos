@@ -19,6 +19,9 @@ package stingle
 
 import (
 	"bytes"
+	"encoding/base64"
+	"errors"
+	"io"
 	"reflect"
 	"testing"
 )
@@ -63,5 +66,56 @@ func TestSymmetric(t *testing.T) {
 	}
 	if want, got := msg, dec; !bytes.Equal(want, got) {
 		t.Errorf("DecryptSymmetric: want %q, got %q", want, got)
+	}
+}
+
+func TestSecurityTruncatedStreamAndMalformedHeader(t *testing.T) {
+	hdr := &Header{
+		FileID:       []byte("01234567890123456789012345678901"),
+		Version:      1,
+		ChunkSize:    64,
+		DataSize:     100,
+		SymmetricKey: []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZ123456"),
+		FileType:     FileTypePhoto,
+		Filename:     []byte("test.jpg"),
+	}
+	defer hdr.Wipe()
+
+	// Empty ciphertext stream when DataSize > 0 must return io.ErrUnexpectedEOF (SEC-16).
+	sr := DecryptFile(bytes.NewReader(nil), hdr)
+	if _, err := io.ReadAll(sr); !errors.Is(err, io.ErrUnexpectedEOF) {
+		t.Errorf("Expected io.ErrUnexpectedEOF on truncated stream, got %v", err)
+	}
+
+	// Sub-overhead chunk must not panic and must return io.ErrUnexpectedEOF (SEC-11).
+	srShort := DecryptFile(bytes.NewReader([]byte{0, 0, 0, 5, 1, 2, 3, 4, 5}), hdr)
+	if _, err := io.ReadAll(srShort); !errors.Is(err, io.ErrUnexpectedEOF) {
+		t.Errorf("Expected io.ErrUnexpectedEOF on short chunk, got %v", err)
+	}
+
+	// Malformed short sealed payload in DecryptHeader must return error without panicking (SEC-11).
+	sk := MakeSecretKeyForTest()
+	defer sk.Wipe()
+	shortPayload := sk.PublicKey().SealBox([]byte("short"))
+	var buf bytes.Buffer
+	buf.Write([]byte{'S', 'P', 1})
+	buf.Write(make([]byte, 32))
+	buf.Write([]byte{0, 0, 0, byte(len(shortPayload))})
+	buf.Write(shortPayload)
+	if _, err := DecryptHeader(&buf, sk); err == nil {
+		t.Errorf("Expected error on malformed short header, got nil")
+	}
+
+	// Album.SK must reject mismatched public/private keys (SEC-22).
+	albumSK := MakeSecretKeyForTest()
+	defer albumSK.Wipe()
+	otherSK := MakeSecretKeyForTest()
+	defer otherSK.Wipe()
+	album := Album{
+		PublicKey:     base64.StdEncoding.EncodeToString(otherSK.PublicKey().ToBytes()),
+		EncPrivateKey: sk.PublicKey().SealBoxBase64(albumSK.ToBytes()),
+	}
+	if _, err := album.SK(sk); err == nil {
+		t.Errorf("Expected Album.SK to fail on mismatched PublicKey")
 	}
 }

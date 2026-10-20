@@ -20,6 +20,7 @@ package web
 import (
 	"bytes"
 	"crypto/sha256"
+	"crypto/subtle"
 	"embed"
 	"errors"
 	"fmt"
@@ -97,11 +98,12 @@ func (s *Server) handleIndex(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		if pass := req.PostForm.Get("password"); pass != s.c.WebServerConfig.Password {
+		if pass := req.PostForm.Get("password"); subtle.ConstantTimeCompare([]byte(pass), []byte(s.c.WebServerConfig.Password)) != 1 {
 			http.Error(w, "Coffee?", http.StatusTeapot)
+			return
 		}
 		redirect := req.PostForm.Get("redir")
-		if redirect == "" {
+		if redirect == "" || !strings.HasPrefix(redirect, "/") || strings.HasPrefix(redirect, "//") {
 			redirect = s.c.WebServerConfig.URLPrefix + "view/"
 		}
 		tok := token.Mint(s.c.WebServerConfig.TokenKey, token.Token{Scope: "web", File: tagFromCtx(ctx)}, 24*time.Hour)
@@ -317,6 +319,7 @@ func (s *Server) handleEdit(w http.ResponseWriter, req *http.Request) {
 	}
 	if li[0].IsDir {
 		http.Error(w, "Edit directory", http.StatusInternalServerError)
+		return
 	}
 
 	item := li[0]
@@ -370,11 +373,18 @@ func (s *Server) handleUpload(w http.ResponseWriter, req *http.Request) {
 		}
 		if p.FormName() == "file" {
 			name := path.Base(fixSlashes(p.FileName()))
-			if name == "" {
+			if name == "" || name == "." || name == ".." || name == "/" {
 				http.Error(w, "illegal filename", http.StatusInternalServerError)
 				return
 			}
-			s.c.Delete([]string{filepath.Join(item.Filename, name)}, true)
+			target := filepath.Join(item.Filename, name)
+			if existing, err := s.c.GlobFiles([]string{target}, client.GlobOptions{ExactMatch: true, Quiet: true}); err == nil && len(existing) > 0 {
+				if existing[0].IsDir {
+					http.Error(w, "cannot overwrite directory", http.StatusInternalServerError)
+					return
+				}
+				s.c.Delete([]string{target}, true)
+			}
 			f, err := s.c.StreamImport(name, item)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -487,6 +497,8 @@ func (s *Server) handleRaw(w http.ResponseWriter, req *http.Request) {
 	buf := make([]byte, 512)
 	n, _ := io.ReadFull(in, buf)
 	w.Header().Set("Content-Type", http.DetectContentType(buf[:n]))
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Content-Security-Policy", "default-src 'none'; img-src 'self'; media-src 'self'; style-src 'unsafe-inline'; sandbox")
 	w.Header().Set("Accept-Ranges", "bytes")
 
 	// Handle Range header. We could use http.ServeContent, but it uses io.Seek a
@@ -520,6 +532,9 @@ func (s *Server) sendThumbnail(w http.ResponseWriter, filename string) {
 }
 
 func parseRangeHeader(req *http.Request, size int64, etag string) (int64, int64, bool) {
+	if size <= 0 {
+		return 0, 0, false
+	}
 	if ifr := req.Header.Get("If-Range"); ifr != "" && ifr != etag {
 		return 0, 0, false
 	}
@@ -533,13 +548,16 @@ func parseRangeHeader(req *http.Request, size int64, etag string) (int64, int64,
 	}
 	if len(m[1]) > 0 {
 		start, err := strconv.ParseInt(m[1], 10, 64)
-		if err != nil {
+		if err != nil || start < 0 || start >= size {
 			return 0, 0, false
 		}
 		end := size - 1
 		if len(m[2]) > 0 {
 			if end, err = strconv.ParseInt(m[2], 10, 64); err != nil {
 				return 0, 0, false
+			}
+			if end >= size {
+				end = size - 1
 			}
 		}
 		if end < start {
@@ -548,7 +566,7 @@ func parseRangeHeader(req *http.Request, size int64, etag string) (int64, int64,
 		return start, end, true
 	}
 	length, err := strconv.ParseInt(m[2], 10, 64)
-	if err != nil || length > size {
+	if err != nil || length <= 0 || length > size {
 		return 0, 0, false
 	}
 	return size - length, size - 1, true

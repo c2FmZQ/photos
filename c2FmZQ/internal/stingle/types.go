@@ -95,17 +95,15 @@ func (a Album) SK(sk *SecretKey) (*SecretKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	return SecretKeyFromBytes(b), nil
-}
-
-// PK returns the album's decoded PublicKey.
-func (a Album) PK() (pk PublicKey, err error) {
-	b, err := base64.StdEncoding.DecodeString(a.PublicKey)
-	if err != nil {
-		return
+	ask := SecretKeyFromBytes(b)
+	if a.PublicKey != "" {
+		pkBytes, err := base64.StdEncoding.DecodeString(a.PublicKey)
+		if err != nil || PublicKeyFromBytes(pkBytes) != ask.PublicKey() {
+			ask.Wipe()
+			return nil, fmt.Errorf("album public key mismatch")
+		}
 	}
-	pk = PublicKeyFromBytes(b)
-	return
+	return ask, nil
 }
 
 // Name returns the decrypted album name.

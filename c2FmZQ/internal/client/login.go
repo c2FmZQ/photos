@@ -22,6 +22,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
@@ -168,7 +169,7 @@ func (c *Client) Login(server, email, password string) error {
 			return err
 		}
 		sk = stingle.SecretKeyFromBytes(b)
-		if err := c.checkKey(server, email, sk); err != nil {
+		if _, err := c.checkKey(server, email, sk); err != nil {
 			return err
 		}
 	}
@@ -317,7 +318,8 @@ func (c *Client) RecoverAccount(server, email, newPassword, backupPhrase string,
 	}
 	sk := stingle.SecretKeyFromBytes(b)
 	defer sk.Wipe()
-	if err := c.checkKey(server, email, sk); err != nil {
+	serverPK, err := c.checkKey(server, email, sk)
+	if err != nil {
 		return err
 	}
 	bundle := stingle.MakeKeyBundle(sk.PublicKey())
@@ -335,11 +337,15 @@ func (c *Client) RecoverAccount(server, email, newPassword, backupPhrase string,
 	params["newSalt"] = strings.ToUpper(hex.EncodeToString(salt))
 	params["keyBundle"] = bundle
 
+	j, err := json.Marshal(params)
+	if err != nil {
+		return err
+	}
 	form := url.Values{}
 	form.Set("email", email)
-	form.Set("params", c.encodeParams(params))
+	form.Set("params", stingle.EncryptMessage(j, serverPK, sk))
 
-	sr, err := c.sendRequest("/v2/login/recoverAccount", form, "")
+	sr, err := c.sendRequest("/v2/login/recoverAccount", form, server)
 	if err != nil {
 		return err
 	}
@@ -445,23 +451,35 @@ func (c *Client) UploadKeys(password string, doBackup bool) error {
 	return nil
 }
 
-func (c *Client) checkKey(server, email string, sk *stingle.SecretKey) error {
+func (c *Client) checkKey(server, email string, sk *stingle.SecretKey) (stingle.PublicKey, error) {
 	form := url.Values{}
 	form.Set("email", email)
 	sr, err := c.sendRequest("/v2/login/checkKey", form, server)
 	if err != nil {
-		return err
+		return stingle.PublicKey{}, err
 	}
 	if sr.Status != "ok" {
-		return sr
+		return stingle.PublicKey{}, sr
 	}
 	challenge, ok := sr.Part("challenge").(string)
 	if !ok {
-		return errors.New("invalid challenge")
+		return stingle.PublicKey{}, errors.New("invalid challenge")
 	}
 	dec, err := sk.SealBoxOpenBase64(challenge)
 	if err != nil || !bytes.HasPrefix(dec, []byte("validkey_")) {
-		return errors.New("wrong key")
+		return stingle.PublicKey{}, errors.New("wrong key")
 	}
-	return nil
+	var serverPK stingle.PublicKey
+	if spk, ok := sr.Part("serverPK").(string); ok && spk != "" {
+		b, err := base64.StdEncoding.DecodeString(spk)
+		if err != nil || len(b) != 32 {
+			return stingle.PublicKey{}, errors.New("invalid serverPK")
+		}
+		serverPK = stingle.PublicKeyFromBytes(b)
+	} else if c.Account != nil {
+		serverPK = c.Account.ServerPublicKey
+	} else {
+		return stingle.PublicKey{}, errors.New("missing serverPK")
+	}
+	return serverPK, nil
 }

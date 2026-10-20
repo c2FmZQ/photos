@@ -88,6 +88,9 @@ class Main {
     });
 
     navigator.serviceWorker.onmessage = event => {
+      if (event.source && navigator.serviceWorker.controller && event.source !== navigator.serviceWorker.controller) {
+        return;
+      }
       switch (event.data?.type) {
         case 'fixme':
           this.resetServiceWorker();
@@ -535,9 +538,10 @@ class Main {
             resp.json().then(resp => {
               if (resp.reject !== undefined) reject(resp.reject);
               else resolve(resp.resolve);
-            });
+            }).catch(reject);
           }
-        });
+        })
+        .catch(reject);
       };
       send();
     });

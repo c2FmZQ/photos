@@ -452,10 +452,12 @@ func (c *Client) renameDir(item ListItem, name string, recursive bool) (retErr e
 		if item.Album.IsOwner != "1" {
 			return fmt.Errorf("only the album owner can rename it: %s", item.Filename)
 		}
-		pk, err := item.Album.PK()
+		ask, err := c.SKForAlbum(item.Album)
 		if err != nil {
 			return err
 		}
+		pk := ask.PublicKey()
+		ask.Wipe()
 
 		c.Printf("Renaming %s -> %s (not synced)\n", strings.TrimSuffix(item.Filename, "/"), name)
 
@@ -522,7 +524,6 @@ func (c *Client) moveFiles(fromItems []ListItem, toItem ListItem, rename string,
 	defer sk.Wipe()
 	needHeaders := fromAlbum != nil || toAlbum != nil || rename != ""
 	if needHeaders {
-		var err error
 		if fromAlbum != nil {
 			ask, err := fromAlbum.SK(sk)
 			if err != nil {
@@ -533,9 +534,12 @@ func (c *Client) moveFiles(fromItems []ListItem, toItem ListItem, rename string,
 			sk = ask
 		}
 		if toAlbum != nil {
-			if pk, err = toAlbum.PK(); err != nil {
+			tsk, err := c.SKForAlbum(toAlbum)
+			if err != nil {
 				return err
 			}
+			pk = tsk.PublicKey()
+			tsk.Wipe()
 		}
 	}
 	var (
@@ -591,6 +595,8 @@ func (c *Client) moveFiles(fromItems []ListItem, toItem ListItem, rename string,
 					oldSize := len(hdrs[i].Filename)
 					newSize := len(newName)
 					if newSize > oldSize {
+						hdrs[0].Wipe()
+						hdrs[1].Wipe()
 						return fmt.Errorf("new name cannot be longer than %d", oldSize)
 					}
 					newName = append(bytes.Repeat([]byte{' '}, oldSize-newSize), newName...)

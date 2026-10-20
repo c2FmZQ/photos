@@ -305,7 +305,7 @@ class ServiceWorker {
     if (!this.#app) {
       console.log('SW handleRpcRequest not ready');
       setTimeout(() => {
-        self.#handleRpcRequest(clientId, event);
+        this.#handleRpcRequest(clientId, event);
       }, 100);
       return;
     }

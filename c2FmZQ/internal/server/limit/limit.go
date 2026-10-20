@@ -82,9 +82,23 @@ func (c *ConnLimiter) Done() {
 	} else {
 		c.inFlight--
 		if c.inFlight < 0 {
-			log.Fatalf("inFlight = %d", c.inFlight)
+			log.Errorf("inFlight = %d", c.inFlight)
+			c.inFlight = 0
 		}
 	}
+}
+
+func (c *ConnLimiter) cancel(ready <-chan struct{}) {
+	c.mu.Lock()
+	for e := c.queue.Front(); e != nil; e = e.Next() {
+		if e.Value.(chan struct{}) == ready {
+			c.queue.Remove(e)
+			c.mu.Unlock()
+			return
+		}
+	}
+	c.mu.Unlock()
+	c.Done()
 }
 
 // ServeHTTP handles an HTTP request.
@@ -100,11 +114,12 @@ func (c *ConnLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Too Many Requests", http.StatusTooManyRequests)
 		return
 	}
-	defer c.Done()
 	select {
-	case <-r.Context().Done():
-		return
 	case <-ready:
+		defer c.Done()
 		c.next.ServeHTTP(w, r)
+	case <-r.Context().Done():
+		c.cancel(ready)
+		return
 	}
 }

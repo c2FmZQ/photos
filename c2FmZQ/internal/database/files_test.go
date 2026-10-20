@@ -177,3 +177,94 @@ func TestFiles(t *testing.T) {
 		t.Errorf("Unexpected number of files in Trash: Want %d, got %d", want, got)
 	}
 }
+
+func TestSecurityInvalidFileSet(t *testing.T) {
+	dir := t.TempDir()
+	db := database.New(dir, nil)
+	email := "alice@"
+	key := stingle.MakeSecretKeyForTest()
+
+	if err := addUser(db, email, key.PublicKey()); err != nil {
+		t.Fatalf("addUser failed: %v", err)
+	}
+	user, err := db.User(email)
+	if err != nil {
+		t.Fatalf("db.User failed: %v", err)
+	}
+
+	for _, invalidSet := range []string{"", "3", "../../admin", "../0", "gallery"} {
+		if _, err := db.FileSet(user, invalidSet, ""); !errors.Is(err, os.ErrInvalid) {
+			t.Errorf("db.FileSet(%q) expected os.ErrInvalid, got %v", invalidSet, err)
+		}
+		if err := addFile(db, user, "file1", invalidSet, ""); !errors.Is(err, os.ErrInvalid) {
+			t.Errorf("addFile(%q) expected os.ErrInvalid, got %v", invalidSet, err)
+		}
+		if _, err := db.DownloadFile(user, invalidSet, "file1", false); !errors.Is(err, os.ErrInvalid) {
+			t.Errorf("db.DownloadFile(%q) expected os.ErrInvalid, got %v", invalidSet, err)
+		}
+	}
+}
+
+func TestSecurityMoveOverwriteAndSpaceUsed(t *testing.T) {
+	dir := t.TempDir()
+	db := database.New(dir, nil)
+	email := "alice@"
+	key := stingle.MakeSecretKeyForTest()
+	database.CurrentTimeForTesting = 10000
+
+	if err := addUser(db, email, key.PublicKey()); err != nil {
+		t.Fatalf("addUser failed: %v", err)
+	}
+	user, err := db.User(email)
+	if err != nil {
+		t.Fatalf("db.User failed: %v", err)
+	}
+	if err := addAlbum(db, user, "album1"); err != nil {
+		t.Fatalf("addAlbum failed: %v", err)
+	}
+
+	// Add file1 to gallery and album1 separately (2 distinct blob pairs: 2 * 1100 = 2200 bytes).
+	if err := addFile(db, user, "file1", stingle.GallerySet, ""); err != nil {
+		t.Fatalf("addFile gallery failed: %v", err)
+	}
+	if err := addFile(db, user, "file1", stingle.AlbumSet, "album1"); err != nil {
+		t.Fatalf("addFile album1 failed: %v", err)
+	}
+
+	used, err := db.SpaceUsed(user)
+	if err != nil {
+		t.Fatalf("SpaceUsed failed: %v", err)
+	}
+	if want, got := int64(2200), used; want != got {
+		t.Errorf("SpaceUsed before overwrite: want %d, got %d", want, got)
+	}
+
+	// Move file1 from gallery to album1 (overwriting album1's file1).
+	// The old album1 blob pair should be dereferenced and removed, leaving 1 blob pair (1100 bytes).
+	mvp := database.MoveFileParams{
+		SetFrom:   stingle.GallerySet,
+		SetTo:     stingle.AlbumSet,
+		AlbumIDTo: "album1",
+		IsMoving:  true,
+		Filenames: []string{"file1"},
+		Headers:   []string{"hdr1"},
+	}
+	if err := db.MoveFile(user, mvp); err != nil {
+		t.Fatalf("MoveFile overwrite failed: %v", err)
+	}
+
+	used, err = db.SpaceUsed(user)
+	if err != nil {
+		t.Fatalf("SpaceUsed after overwrite failed: %v", err)
+	}
+	if want, got := int64(1100), used; want != got {
+		t.Errorf("SpaceUsed after overwrite: want %d, got %d", want, got)
+	}
+
+	// Verify file1 in album1 is still downloadable.
+	r, err := db.DownloadFile(user, stingle.AlbumSet, "file1", false)
+	if err != nil {
+		t.Fatalf("DownloadFile after overwrite failed: %v", err)
+	}
+	r.Close()
+}

@@ -40,8 +40,8 @@ function bytesFromBinary(bin) {
 function bigEndian(n, size) {
   let a = [];
   while (size-- > 0) {
-    a.unshift(n & 0xff);
-    n >>= 8;
+    a.unshift(n % 256);
+    n = Math.floor(n / 256);
   }
   return new Uint8Array(a);
 }

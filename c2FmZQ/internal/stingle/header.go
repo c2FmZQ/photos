@@ -34,18 +34,26 @@ import (
 // DecryptBase64Headers decrypts base64-encoded headers.
 func DecryptBase64Headers(hdrs string, sk *SecretKey) ([]*Header, error) {
 	var out []*Header
+	wipeOut := func() {
+		for _, h := range out {
+			h.Wipe()
+		}
+	}
 	for _, hdr := range strings.Split(hdrs, "*") {
 		b, err := base64.RawURLEncoding.DecodeString(hdr)
 		if err != nil {
+			wipeOut()
 			return nil, err
 		}
 		h, err := DecryptHeader(bytes.NewBuffer(b), sk)
 		if err != nil {
+			wipeOut()
 			return nil, err
 		}
 		out = append(out, h)
 	}
 	if len(out) != 2 {
+		wipeOut()
 		return nil, errors.New("invalid headers")
 	}
 	return out, nil
@@ -144,6 +152,9 @@ func DecryptHeader(in io.Reader, sk *SecretKey) (*Header, error) {
 	if err != nil {
 		return nil, err
 	}
+	if len(d) < 54 {
+		return nil, errors.New("invalid header length")
+	}
 	// 1-byte header.headerVersion
 	hdr.Version, d = d[0], d[1:]
 	// 4-byte header.chunkSize
@@ -172,12 +183,12 @@ func DecryptHeader(in io.Reader, sk *SecretKey) (*Header, error) {
 	}
 	hdr.FileType, d = d[0], d[1:]
 
-	// 1-byte filenameSize
-	if len(d) == 0 {
+	// 4-byte filenameSize
+	if len(d) < 4 {
 		return nil, errors.New("invalid filename size")
 	}
 	filenameSize, d := int(binary.BigEndian.Uint32(d[:4])), d[4:]
-	if filenameSize < 0 || int(filenameSize) > len(d) {
+	if filenameSize < 0 || filenameSize+4 > len(d) {
 		return nil, fmt.Errorf("invalid filename size: %d", filenameSize)
 	}
 

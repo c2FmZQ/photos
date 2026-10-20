@@ -87,14 +87,16 @@ func (d *Database) incRefCount(blob string, delta int) int {
 	ref := d.blobRef(blob)
 	commit, err := d.storage.OpenForUpdate(ref, &blobSpec)
 	if err != nil {
-		log.Fatalf("incRefCount(%q, %d) failed: %v", blob, delta, err)
+		log.Errorf("incRefCount(%q, %d) failed: %v", blob, delta, err)
+		return 0
 	}
 	blobSpec.RefCount += delta
 	if err := commit(true, nil); err != nil {
-		log.Fatalf("incRefCount(%q, %d) failed: %v", blob, delta, err)
+		log.Errorf("incRefCount(%q, %d) failed: %v", blob, delta, err)
+		return 0
 	}
 	log.Debugf("RefCount(%q)%+d -> %d", blob, delta, blobSpec.RefCount)
-	if blobSpec.RefCount == 0 {
+	if blobSpec.RefCount <= 0 {
 		if err := os.Remove(filepath.Join(d.dir, blob)); err != nil {
 			log.Errorf("os.Remove(%q) failed: %v", blob, err)
 		}
@@ -105,13 +107,24 @@ func (d *Database) incRefCount(blob string, delta int) int {
 	return blobSpec.RefCount
 }
 
+func validSet(set string) bool {
+	return set == stingle.GallerySet || set == stingle.TrashSet || set == stingle.AlbumSet
+}
+
 // fileSetPath returns the path where a file set is stored.
 func (d *Database) fileSetPath(user User, set string) string {
+	if set != stingle.GallerySet && set != stingle.TrashSet {
+		log.Errorf("fileSetPath called with invalid set %q", set)
+		return ""
+	}
 	return d.filePath(user.home(fmt.Sprintf(fileSetPattern, set)))
 }
 
 // addFileToFileSet adds file to one of user's file sets.
 func (d *Database) addFileToFileSet(user User, file FileSpec, name, set, albumID string) (retErr error) {
+	if !validSet(set) {
+		return fmt.Errorf("invalid file set %q: %w", set, os.ErrInvalid)
+	}
 	var fileName string
 	if set == stingle.AlbumSet {
 		albumRef, err := d.albumRef(user, albumID)
@@ -136,11 +149,16 @@ func (d *Database) addFileToFileSet(user User, file FileSpec, name, set, albumID
 	if fileSet.Deletes == nil {
 		fileSet.Deletes = []DeleteEvent{}
 	}
+	oldFile := fileSet.Files[name]
 	fileSet.Files[name] = &file
 	d.storage.CreateEmptyFile(d.blobRef(file.StoreFile), BlobSpec{})
 	d.storage.CreateEmptyFile(d.blobRef(file.StoreThumb), BlobSpec{})
 	d.incRefCount(file.StoreFile, 1)
 	d.incRefCount(file.StoreThumb, 1)
+	if oldFile != nil {
+		d.incRefCount(oldFile.StoreFile, -1)
+		d.incRefCount(oldFile.StoreThumb, -1)
+	}
 
 	if a := fileSet.Album; a != nil {
 		d.notifyAlbum(user.UserID, a, notification{Type: notifyNewContent, Target: a.AlbumID})
@@ -183,6 +201,9 @@ func finalFilename(temp string) (string, error) {
 	b, err := base64.RawURLEncoding.DecodeString(n)
 	if err != nil {
 		return "", err
+	}
+	if len(b) == 0 {
+		return "", errors.New("empty filename")
 	}
 	return filepath.Join(fmt.Sprintf("%02X", b[0]), n), nil
 }
@@ -277,6 +298,9 @@ func (d *Database) stat(f string) (mtime, size int64) {
 func (d *Database) FileSet(user User, set, albumID string) (*FileSet, error) {
 	defer recordLatency("FileSet")()
 
+	if !validSet(set) {
+		return nil, fmt.Errorf("invalid file set %q: %w", set, os.ErrInvalid)
+	}
 	var fileName string
 	if set == stingle.AlbumSet {
 		albumRef, err := d.albumRef(user, albumID)
@@ -334,6 +358,9 @@ func (d *Database) fileSetForUpdate(user User, set, albumID string) (func(bool, 
 func (d *Database) fileSetsForUpdate(user User, sets, albumIDs []string) (func(bool, *error) error, []*FileSet, error) {
 	var filenames []string
 	for i := range sets {
+		if !validSet(sets[i]) {
+			return nil, nil, fmt.Errorf("invalid file set %q: %w", sets[i], os.ErrInvalid)
+		}
 		if sets[i] == stingle.AlbumSet {
 			albumRef, err := d.albumRef(user, albumIDs[i])
 			if err != nil {
@@ -448,14 +475,7 @@ func (d *Database) MoveFile(user User, p MoveFileParams) (retErr error) {
 		if len(p.Headers) == len(p.Filenames) {
 			toFile.Headers = p.Headers[i]
 		}
-		var refCountAdj int
-		_, alreadyExists := fsTo.Files[fn]
-		switch {
-		case alreadyExists && p.IsMoving:
-			refCountAdj = -1
-		case !alreadyExists && !p.IsMoving:
-			refCountAdj = 1
-		}
+		oldToFile, alreadyExists := fsTo.Files[fn]
 
 		toFile.DateModified = nowInMS()
 		fsTo.Files[fn] = &toFile
@@ -476,9 +496,15 @@ func (d *Database) MoveFile(user User, p MoveFileParams) (retErr error) {
 			}
 			fsFrom.Deletes = append(fsFrom.Deletes, de)
 		}
-		if refCountAdj != 0 {
-			d.incRefCount(toFile.StoreFile, refCountAdj)
-			d.incRefCount(toFile.StoreThumb, refCountAdj)
+		if fsTo != fsFrom {
+			if !p.IsMoving {
+				d.incRefCount(toFile.StoreFile, 1)
+				d.incRefCount(toFile.StoreThumb, 1)
+			}
+			if alreadyExists && oldToFile != nil {
+				d.incRefCount(oldToFile.StoreFile, -1)
+				d.incRefCount(oldToFile.StoreThumb, -1)
+			}
 		}
 	}
 	pruneDeleteEvents(&fsFrom.Deletes, &fsFrom.DeleteHorizon)
@@ -570,6 +596,9 @@ func (d *Database) downloadFileSpec(fileSpec *FileSpec, thumb bool) (io.ReadSeek
 func (d *Database) DownloadFile(user User, set, filename string, thumb bool) (io.ReadSeekCloser, error) {
 	defer recordLatency("DownloadFile")()
 
+	if !validSet(set) {
+		return nil, fmt.Errorf("invalid file set %q: %w", set, os.ErrInvalid)
+	}
 	if set != stingle.AlbumSet {
 		fileSpec, err := d.findFileInSet(user, set, "", filename)
 		if err != nil {

@@ -702,6 +702,9 @@ class c2FmZQClient {
 
   async deleteAccount(clientId, password) {
     console.log('SW DELETE ACCOUNT!');
+    if (!await this.checkPassword_(password)) {
+      throw new Error(_T('incorrect-password'));
+    }
     const salt = await so.hex2bin(this.vars_.loginSalt);
     const params = {
       password: await this.passwordForLogin_(salt, password),
@@ -818,6 +821,9 @@ class c2FmZQClient {
           try {
             const apk = self.base64DecodeToBytes(a.publicKey);
             const ask = await so.box_seal_open(self.base64DecodeToBytes(a.encPrivateKey), pk, sk);
+            if (self.base64StdEncode(await so.box_publickey_from_secretkey(ask)) !== self.base64StdEncode(apk)) {
+              throw new Error('album public/private key mismatch');
+            }
 
             const md = await so.box_seal_open(self.base64DecodeToBytes(a.metadata), apk, ask);
             const bytes = new Uint8Array(md);
@@ -1280,7 +1286,7 @@ class c2FmZQClient {
     if (f.set === 0) collection = 'gallery';
     else if (f.set === 1) collection = 'trash';
     const fn = await this.#decryptString(f.headers[0].encFileName);
-    let url = `${this.#options.pathPrefix}${this.vars_.decryptPath}/${fn}?collection=${collection}&file=${f.file}`;
+    let url = `${this.#options.pathPrefix}${this.vars_.decryptPath}/${encodeURIComponent(fn)}?collection=${encodeURIComponent(collection)}&file=${encodeURIComponent(f.file)}`;
     if (isThumb) {
       url += '&isThumb=1';
     }
@@ -1299,7 +1305,12 @@ class c2FmZQClient {
       if (resp.status !== 'ok') {
         throw resp.status;
       }
-      return resp.parts.url;
+      const srv = new URL(this.vars_.server, self.location.href);
+      const u = new URL(resp.parts.url, srv);
+      if (u.origin !== srv.origin) {
+        throw new Error('unexpected content URL origin');
+      }
+      return u.toString();
     });
   }
 
@@ -1373,7 +1384,7 @@ class c2FmZQClient {
     }
     const hdr = await so.box_seal_open(bytes.slice(39, 39+size), pk, sk);
     //const version = hdr[0];
-    const chunkSize = hdr[1]<<2 | hdr[2]<<16 | hdr[3]<<8 | hdr[4];
+    const chunkSize = hdr[1]<<24 | hdr[2]<<16 | hdr[3]<<8 | hdr[4];
     if (chunkSize < 0 || chunkSize > 10485760) {
       throw new Error('invalid chunk size');
     }
@@ -1845,7 +1856,7 @@ class c2FmZQClient {
     return {
       mode: this.vars_.cachePref,
       allthumbs: this.vars_.prefetchThumbnails,
-      mobile: this.vars_.downloadOnMobilee,
+      mobile: this.vars_.downloadOnMobile,
       maxSize: Math.floor(this.vars_.maxCacheSize / 1024 / 1024),
       usage: Math.floor(this.cm_.totalSize() / 1024 / 1024),
     };
@@ -2264,7 +2275,7 @@ class c2FmZQClient {
           console.log(`SW ${cmName} not cached`);
         });
       }
-      const rs = new ReadableStream(new Decrypter(body.getReader(), symKey, chunkSize, chunkNum, chunkOffset, skipChunks, onAbort), strategy);
+      const rs = new ReadableStream(new Decrypter(body.getReader(), symKey, chunkSize, chunkNum, chunkOffset, skipChunks, onAbort, fileSize - reqOffset), strategy);
       let h = {
         'accept-ranges': 'bytes',
         'cache-control': 'no-store, immutable',
@@ -2534,7 +2545,7 @@ class c2FmZQClient {
  * A Transformer to decrypt a stream.
  */
 class Decrypter {
-  constructor(reader, symKey, chunkSize, n, offset, skipChunks, onAbort) {
+  constructor(reader, symKey, chunkSize, n, offset, skipChunks, onAbort, expectedSize) {
     this.reader_ = reader;
     this.symmetricKey_ = symKey;
     this.chunkSize_ = chunkSize;
@@ -2544,6 +2555,8 @@ class Decrypter {
     this.offset_ = offset;
     this.skipChunks_ = skipChunks;
     this.onAbort_ = onAbort;
+    this.expectedSize_ = expectedSize;
+    this.decryptedBytes_ = 0;
     this.canceled_ = false;
   }
 
@@ -2560,10 +2573,19 @@ class Decrypter {
       }
       if (done) {
         if (this.skipChunks_ > 0) {
+          if (this.expectedSize_ !== undefined && this.decryptedBytes_ < this.expectedSize_) {
+            controller.error(new Error(_T('decryption-error')));
+            return;
+          }
           controller.close();
           return;
         }
         return this.decryptChunk(controller).then(() => {
+          if (this.canceled_) return;
+          if (this.expectedSize_ !== undefined && this.decryptedBytes_ < this.expectedSize_) {
+            controller.error(new Error(_T('decryption-error')));
+            return;
+          }
           controller.close();
         });
       }
@@ -2607,6 +2629,7 @@ class Decrypter {
         dec = dec.slice(this.offset_);
         this.offset_ = 0;
       }
+      this.decryptedBytes_ += dec.byteLength;
       controller.enqueue(dec);
     } catch (e) {
       controller.error(new Error(_T('decryption-error')));

@@ -116,6 +116,13 @@ func (d *Database) makeAlbumPath() (string, error) {
 func (d *Database) AddAlbum(owner User, album AlbumSpec) (retErr error) {
 	defer recordLatency("AddAlbum")()
 
+	if album.AlbumID == "" {
+		return errors.New("invalid empty albumId")
+	}
+	if now := nowInMS(); album.DateModified <= 0 || album.DateModified > now {
+		album.DateModified = now
+	}
+
 	ap, err := d.makeAlbumPath()
 	if err != nil {
 		log.Errorf("makeAlbumPath() failed: %v", err)
@@ -350,10 +357,11 @@ func (d *Database) ShareAlbum(user User, sharing *stingle.Album, sharingKeys map
 			log.Errorf("Sharing album with %d but no sharing key", id)
 			continue
 		}
-		fs.Album.Members[id] = true
 		if err := d.addAlbumRef(id, fs.Album.AlbumID, albumRef.File); err != nil {
 			log.Errorf("addAlbumRef(%d, %q, %q) failed: %v", id, fs.Album.AlbumID, albumRef.File, err)
+			continue
 		}
+		fs.Album.Members[id] = true
 	}
 	newMemberIDs := make([]string, 0, len(sharingKeys))
 	for k, v := range sharingKeys {
@@ -431,6 +439,9 @@ func (d *Database) addAlbumRef(memberID int64, albumID, file string) (retErr err
 
 	if manifest.Albums == nil {
 		manifest.Albums = make(map[string]*AlbumRef)
+	}
+	if existing, ok := manifest.Albums[albumID]; ok && existing.File != file {
+		return errors.New("album ID collision")
 	}
 	manifest.Albums[albumID] = &AlbumRef{
 		AlbumID: albumID,

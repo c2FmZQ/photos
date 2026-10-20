@@ -128,17 +128,24 @@ func (d *Database) AdminData(changes *AdminData) (data *AdminData, retErr error)
 		quotas.DefaultLimitUnit = *changes.DefaultQuotaUnit
 	}
 	for _, user := range changes.Users {
+		targetUser, ok := users[user.UserID]
+		if !ok || targetUser == nil {
+			continue
+		}
 		if user.Locked != nil {
-			users[user.UserID].LoginDisabled = *user.Locked
+			targetUser.LoginDisabled = *user.Locked
 			if *user.Locked {
-				users[user.UserID].ValidTokens = make(map[string]bool)
+				targetUser.ValidTokens = make(map[string]bool)
+				if etk, err := d.NewEncryptedTokenKey(); err == nil {
+					targetUser.TokenKey = etk
+				}
 			}
 		}
 		if user.Approved != nil {
-			users[user.UserID].NeedApproval = !*user.Approved
+			targetUser.NeedApproval = !*user.Approved
 		}
 		if user.Admin != nil {
-			users[user.UserID].Admin = *user.Admin
+			targetUser.Admin = *user.Admin
 			for i := range ul {
 				if ul[i].UserID == user.UserID {
 					ul[i].Admin = *user.Admin
