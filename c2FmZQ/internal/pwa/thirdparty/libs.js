@@ -2732,6 +2732,9 @@ function mnemonicToEntropy(mnemonic, wordlist) {
 exports.mnemonicToEntropy = mnemonicToEntropy;
 function entropyToMnemonic(entropy, wordlist) {
     if (!Buffer.isBuffer(entropy)) {
+        if (entropy.length % 2 !== 0 || /[^0-9a-fA-F]/.test(entropy)) {
+            throw new TypeError(INVALID_ENTROPY);
+        }
         entropy = Buffer.from(entropy, 'hex');
     }
     wordlist = wordlist || DEFAULT_WORDLIST;
@@ -2781,7 +2784,9 @@ function validateMnemonic(mnemonic, wordlist) {
 }
 exports.validateMnemonic = validateMnemonic;
 function setDefaultWordlist(language) {
-    const result = _wordlists_1.wordlists[language];
+    const result = Object.prototype.hasOwnProperty.call(_wordlists_1.wordlists, language)
+        ? _wordlists_1.wordlists[language]
+        : undefined;
     if (result) {
         DEFAULT_WORDLIST = result;
     }

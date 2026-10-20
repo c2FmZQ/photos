@@ -350,7 +350,7 @@ func (s *Server) handleRemoveAlbumMember(user database.User, req *http.Request) 
 	}
 
 	if err := s.db.RemoveAlbumMember(user, album.AlbumID, memberID); err != nil {
-		log.Errorf("RemoveAlbumMember(%q, %q): %v", album.AlbumID, memberID, err)
+		log.Errorf("RemoveAlbumMember(%v, %v): %v", album.AlbumID, memberID, err)
 		return stingle.ResponseNOK()
 	}
 	return stingle.ResponseOK()
@@ -428,7 +428,7 @@ func (s *Server) handleLeaveAlbum(user database.User, req *http.Request) *stingl
 	}
 
 	if err := s.db.RemoveAlbumMember(user, albumID, user.UserID); err != nil {
-		log.Errorf("RemoveAlbumMember(%q, %q): %v", albumID, user.UserID, err)
+		log.Errorf("RemoveAlbumMember(%v, %v): %v", albumID, user.UserID, err)
 		return stingle.ResponseNOK()
 	}
 	return stingle.ResponseOK()
