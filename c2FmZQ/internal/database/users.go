@@ -652,7 +652,7 @@ func (d *Database) lookupContacts(uids map[int64]bool) []Contact {
 		if uids[u.UserID] {
 			user, err := d.UserByID(u.UserID)
 			if err != nil {
-				log.Errorf("d.UserByID(%q) failed, but user in %q: %v", u.UserID, userListFile, err)
+				log.Errorf("d.UserByID(%d) failed, but user in %q: %v", u.UserID, userListFile, err)
 				continue
 			}
 			out = append(out, Contact{

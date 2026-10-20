@@ -87,7 +87,7 @@ func TestUsers(t *testing.T) {
 			t.Errorf("AddContact(%v, %q) failed: %v", alice, e, err)
 		}
 		if want, got := users[e].UserID, c.UserID; want != got {
-			t.Errorf("Unexpected contact UserID: want %q, got %q", want, got)
+			t.Errorf("Unexpected contact UserID: want %v, got %v", want, got)
 		}
 		if want, got := users[e].Email, c.Email; want != got {
 			t.Errorf("Unexpected contact Email: want %q, got %q", want, got)
