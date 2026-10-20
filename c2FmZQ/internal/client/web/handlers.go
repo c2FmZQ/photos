@@ -103,7 +103,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 		redirect := req.PostForm.Get("redir")
-		if redirect == "" || !strings.HasPrefix(redirect, "/") || strings.HasPrefix(redirect, "//") {
+		if redirect == "" || !strings.HasPrefix(redirect, "/") || strings.HasPrefix(redirect, "//") || strings.HasPrefix(redirect, "/\\") {
 			redirect = s.c.WebServerConfig.URLPrefix + "view/"
 		}
 		tok := token.Mint(s.c.WebServerConfig.TokenKey, token.Token{Scope: "web", File: tagFromCtx(ctx)}, 24*time.Hour)
