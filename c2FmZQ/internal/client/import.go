@@ -111,9 +111,12 @@ func (c *Client) ImportFiles(patterns []string, dest string, recursive bool) (in
 		}
 		pk := c.PublicKey()
 		if li[0].Album != nil {
-			if pk, err = li[0].Album.PK(); err != nil {
+			ask, err := c.SKForAlbum(li[0].Album)
+			if err != nil {
 				return 0, err
 			}
+			pk = ask.PublicKey()
+			ask.Wipe()
 		}
 		for _, f := range files {
 			if dd, _ := filepath.Split(f.dst); dir != strings.TrimSuffix(dd, "/") {
@@ -340,7 +343,7 @@ func (c *Client) importExif(file string) (x *exif.Exif, err error) {
 func (c *Client) GenericThumbnail(filename string) ([]byte, error) {
 	_, filename = filepath.Split(filename)
 	var ext string
-	if filename[0] == '.' {
+	if len(filename) > 0 && filename[0] == '.' {
 		ext = filepath.Ext(filename[1:])
 	} else {
 		ext = filepath.Ext(filename)

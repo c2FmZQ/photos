@@ -117,8 +117,8 @@ func (s *Server) handleSetOTP(user database.User, req *http.Request) *stingle.Re
 }
 
 func validateOTP(key, passcode string) bool {
-	if key == "" && passcode == "" {
-		return true
+	if key == "" {
+		return passcode == ""
 	}
 	return totp.Validate(passcode, key)
 }

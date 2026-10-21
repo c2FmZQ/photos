@@ -44,8 +44,15 @@ func (c *Client) WipeAccount(password string) error {
 	if err := c.storage.ReadDataFile(c.fileHash(albumList), &al); err != nil {
 		return err
 	}
-	for _, album := range al.Albums {
-		if errs := c.wipeFileSet(albumPrefix + album.AlbumID); errs != nil {
+	albumIDs := make(map[string]struct{})
+	for id := range al.Albums {
+		albumIDs[id] = struct{}{}
+	}
+	for id := range al.RemoteAlbums {
+		albumIDs[id] = struct{}{}
+	}
+	for id := range albumIDs {
+		if errs := c.wipeFileSet(albumPrefix + id); errs != nil {
 			errList = append(errList, errs...)
 		}
 	}
@@ -81,14 +88,20 @@ func (c *Client) wipeFileSet(name string) (errList []error) {
 	if err := c.storage.ReadDataFile(fn, &fs); err != nil {
 		errList = append(errList, err)
 	}
+	files := make(map[string]struct{})
 	for _, f := range fs.Files {
-		if err := c.wipeFile(c.blobPath(f.File, false)); err != nil && !errors.Is(err, os.ErrNotExist) {
+		files[f.File] = struct{}{}
+	}
+	for _, f := range fs.RemoteFiles {
+		files[f.File] = struct{}{}
+	}
+	for file := range files {
+		if err := c.wipeFile(c.blobPath(file, false)); err != nil && !errors.Is(err, os.ErrNotExist) {
 			errList = append(errList, err)
 		}
-		if err := c.wipeFile(c.blobPath(f.File, true)); err != nil && !errors.Is(err, os.ErrNotExist) {
+		if err := c.wipeFile(c.blobPath(file, true)); err != nil && !errors.Is(err, os.ErrNotExist) {
 			errList = append(errList, err)
 		}
-
 	}
 	if err := c.wipeFile(filepath.Join(c.storage.Dir(), fn)); err != nil {
 		errList = append(errList, err)

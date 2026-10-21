@@ -88,7 +88,7 @@ func (c *Client) Share(pattern string, shareWith []string, permissions []string)
 	var list []string
 	for _, m := range members {
 		pk, _ := m.PK()
-		list = append(list, fmt.Sprintf("%*s % X", -maxSize, m.Email, pk.ToBytes()))
+		list = append(list, fmt.Sprintf("%*s % X", -maxSize, sanitize(m.Email), pk.ToBytes()))
 	}
 	sort.Strings(list)
 	for _, l := range list {

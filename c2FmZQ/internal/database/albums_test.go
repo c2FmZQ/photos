@@ -215,3 +215,74 @@ func TestAlbums(t *testing.T) {
 
 	}
 }
+
+func TestSecurityAlbumValidation(t *testing.T) {
+	dir := t.TempDir()
+	db := database.New(dir, nil)
+	database.CurrentTimeForTesting = 10000
+
+	aliceKey := stingle.MakeSecretKeyForTest()
+	if err := addUser(db, "alice@", aliceKey.PublicKey()); err != nil {
+		t.Fatalf("addUser alice failed: %v", err)
+	}
+	alice, err := db.User("alice@")
+	if err != nil {
+		t.Fatalf("db.User alice failed: %v", err)
+	}
+
+	// Empty AlbumID should be rejected (SEC-09).
+	if err := addAlbum(db, alice, ""); err == nil {
+		t.Errorf("addAlbum with empty AlbumID should have failed")
+	}
+
+	// Future DateModified should be clamped to CurrentTimeForTesting (SEC-12).
+	futureSpec := database.AlbumSpec{
+		OwnerID:       alice.UserID,
+		AlbumID:       "future-album",
+		DateCreated:   999999999,
+		DateModified:  999999999,
+		EncPrivateKey: "k",
+		Metadata:      "m",
+		PublicKey:     "p",
+	}
+	if err := db.AddAlbum(alice, futureSpec); err != nil {
+		t.Fatalf("AddAlbum failed: %v", err)
+	}
+	updates, err := db.AlbumUpdates(alice, 0)
+	if err != nil {
+		t.Fatalf("AlbumUpdates failed: %v", err)
+	}
+	if len(updates) != 1 || updates[0].DateModified != "10000" {
+		t.Errorf("Expected clamped DateModified 10000, got %+v", updates)
+	}
+
+	// Sharing an album with the same AlbumID as a target user's own album must not overwrite the target user's album ref (SEC-17).
+	bobKey := stingle.MakeSecretKeyForTest()
+	if err := addUser(db, "bob@", bobKey.PublicKey()); err != nil {
+		t.Fatalf("addUser bob failed: %v", err)
+	}
+	bob, err := db.User("bob@")
+	if err != nil {
+		t.Fatalf("db.User bob failed: %v", err)
+	}
+	if err := addAlbum(db, bob, "future-album"); err != nil {
+		t.Fatalf("addAlbum bob failed: %v", err)
+	}
+	stingleAlbum := stingle.Album{
+		AlbumID:     "future-album",
+		IsShared:    "1",
+		Permissions: "1111",
+		Members:     membersString(alice.UserID, bob.UserID),
+	}
+	sharingKeys := map[string]string{fmt.Sprintf("%d", bob.UserID): "key"}
+	if err := db.ShareAlbum(alice, &stingleAlbum, sharingKeys); err != nil {
+		t.Fatalf("ShareAlbum failed: %v", err)
+	}
+	bobFS, err := db.FileSet(bob, stingle.AlbumSet, "future-album")
+	if err != nil {
+		t.Fatalf("bob FileSet failed: %v", err)
+	}
+	if bobFS.Album.OwnerID != bob.UserID {
+		t.Errorf("Bob's album OwnerID was overwritten: got %d, want %d", bobFS.Album.OwnerID, bob.UserID)
+	}
+}

@@ -132,14 +132,15 @@ func (n *node) find(name string, create bool) *node {
 			elems = elems[1:]
 			continue
 		}
-		if next, ok := n.children[elems[0]]; ok {
+		elem := sanitize(elems[0])
+		if next, ok := n.children[elem]; ok {
 			n = next
 			elems = elems[1:]
 			continue
 		}
 		if create {
-			n.children[elems[0]] = newNode(elems[0])
-			n = n.children[elems[0]]
+			n.children[elem] = newNode(elem)
+			n = n.children[elem]
 			elems = elems[1:]
 			continue
 		}
@@ -206,6 +207,12 @@ func sanitize(s string) string {
 	}, s)
 }
 
+func sanitizeFilename(s string) string {
+	s = strings.ReplaceAll(s, "\\", "/")
+	_, fn := path.Split(s)
+	return sanitize(fn)
+}
+
 // Header returns the decrypted Header.
 func (i ListItem) Header(sk *stingle.SecretKey) (*stingle.Header, error) {
 	if a := i.Album; a != nil {
@@ -221,6 +228,7 @@ func (i ListItem) Header(sk *stingle.SecretKey) (*stingle.Header, error) {
 		return nil, err
 	}
 	hdrs[1].Wipe()
+	hdrs[0].Filename = []byte(sanitizeFilename(string(hdrs[0].Filename)))
 	return hdrs[0], nil
 }
 
@@ -239,6 +247,7 @@ func (i ListItem) ThumbHeader(sk *stingle.SecretKey) (*stingle.Header, error) {
 		return nil, err
 	}
 	hdrs[0].Wipe()
+	hdrs[1].Filename = []byte(sanitizeFilename(string(hdrs[1].Filename)))
 	return hdrs[1], nil
 }
 

@@ -184,10 +184,10 @@ func (c *Client) SKForAlbum(a *stingle.Album) (*stingle.SecretKey, error) {
 	sk := c.SecretKey()
 	if a != nil {
 		ask, err := a.SK(sk)
+		sk.Wipe()
 		if err != nil {
 			return nil, err
 		}
-		sk.Wipe()
 		sk = ask
 	}
 	return sk, nil
@@ -306,10 +306,10 @@ func (c *Client) sendRequest(uri string, form url.Values, server string) (*sting
 		log.Debug(strings.Join(line, ""))
 	}
 	for _, info := range sr.Infos {
-		c.Printf("SERVER INFO: %s\n", info)
+		c.Printf("SERVER INFO: %s\n", sanitize(info))
 	}
 	for _, err := range sr.Errors {
-		c.Printf("SERVER ERROR: %s\n", err)
+		c.Printf("SERVER ERROR: %s\n", sanitize(err))
 	}
 	return &sr, nil
 }
@@ -370,11 +370,18 @@ func (c *Client) DownloadGet(file, set string, thumb bool) (*SeekDownloader, err
 	if sr.Status != "ok" {
 		return nil, sr
 	}
-	url, ok := sr.Part("url").(string)
+	dlURL, ok := sr.Part("url").(string)
 	if !ok {
 		return nil, fmt.Errorf("server did not return a url: %v", sr.Part("url"))
 	}
-	return &SeekDownloader{hc: c.hc, url: url}, nil
+	parsedDL, err := url.Parse(dlURL)
+	if err != nil || (parsedDL.Scheme != "http" && parsedDL.Scheme != "https") {
+		return nil, fmt.Errorf("invalid download url: %q", dlURL)
+	}
+	if base, err := url.Parse(c.Account.ServerBaseURL); err == nil && base.Host != "" && parsedDL.Host != base.Host {
+		return nil, fmt.Errorf("download url host %q does not match server host %q", parsedDL.Host, base.Host)
+	}
+	return &SeekDownloader{hc: c.hc, url: dlURL}, nil
 }
 
 // SeekDownloader uses HTTP GET with a Range header to make the download
@@ -413,7 +420,7 @@ func (d *SeekDownloader) Seek(offset int64, whence int) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	if resp.StatusCode != http.StatusPartialContent || (resp.StatusCode == http.StatusOK && d.offset != 0) {
+	if resp.StatusCode != http.StatusPartialContent && !(resp.StatusCode == http.StatusOK && d.offset == 0) {
 		resp.Body.Close()
 		return 0, fmt.Errorf("request returned status code %d for offset %d", resp.StatusCode, d.offset)
 	}

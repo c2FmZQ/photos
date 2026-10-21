@@ -328,9 +328,13 @@ func (n *dirNode) updateLocked() {
 		}
 		switch v := nn.(type) {
 		case *dirNode:
+			v.lock()
 			v.item = item
+			v.unlock()
 		case *fileNode:
+			v.lock()
 			v.item = item
+			v.unlock()
 		default:
 			log.Fatalf("unexpected node type: %T", nn)
 		}
@@ -610,6 +614,7 @@ func (n *dirNode) Create(ctx context.Context, req *fuse.CreateRequest, resp *fus
 	ch, _ := n.child(req.Name)
 	nn, ok := ch.(*fileNode)
 	if !ok || ch == nil {
+		w.Close()
 		log.Errorf("Create: child is nil: %#v", ch)
 		return nil, nil, syscall.EINVAL
 	}
@@ -619,6 +624,7 @@ func (n *dirNode) Create(ctx context.Context, req *fuse.CreateRequest, resp *fus
 
 		r, err := nn.openRead()
 		if err != nil {
+			w.Close()
 			return nil, nil, err
 		}
 		h.r = r
@@ -663,6 +669,9 @@ func (n *dirNode) Link(ctx context.Context, req *fuse.LinkRequest, old fs.Node) 
 	}
 	n.updateLocked()
 	nnn, _ := n.child(req.NewName)
+	if nnn == nil {
+		return nil, syscall.EIO
+	}
 	return nnn, nil
 }
 
@@ -918,10 +927,19 @@ func (h *handle) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.W
 	if h.w == nil {
 		return syscall.EINVAL
 	}
+	if err := h.n.checkHeader(ctx, h.n, req.Header); err != nil {
+		return err
+	}
+	if req.Offset < 0 {
+		return syscall.EINVAL
+	}
 	if h.size < req.Offset {
 		log.Debugf("File is sparse. Offset is greater than size. Padding with %d bytes", req.Offset-h.size)
 		var buf [4096]byte
 		for h.size != req.Offset {
+			if err := ctx.Err(); err != nil {
+				return syscall.EINTR
+			}
 			n := req.Offset - h.size
 			if n > int64(len(buf)) {
 				n = int64(len(buf))

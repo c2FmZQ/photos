@@ -247,8 +247,9 @@ func (d *Database) getFileSizes(user User, set, albumID string, ch chan<- fileSi
 		// Only charge file size to owner of the album.
 		return
 	}
-	for k, f := range fs.Files {
-		ch <- fileSize{k, f.StoreFileSize + f.StoreThumbSize}
+	for _, f := range fs.Files {
+		ch <- fileSize{f.StoreFile, f.StoreFileSize}
+		ch <- fileSize{f.StoreThumb, f.StoreThumbSize}
 	}
 }
 

@@ -22,9 +22,11 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"testing"
 
 	"c2FmZQ/internal/client"
+	"c2FmZQ/internal/stingle"
 )
 
 func TestList(t *testing.T) {
@@ -130,5 +132,48 @@ func TestList(t *testing.T) {
 		if want, got := tc.expected, dateRE.ReplaceAllString(buf.String(), "XXXX-XX-XX XX:XX:XX"); want != got {
 			t.Errorf("[%s] Unexpected output. Want %q, got %q", tc.name, want, got)
 		}
+	}
+}
+
+func TestSecurityHeaderPathTraversalSanitization(t *testing.T) {
+	c, err := newClient(t.TempDir())
+	if err != nil {
+		t.Fatalf("newClient: %v", err)
+	}
+	testdir := t.TempDir()
+	if err := makeImages(testdir, 1, 1); err != nil {
+		t.Fatalf("makeImages: %v", err)
+	}
+	if _, err := c.ImportFiles([]string{filepath.Join(testdir, "*")}, "gallery", true); err != nil {
+		t.Fatalf("ImportFiles: %v", err)
+	}
+	li, err := c.GlobFiles([]string{"gallery/*"}, client.GlobOptions{})
+	if err != nil || len(li) != 1 {
+		t.Fatalf("GlobFiles: %v, len=%d", err, len(li))
+	}
+
+	// Tamper with the encrypted header filename to include path traversal and control chars (SEC-04, SEC-19).
+	sk := c.SecretKey()
+	defer sk.Wipe()
+	hdrs, err := stingle.DecryptBase64Headers(li[0].FSFile.Headers, sk)
+	if err != nil {
+		t.Fatalf("DecryptBase64Headers: %v", err)
+	}
+	hdrs[0].Filename = []byte("../../etc/passwd\x1b[31m")
+	li[0].FSFile.Headers, err = stingle.EncryptBase64Headers(hdrs, sk.PublicKey())
+	hdrs[0].Wipe()
+	hdrs[1].Wipe()
+	if err != nil {
+		t.Fatalf("EncryptBase64Headers: %v", err)
+	}
+
+	sanitizedHdr, err := li[0].Header(sk)
+	if err != nil {
+		t.Fatalf("li[0].Header: %v", err)
+	}
+	defer sanitizedHdr.Wipe()
+	gotName := string(sanitizedHdr.Filename)
+	if strings.Contains(gotName, "/") || strings.Contains(gotName, "\\") || strings.Contains(gotName, "\x1b") {
+		t.Errorf("Expected sanitized header filename without path separators or control characters, got %q", gotName)
 	}
 }

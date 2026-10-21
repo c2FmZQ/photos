@@ -120,16 +120,25 @@ func (c *Client) processAlbumUpdates(updates []stingle.Album) (retErr error) {
 		if up.AlbumID == "" {
 			continue
 		}
+		existingRemote, okRemote := al.RemoteAlbums[up.AlbumID]
+		if okRemote && existingRemote.PublicKey != "" && up.PublicKey != existingRemote.PublicKey {
+			log.Errorf("Ignoring album update for %s with modified public key", up.AlbumID)
+			continue
+		}
+		la, okLocal := al.Albums[up.AlbumID]
+		if okLocal && la.PublicKey != "" && up.PublicKey != la.PublicKey {
+			log.Errorf("Ignoring album update for %s with modified public key", up.AlbumID)
+			continue
+		}
 		// Update remote album.
-		if _, ok := al.RemoteAlbums[up.AlbumID]; !ok {
+		if !okRemote {
 			c.storage.CreateEmptyFile(c.fileHash(albumPrefix+up.AlbumID), &FileSet{})
 		}
 		na := up
 		al.RemoteAlbums[up.AlbumID] = &na
 
 		// Update local album.
-		la, ok := al.Albums[up.AlbumID]
-		if !ok {
+		if !okLocal {
 			c.storage.CreateEmptyFile(c.fileHash(albumPrefix+up.AlbumID), &FileSet{})
 			al.Albums[up.AlbumID] = &na
 		} else {

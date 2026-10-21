@@ -19,6 +19,7 @@ package server_test
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 	"testing"
 
@@ -441,4 +442,50 @@ func (c *client) moveFiles(p database.MoveFileParams) error {
 		return sr
 	}
 	return nil
+}
+
+func TestSecurityDownloadAfterLogoutAndHeaders(t *testing.T) {
+	sock, shutdown := startServer(t)
+	defer shutdown()
+
+	c, err := createAccountAndLogin(sock, "alice")
+	if err != nil {
+		t.Fatalf("createAccountAndLogin failed: %v", err)
+	}
+	if _, err := c.uploadFile("filename1", stingle.GallerySet, "", 1000); err != nil {
+		t.Fatalf("c.uploadFile failed: %v", err)
+	}
+
+	// Check security headers on token download (SEC-10).
+	dlURL, err := c.getURL("filename1", stingle.GallerySet)
+	if err != nil {
+		t.Fatalf("c.getURL failed: %v", err)
+	}
+	dialer := dialer{sock: c.sock}
+	hc := http.Client{Transport: &http.Transport{DialContext: dialer.DialContext}}
+	resp, err := hc.Get(dlURL)
+	if err != nil {
+		t.Fatalf("GET %q failed: %v", dlURL, err)
+	}
+	resp.Body.Close()
+	if got := resp.Header.Get("X-Content-Type-Options"); got != "nosniff" {
+		t.Errorf("Expected X-Content-Type-Options: nosniff, got %q", got)
+	}
+	if got := resp.Header.Get("Content-Security-Policy"); got == "" {
+		t.Errorf("Expected non-empty Content-Security-Policy header on token download")
+	}
+
+	// Logout and verify POST /v2/sync/download rejects the revoked token (SEC-06).
+	logoutForm := url.Values{}
+	logoutForm.Set("token", c.token)
+	if sr, err := c.sendRequest("/v2/login/logout", logoutForm); err != nil || sr.Status != "ok" {
+		t.Fatalf("logout failed: %v %v", err, sr)
+	}
+	body, err := c.downloadPost("filename1", stingle.GallerySet, "0")
+	if err != nil {
+		t.Fatalf("downloadPost after logout error: %v", err)
+	}
+	if body == `Content of "file" filename "filename1"` {
+		t.Errorf("downloadPost succeeded after logout; expected token revocation")
+	}
 }

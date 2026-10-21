@@ -191,6 +191,7 @@ func setTag(next http.Handler) http.HandlerFunc {
 			b := make([]byte, 8)
 			if _, err := rand.Read(b); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
 			}
 			cookie = &http.Cookie{
 				Name:  "TAG",

@@ -23,10 +23,19 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"c2FmZQ/internal/stingle"
 )
+
+func isSubpath(base, target string) bool {
+	rel, err := filepath.Rel(filepath.Clean(base), filepath.Clean(target))
+	if err != nil {
+		return false
+	}
+	return rel == "." || (rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)))
+}
 
 // ExportFiles decrypts and exports files to dir. Returns the number of files exported.
 func (c *Client) ExportFiles(patterns []string, dir string, recursive bool) (int, error) {
@@ -66,7 +75,11 @@ func (c *Client) ExportFiles(patterns []string, dir string, recursive bool) (int
 			if err != nil {
 				return 0, err
 			}
-			toExport = append(toExport, srcdst{item2, filepath.Join(dir, rel)})
+			dstDir := filepath.Join(dir, rel)
+			if !isSubpath(dir, dstDir) {
+				return 0, fmt.Errorf("refusing to export outside target directory: %s", dstDir)
+			}
+			toExport = append(toExport, srcdst{item2, dstDir})
 		}
 	}
 	qCh := make(chan srcdst)
@@ -161,11 +174,15 @@ func (c *Client) exportFile(item ListItem, dir string, hdr *stingle.Header) (err
 		return err
 	}
 	_, fn := filepath.Split(sanitize(string(hdr.Filename)))
-	if fn == "" {
+	fn = sanitize(fn)
+	if fn == "" || fn == "(noname)" {
 		_, fn = filepath.Split(sanitize(string(item.FSFile.File)))
-		fn = "decrypted-" + fn
+		fn = "decrypted-" + sanitize(fn)
 	}
 	fn = filepath.Join(dir, fn)
+	if !isSubpath(dir, fn) {
+		return fmt.Errorf("refusing to export outside target directory: %s", fn)
+	}
 	tmp := fmt.Sprintf("%s-tmp-%d", fn, time.Now().UnixNano())
 	out, err := os.OpenFile(tmp, os.O_WRONLY|os.O_CREATE|os.O_EXCL|os.O_SYNC, 0600)
 	if err != nil {
