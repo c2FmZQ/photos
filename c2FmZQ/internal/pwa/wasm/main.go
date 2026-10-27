@@ -177,18 +177,23 @@ func (a *wasmApp) jsUnlock(this js.Value, args []js.Value) any {
 		}
 
 		a.mu.Lock()
-		defer a.mu.Unlock()
+		store := a.store
+		sameOrigin := a.sameOrigin
+		caps := a.capabilities
+		cbs := a.callbacks
+		hasClient := a.client != nil
+		a.mu.Unlock()
 
-		a.store.SetName(storeName)
-		a.store.SetPassphrase(storeKey)
-		if err := a.store.Open(); err != nil {
-			a.store.Lock()
+		store.SetName(storeName)
+		store.SetPassphrase(storeKey)
+		if err := store.Open(); err != nil {
+			store.Lock()
 			return nil, err
 		}
-		defer a.store.Release()
+		defer store.Release()
 
-		if !a.store.Check() {
-			a.store.Lock()
+		if !store.Check() {
+			store.Lock()
 			return map[string]any{
 				"ok":  false,
 				"err": T("wrong-passphrase"),
@@ -201,13 +206,17 @@ func (a *wasmApp) jsUnlock(this js.Value, args []js.Value) any {
 			}
 		}
 
-		if a.client == nil {
-			client := NewClient(a.store, jsutil.PathPrefix(), a.sameOrigin, a.capabilities, a.callbacks)
+		if !hasClient {
+			client := NewClient(store, jsutil.PathPrefix(), sameOrigin, caps, cbs)
 			if err := client.Init(); err != nil {
 				return nil, err
 			}
-			a.client = client
-			jsutil.InitStreamHelper(client.HandleStreamRequest)
+			a.mu.Lock()
+			if a.client == nil {
+				a.client = client
+				jsutil.InitStreamHelper(client.HandleStreamRequest)
+			}
+			a.mu.Unlock()
 		}
 
 		return map[string]any{

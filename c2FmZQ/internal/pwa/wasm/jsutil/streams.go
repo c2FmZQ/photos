@@ -85,7 +85,9 @@ func NewReadableStream(r io.Reader, done chan<- error, progress func(int64)) js.
 		pullCb.Release()
 		cancelCb.Release()
 		if c, ok := r.(io.Closer); ok {
-			_ = c.Close()
+			go func() {
+				_ = c.Close()
+			}()
 		}
 	})
 	allDone := func(err error) {
@@ -133,13 +135,15 @@ func NewReadableStream(r io.Reader, done chan<- error, progress func(int64)) js.
 		})
 	})
 	cancelCb = js.FuncOf(func(this js.Value, args []js.Value) any {
-		select {
-		case <-cancelCh:
-		default:
-			close(cancelCh)
-		}
-		allDone(errors.New("canceled"))
-		return nil
+		return NewPromise(func() (any, error) {
+			select {
+			case <-cancelCh:
+			default:
+				close(cancelCh)
+			}
+			allDone(errors.New("canceled"))
+			return nil, nil
+		})
 	})
 	s.Set("pull", pullCb)
 	s.Set("cancel", cancelCb)
