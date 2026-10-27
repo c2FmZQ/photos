@@ -34,6 +34,7 @@ import (
 
 var (
 	ReadableStream = Global.Get("ReadableStream")
+	noopFunc       = js.FuncOf(func(this js.Value, args []js.Value) any { return nil })
 )
 
 func NewStreamReader(stream js.Value) *StreamReader {
@@ -74,7 +75,11 @@ func (r *StreamReader) Close() error {
 		return nil
 	}
 	r.closed = true
-	_, _ = Await(r.reader.Call("cancel"))
+	if p := r.reader.Call("cancel"); p.Truthy() {
+		if catch := p.Get("catch"); catch.Truthy() && catch.Type() == js.TypeFunction {
+			p.Call("catch", noopFunc)
+		}
+	}
 	return nil
 }
 
@@ -85,9 +90,7 @@ func NewReadableStream(r io.Reader, done chan<- error, progress func(int64)) js.
 		pullCb.Release()
 		cancelCb.Release()
 		if c, ok := r.(io.Closer); ok {
-			go func() {
-				_ = c.Close()
-			}()
+			_ = c.Close()
 		}
 	})
 	allDone := func(err error) {
@@ -135,15 +138,13 @@ func NewReadableStream(r io.Reader, done chan<- error, progress func(int64)) js.
 		})
 	})
 	cancelCb = js.FuncOf(func(this js.Value, args []js.Value) any {
-		return NewPromise(func() (any, error) {
-			select {
-			case <-cancelCh:
-			default:
-				close(cancelCh)
-			}
-			allDone(errors.New("canceled"))
-			return nil, nil
-		})
+		select {
+		case <-cancelCh:
+		default:
+			close(cancelCh)
+		}
+		allDone(errors.New("canceled"))
+		return nil
 	})
 	s.Set("pull", pullCb)
 	s.Set("cancel", cancelCb)
