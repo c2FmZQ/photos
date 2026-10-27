@@ -1,28 +1,35 @@
 services:
   chrome:
     container_name: "chrome"
-    image: "selenium/standalone-chrome:108.0-chromedriver-108.0"
+    image: "chromedp/headless-shell:157.0.8103.15"
+    user: "${USERID:-1000}"
     shm_size: "2gb"
-    ports:
-      - "${VNCPORT:-127.0.0.1:7900}:7900"
-    environment:
-      - SE_SCREEN_WIDTH=1040
-      - SE_SCREEN_HEIGHT=840
-      - SE_SCREEN_DEPTH=24
+    command: [
+      "--ignore-certificate-errors",
+      "--disable-gpu",
+      "--disable-dev-shm-usage",
+    ]
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://chrome:4444/"]
+      test: ["CMD", "socat", "-", "TCP4:127.0.0.1:9222"]
       interval: 5s
       retries: 5
       start_period: 5s
+    volumes:
+      - type: tmpfs
+        target: /nonexistent
+        tmpfs:
+          size: 10M
+          mode: 0o1777
 
   devtest:
     container_name: "devtest"
+    hostname: "devtest.local"
     image: "golang:1.27.3-alpine3.24"
     #tty: true
     #stdin_open: true
     user: "${USERID:-1000}"
     working_dir: "/home/user/src/c2FmZQ/c2FmZQ"
-    command: "go test -v -failfast -tags selenium -timeout=15m -count=1 -run='${TESTS:-.*}' ./internal/pwatests/..."
+    command: "go test -v -failfast -tags chromedp -timeout=15m -count=1 -run='${TESTS:-.*}' ./internal/pwatests/..."
     environment:
      - HOME=/home/user
      - GOPATH=/home/user/go
@@ -32,6 +39,11 @@ services:
       - "${GOCACHE:-$HOME/.cache/go-build}:/home/user/.cache/go-build"
       - "${GOPATH:-$HOME/go}:/home/user/go"
       - "${SRCDIR:-$HOME/src/c2FmZQ}:/home/user/src/c2FmZQ"
+      - type: tmpfs
+        target: /etc/ssl/certs
+        tmpfs:
+          size: 10M
+          mode: 0o1777
     depends_on:
       chrome:
         condition: service_healthy

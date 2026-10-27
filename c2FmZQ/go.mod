@@ -7,6 +7,8 @@ require (
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/aead/ecdh v0.2.0
 	github.com/c2FmZQ/storage v0.3.3
+	github.com/chromedp/cdproto v0.158.5
+	github.com/chromedp/chromedp v0.21.0
 	github.com/disintegration/imaging v1.6.2
 	github.com/fxamacker/cbor/v2 v2.9.6
 	github.com/go-test/deep v1.0.7
@@ -18,7 +20,6 @@ require (
 	github.com/pquerna/otp v1.5.0
 	github.com/prometheus/client_golang v1.25.0
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
-	github.com/tebeka/selenium v0.9.9
 	github.com/tyler-smith/go-bip39 v1.1.0
 	github.com/urfave/cli/v2 v2.27.7
 	golang.org/x/crypto v0.58.0
@@ -31,11 +32,11 @@ require (
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/boombuler/barcode v1.1.0 // indirect
 	github.com/c2FmZQ/tpm v0.6.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
+	github.com/go-json-experiment/json v0.0.0-20260213210345-44df1a37e875 // indirect
 	github.com/google/go-tpm v0.9.8 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/prometheus/client_model v0.6.3 // indirect
