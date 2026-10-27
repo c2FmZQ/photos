@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/bin/bash -e
 
 cd "$(dirname $0)"
 
-npm install bip39 sodium-plus exifreader
+npm ci --ignore-scripts
 
 browserify worker.js \
   --exclude=./wordlists/japanese.json  \
@@ -16,3 +16,5 @@ browserify worker.js \
   --exclude=./wordlists/chinese_traditional.json  > libs.js
 
 browserify browser.js > browser-libs.js
+
+rm -rf node_modules
