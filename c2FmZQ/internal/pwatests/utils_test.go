@@ -83,8 +83,8 @@ func initTLS(t *testing.T) {
 			t.Fatalf("x509.ParseCertificate(CA): %v", err)
 		}
 		caPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: caDER})
-		if err := os.WriteFile("/etc/ssl/certs/ca.pem", caPEM, 0o644); err != nil {
-			t.Fatalf("WriteFile(/etc/ssl/certs/ca.pem): %v", err)
+		if err := os.WriteFile("/etc/pki/tls/certs/ca.pem", caPEM, 0o644); err != nil {
+			t.Fatalf("WriteFile(/etc/pki/tls/certs/ca.pem): %v", err)
 		}
 
 		srvPriv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)

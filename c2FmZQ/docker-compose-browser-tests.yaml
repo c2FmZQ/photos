@@ -40,7 +40,7 @@ services:
       - "${GOPATH:-$HOME/go}:/home/user/go"
       - "${SRCDIR:-$HOME/src/c2FmZQ}:/home/user/src/c2FmZQ"
       - type: tmpfs
-        target: /etc/ssl/certs
+        target: /etc/pki/tls/certs
         tmpfs:
           size: 10M
           mode: 0o1777
