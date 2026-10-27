@@ -1,5 +1,5 @@
 #!/bin/bash
-# This script runs the browser tests with selenium in docker containers.
+# This script runs the browser tests with chromedp in docker containers.
 #
 # Usage:
 #   ./run-pwa-tests.sh [regexp]

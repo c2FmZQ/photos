@@ -15,15 +15,13 @@
 // You should have received a copy of the GNU General Public License along with
 // c2FmZQ. If not, see <https://www.gnu.org/licenses/>.
 
-//go:build selenium
-// +build selenium
+//go:build chromedp
+// +build chromedp
 
 package pwa_test
 
 import (
 	"testing"
-
-	"github.com/tebeka/selenium"
 )
 
 func TestRegisterRecoverLogin(t *testing.T) {
@@ -40,15 +38,7 @@ func TestRegisterRecoverLogin(t *testing.T) {
 	wd.sendKeys(".prompt-input", "foobar\n")
 	wd.click(".prompt-confirm-button")
 
-	var backupPhrase string
-	wd.Wait(func(selenium.WebDriver) (bool, error) {
-		v, err := wd.css("#backup-phrase-value").Text()
-		if err != nil || v == "" {
-			return false, nil
-		}
-		backupPhrase = v
-		return true, nil
-	})
+	backupPhrase := wd.waitNonEmptyText("#backup-phrase-value")
 	wd.click(".popup-close")
 
 	wd.logout()
@@ -101,15 +91,7 @@ func TestNoBackupKeys(t *testing.T) {
 	wd.sendKeys(".prompt-input", "foobar\n")
 	wd.click(".prompt-confirm-button")
 
-	var backupPhrase string
-	wd.Wait(func(selenium.WebDriver) (bool, error) {
-		v, err := wd.css("#backup-phrase-value").Text()
-		if err != nil || v == "" {
-			return false, nil
-		}
-		backupPhrase = v
-		return true, nil
-	})
+	backupPhrase := wd.waitNonEmptyText("#backup-phrase-value")
 	wd.click(".popup-close")
 
 	wd.logout()

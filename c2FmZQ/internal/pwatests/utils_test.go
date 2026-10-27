@@ -15,28 +15,36 @@
 // You should have received a copy of the GNU General Public License along with
 // c2FmZQ. If not, see <https://www.gnu.org/licenses/>.
 
-//go:build selenium
-// +build selenium
+//go:build chromedp
+// +build chromedp
 
 package pwa_test
 
 import (
-	"bytes"
-	"encoding/json"
+	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/tls"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/pem"
 	"fmt"
-	"io"
+	"math/big"
 	"net"
-	"net/http"
+	"os"
 	"path/filepath"
+	"slices"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/c2FmZQ/storage"
 	"github.com/c2FmZQ/storage/crypto"
-	"github.com/tebeka/selenium"
-	"github.com/tebeka/selenium/chrome"
-	slog "github.com/tebeka/selenium/log"
+	"github.com/chromedp/cdproto/webauthn"
+	"github.com/chromedp/chromedp"
+	"github.com/chromedp/chromedp/remote"
 
 	"c2FmZQ/internal/client"
 	"c2FmZQ/internal/database"
@@ -44,7 +52,73 @@ import (
 	"c2FmZQ/internal/server"
 )
 
+var (
+	tlsOnce sync.Once
+	tlsCert tls.Certificate
+)
+
+func initTLS(t *testing.T) {
+	t.Helper()
+	tlsOnce.Do(func() {
+		caPriv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		if err != nil {
+			t.Fatalf("ecdsa.GenerateKey(CA): %v", err)
+		}
+		caTemplate := x509.Certificate{
+			SerialNumber:          big.NewInt(1),
+			Subject:               pkix.Name{CommonName: "Test CA"},
+			NotBefore:             time.Now().Add(-time.Hour),
+			NotAfter:              time.Now().Add(24 * time.Hour),
+			KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+			ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+			BasicConstraintsValid: true,
+			IsCA:                  true,
+		}
+		caDER, err := x509.CreateCertificate(rand.Reader, &caTemplate, &caTemplate, &caPriv.PublicKey, caPriv)
+		if err != nil {
+			t.Fatalf("x509.CreateCertificate(CA): %v", err)
+		}
+		caCert, err := x509.ParseCertificate(caDER)
+		if err != nil {
+			t.Fatalf("x509.ParseCertificate(CA): %v", err)
+		}
+		caPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: caDER})
+		if err := os.WriteFile("/etc/pki/tls/certs/ca.pem", caPEM, 0o644); err != nil {
+			t.Fatalf("WriteFile(/etc/pki/tls/certs/ca.pem): %v", err)
+		}
+
+		srvPriv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		if err != nil {
+			t.Fatalf("ecdsa.GenerateKey(Server): %v", err)
+		}
+		srvTemplate := x509.Certificate{
+			SerialNumber: big.NewInt(2),
+			Subject:      pkix.Name{CommonName: "devtest.local"},
+			NotBefore:    time.Now().Add(-time.Hour),
+			NotAfter:     time.Now().Add(24 * time.Hour),
+			KeyUsage:     x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
+			ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+			DNSNames:     []string{"devtest", "devtest.local"},
+		}
+		srvDER, err := x509.CreateCertificate(rand.Reader, &srvTemplate, caCert, &srvPriv.PublicKey, caPriv)
+		if err != nil {
+			t.Fatalf("x509.CreateCertificate(Server): %v", err)
+		}
+		srvCertPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: srvDER})
+		srvKeyBytes, err := x509.MarshalECPrivateKey(srvPriv)
+		if err != nil {
+			t.Fatalf("x509.MarshalECPrivateKey: %v", err)
+		}
+		srvKeyPEM := pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: srvKeyBytes})
+		tlsCert, err = tls.X509KeyPair(srvCertPEM, srvKeyPEM)
+		if err != nil {
+			t.Fatalf("tls.X509KeyPair: %v", err)
+		}
+	})
+}
+
 func startServer(t *testing.T) (*wrapper, func()) {
+	initTLS(t)
 	testdir := t.TempDir()
 	log.Record = t.Log
 	log.Level = 3
@@ -53,24 +127,28 @@ func startServer(t *testing.T) (*wrapper, func()) {
 	s.AllowCreateAccount = true
 	s.AutoApproveNewAccounts = true
 	s.EnableWebApp = true
-	l, err := net.Listen("tcp", "devtest:0")
+	l, err := net.Listen("tcp", "devtest.local:0")
 	if err != nil {
 		t.Fatalf("net.Listen failed: %v", err)
 	}
-	url := fmt.Sprintf("http://devtest:%d/", l.Addr().(*net.TCPAddr).Port)
+	port := l.Addr().(*net.TCPAddr).Port
+	l = tls.NewListener(l, &tls.Config{
+		Certificates: []tls.Certificate{tlsCert},
+		MinVersion:   tls.VersionTLS12,
+	})
+	url := fmt.Sprintf("https://devtest.local:%d/", port)
 	s.BaseURL = url
 	go s.RunWithListener(l)
 	t.Logf("Server running on %s", url)
-	wd := newWebDriver(t, url)
-	if err := wd.ResizeWindow("", 1000, 800); err != nil {
-		t.Fatalf("wd.ResizeWindow: %v", err)
-	}
-	if err := wd.Get(url + "?tests"); err != nil {
-		t.Fatalf("wd.Get: %v", err)
+	wd := newBrowser(t, url)
+	if err := chromedp.Do(wd.ctx,
+		chromedp.EmulateViewport(1000, 800),
+		chromedp.Navigate(url+"?tests"),
+	); err != nil {
+		t.Fatalf("chromedp initial navigate: %v", err)
 	}
 	return wd, func() {
 		log.Record = nil
-		wd.getLogs(slog.Browser)
 		wd.sleep(time.Second)
 		wd.Quit()
 		s.Shutdown()
@@ -92,37 +170,48 @@ func newClient(t *testing.T) *client.Client {
 	return c
 }
 
-func newWebDriver(t *testing.T, url string) *wrapper {
-	caps := selenium.Capabilities{"browserName": "chrome"}
-	caps.AddChrome(chrome.Capabilities{
-		Path: "/usr/bin/google-chrome",
-		Args: []string{
-			"--no-sandbox",
-			"--allow-insecure-localhost",
-			"--unsafely-treat-insecure-origin-as-secure=" + url,
-		},
-	})
-	caps.SetLogLevel(slog.Browser, slog.Info)
-	prefix := "http://chrome:4444/wd/hub"
-	wd, err := selenium.NewRemote(caps, prefix)
-	if err != nil {
-		t.Fatalf("selenium.NewRemote: %v", err)
+func newBrowser(t *testing.T, url string) *wrapper {
+	allocCtx, allocCancel := remote.NewAllocator(t.Context(), "ws://chrome:9222")
+	ctx, cancel := chromedp.NewContext(allocCtx,
+		chromedp.WithErrorf(t.Logf),
+		chromedp.WithLogf(t.Logf),
+	)
+	w := &wrapper{
+		t:           t,
+		ctx:         ctx,
+		cancel:      cancel,
+		allocCancel: allocCancel,
+		serverURL:   url,
 	}
-	return &wrapper{
-		WebDriver: wd,
-		t:         t,
-		serverURL: url,
-		urlPrefix: prefix,
-	}
+	console := chromedp.Console(ctx)
+	w.eventWG.Add(1)
+	go func() {
+		defer w.eventWG.Done()
+		for m, err := range console {
+			if err != nil {
+				return
+			}
+			msg := strings.Replace(m.Text, url, "", 1)
+			t.Logf("browser.%.4s: %s", strings.ToUpper(string(m.Type)), msg)
+		}
+	}()
+	return w
 }
 
 type wrapper struct {
-	selenium.WebDriver
-
 	t               *testing.T
+	ctx             context.Context
+	cancel          context.CancelFunc
+	allocCancel     context.CancelFunc
+	eventWG         sync.WaitGroup
 	serverURL       string
-	urlPrefix       string
-	authenticatorID string
+	authenticatorID webauthn.AuthenticatorID
+}
+
+func (w *wrapper) Quit() {
+	w.cancel()
+	w.allocCancel()
+	w.eventWG.Wait()
 }
 
 func (w *wrapper) ServerURL() string {
@@ -130,118 +219,74 @@ func (w *wrapper) ServerURL() string {
 }
 
 func (w *wrapper) enableWebauthn() error {
-	url := fmt.Sprintf("%s/session/%s/webauthn/authenticator", w.urlPrefix, w.SessionID())
-	data, err := json.Marshal(map[string]interface{}{
-		"protocol":            "ctap2",
-		"transport":           "internal",
-		"hasResidentKey":      true,
-		"hasUserVerification": true,
-		"isUserConsenting":    true,
-		"isUserVerified":      true,
+	if _, err := chromedp.Call(w.ctx, webauthn.Enable, webauthn.EnableParams{EnableUI: new(false)}); err != nil {
+		return err
+	}
+	res, err := chromedp.Call(w.ctx, webauthn.AddVirtualAuthenticator, webauthn.AddVirtualAuthenticatorParams{
+		Options: &webauthn.VirtualAuthenticatorOptions{
+			Protocol:                    webauthn.AuthenticatorProtocolCtap2,
+			Ctap2version:                webauthn.Ctap2versionCtap21,
+			Transport:                   webauthn.AuthenticatorTransportInternal,
+			HasResidentKey:              true,
+			HasUserVerification:         true,
+			AutomaticPresenceSimulation: true,
+			IsUserVerified:              true,
+		},
 	})
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequest("POST", url, bytes.NewReader(data))
-	if err != nil {
-		return err
-	}
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-	var response struct {
-		SessionID string `json:"sessionId"`
-		Status    int    `json:"status"`
-		Value     string `json:"value"`
-	}
-	if err := json.Unmarshal(body, &response); err != nil {
-		return err
-	}
-	w.authenticatorID = response.Value
+	w.authenticatorID = res.AuthenticatorID
 	log.Infof("Authenticator ID: %s", w.authenticatorID)
 	return nil
 }
 
 func (w *wrapper) disableWebauthn() error {
-	url := fmt.Sprintf("%s/session/%s/webauthn/authenticator/%s", w.urlPrefix, w.SessionID(), w.authenticatorID)
-	req, err := http.NewRequest("DELETE", url, nil)
-	if err != nil {
+	if _, err := chromedp.Call(w.ctx, webauthn.RemoveVirtualAuthenticator, webauthn.RemoveVirtualAuthenticatorParams{
+		AuthenticatorID: w.authenticatorID,
+	}); err != nil {
 		return err
 	}
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-	log.Infof("disableWebauthn: %s", string(body))
+	log.Infof("disableWebauthn: %s", w.authenticatorID)
 	return nil
 }
 
-func (w *wrapper) getLogs(logType slog.Type) {
-	messages, err := w.Log(logType)
+func (w *wrapper) currentURL() string {
+	u, err := chromedp.Run(w.ctx, chromedp.Location())
 	if err != nil {
-		w.t.Logf("getLogs: %v", err)
-		return
+		w.t.Fatalf("currentURL: %v", err)
 	}
-	url, err := w.CurrentURL()
-	if err != nil {
-		w.t.Logf("CurrentURL: %v", err)
-		return
-	}
-	for _, m := range messages {
-		msg := strings.Replace(m.Message, url, "", 1)
-		w.t.Logf("%s.%.4s: %s", logType, m.Level, msg)
+	return u
+}
+
+func (w *wrapper) navigate(u string) {
+	if err := chromedp.Do(w.ctx, chromedp.Navigate(u)); err != nil {
+		w.t.Fatalf("navigate(%q): %v", u, err)
 	}
 }
 
-func (w *wrapper) css(s string) selenium.WebElement {
-	e, err := w.FindElement(selenium.ByCSSSelector, s)
-	if err != nil {
-		w.t.Fatalf("%s: %v", s, err)
-	}
-	return e
-}
-
-func (w *wrapper) waitFor(sel string) selenium.WebElement {
+func (w *wrapper) waitFor(sel string) {
 	w.t.Logf("Waiting for %s", sel)
 	delay := time.Minute
 	for try := 0; try <= 5; try++ {
-		var e selenium.WebElement
-		if err := w.WaitWithTimeout(func(wd selenium.WebDriver) (bool, error) {
-			var err error
-			if e, err = wd.FindElement(selenium.ByCSSSelector, sel); err != nil {
-				return false, nil
-			}
-			return e.IsDisplayed()
-		}, delay); err != nil || e == nil {
+		ctx, cancel := context.WithTimeout(w.ctx, delay)
+		err := chromedp.Do(ctx, chromedp.WaitVisible(chromedp.CSS(sel)))
+		cancel()
+		if err != nil {
 			w.t.Logf("waitFor(%q): %v", sel, err)
 			w.sleep(time.Second)
 			delay = 10 * time.Second
 			continue
 		}
-		return e
+		return
 	}
 	w.t.Fatalf("waitFor(%q): failed too many times", sel)
-	return nil
 }
 
 func (w *wrapper) waitGone(sel string) {
-	if err := w.WaitWithTimeout(func(wd selenium.WebDriver) (bool, error) {
-		if _, err := wd.FindElement(selenium.ByCSSSelector, sel); err == nil {
-			return false, nil
-		}
-		return true, nil
-	}, 2*time.Minute); err != nil {
+	ctx, cancel := context.WithTimeout(w.ctx, 2*time.Minute)
+	defer cancel()
+	if err := chromedp.Do(ctx, chromedp.WaitNotPresent(chromedp.CSS(sel))); err != nil {
 		w.t.Fatalf("waitGone(%q): %v", sel, err)
 	}
 }
@@ -249,7 +294,11 @@ func (w *wrapper) waitGone(sel string) {
 func (w *wrapper) sendKeys(sel, keys string) {
 	w.sleep(250 * time.Millisecond)
 	for try := 0; try <= 5; try++ {
-		if err := w.waitFor(sel).SendKeys(keys); err != nil {
+		w.waitFor(sel)
+		ctx, cancel := context.WithTimeout(w.ctx, 10*time.Second)
+		err := chromedp.Do(ctx, chromedp.SendKeys(chromedp.CSS(sel), keys))
+		cancel()
+		if err != nil {
 			w.t.Logf("%s: %v", sel, err)
 			w.sleep(time.Second)
 			continue
@@ -259,28 +308,69 @@ func (w *wrapper) sendKeys(sel, keys string) {
 	w.t.Fatalf("%s: failed too many times", sel)
 }
 
+func (w *wrapper) waitUnobscured(sel string) error {
+	expr := fmt.Sprintf(`(function() {
+		const el = document.querySelector(%q);
+		if (!el) return false;
+		el.scrollIntoViewIfNeeded();
+		const r = el.getBoundingClientRect();
+		if (r.width === 0 || r.height === 0) return false;
+		const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+		return top !== null && (el === top || el.contains(top));
+	})()`, sel)
+	ctx, cancel := context.WithTimeout(w.ctx, 5*time.Second)
+	defer cancel()
+	ok, err := chromedp.Run(ctx, chromedp.Evaluate[bool](expr))
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return fmt.Errorf("element %q is obscured", sel)
+	}
+	return nil
+}
+
 func (w *wrapper) click(sel string) {
 	w.sleep(250 * time.Millisecond)
 	for try := 0; try <= 5; try++ {
-		if err := w.waitFor(sel).Click(); err != nil {
+		w.waitFor(sel)
+		if err := w.waitUnobscured(sel); err != nil {
+			w.t.Logf("%s: %v", sel, err)
+			w.sleep(time.Second)
+			continue
+		}
+		ctx, cancel := context.WithTimeout(w.ctx, 10*time.Second)
+		err := chromedp.Do(ctx, chromedp.Click(chromedp.CSS(sel)))
+		cancel()
+		if err != nil {
 			w.t.Logf("%s: %v", sel, err)
 			w.sleep(time.Second)
 			continue
 		}
 		return
 	}
-	w.t.Fatalf("%s: failed too many timesv", sel)
+	w.t.Fatalf("%s: failed too many times", sel)
 }
 
 func (w *wrapper) rightClick(sel string) {
 	w.sleep(250 * time.Millisecond)
 	for try := 0; try <= 5; try++ {
-		if err := w.waitFor(sel).MoveTo(0, 0); err != nil {
-			w.t.Logf("%s: %v", sel, err)
+		w.waitFor(sel)
+		if err := w.waitUnobscured(sel); err != nil {
+			w.t.Logf("rightClick(%s): %v", sel, err)
+			w.sleep(time.Second)
 			continue
 		}
-		if err := w.Click(selenium.RightButton); err != nil {
-			w.t.Logf("RightClick(%s): %v", sel, err)
+		ctx, cancel := context.WithTimeout(w.ctx, 10*time.Second)
+		_, err := chromedp.Run(ctx, chromedp.QueryAfter(chromedp.CSS(sel), func(ctx context.Context, t *chromedp.Target, nodes []*chromedp.Node) (chromedp.Void, error) {
+			if len(nodes) == 0 {
+				return chromedp.Void{}, fmt.Errorf("no nodes for %s", sel)
+			}
+			return chromedp.MouseClickNode(nodes[0], chromedp.ButtonRight)(ctx, t)
+		}, chromedp.NodeVisible))
+		cancel()
+		if err != nil {
+			w.t.Logf("rightClick(%s): %v", sel, err)
 			w.sleep(time.Second)
 			continue
 		}
@@ -291,8 +381,21 @@ func (w *wrapper) rightClick(sel string) {
 
 func (w *wrapper) clear(sel string) {
 	w.sleep(250 * time.Millisecond)
+	expr := fmt.Sprintf(`(function() {
+		const el = document.querySelector(%q);
+		if (!el) return false;
+		el.value = '';
+		el.dispatchEvent(new Event('input', {bubbles: true}));
+		el.dispatchEvent(new Event('change', {bubbles: true}));
+		el.dispatchEvent(new KeyboardEvent('keydown', {bubbles: true}));
+		return true;
+	})()`, sel)
 	for try := 0; try <= 5; try++ {
-		if err := w.waitFor(sel).Clear(); err != nil {
+		w.waitFor(sel)
+		ctx, cancel := context.WithTimeout(w.ctx, 10*time.Second)
+		ok, err := chromedp.Run(ctx, chromedp.Evaluate[bool](expr))
+		cancel()
+		if err != nil || !ok {
 			w.t.Logf("%s: %v", sel, err)
 			w.sleep(time.Second)
 			continue
@@ -302,53 +405,82 @@ func (w *wrapper) clear(sel string) {
 	w.t.Fatalf("%s: failed too many times", sel)
 }
 
+func (w *wrapper) text(sel string) string {
+	w.waitFor(sel)
+	ctx, cancel := context.WithTimeout(w.ctx, 10*time.Second)
+	defer cancel()
+	v, err := chromedp.Run(ctx, chromedp.Text(chromedp.CSS(sel), chromedp.NodeVisible))
+	if err != nil {
+		w.t.Fatalf("text(%q): %v", sel, err)
+	}
+	return v
+}
+
+func (w *wrapper) waitNonEmptyText(sel string) string {
+	w.waitFor(sel)
+	deadline := time.Now().Add(time.Minute)
+	for time.Now().Before(deadline) {
+		ctx, cancel := context.WithTimeout(w.ctx, 5*time.Second)
+		v, err := chromedp.Run(ctx, chromedp.Text(chromedp.CSS(sel), chromedp.NodeVisible))
+		cancel()
+		if err == nil && v != "" {
+			return v
+		}
+		w.sleep(100 * time.Millisecond)
+	}
+	w.t.Fatalf("waitNonEmptyText(%q): timed out", sel)
+	return ""
+}
+
 func (w *wrapper) waitPopupMessage(messages ...string) {
 	want := make(map[string]bool)
 	for _, m := range messages {
 		want[m] = true
 	}
-	var elems []selenium.WebElement
-	if err := w.Wait(func(wd selenium.WebDriver) (bool, error) {
-		var err error
-		if elems, err = wd.FindElements(selenium.ByCSSSelector, ".popup-message"); err != nil || len(elems) != len(want) {
-			return false, nil
-		}
-		for _, e := range elems {
-			if t, err := e.Text(); err != nil || !want[t] {
-				return false, nil
+	deadline := time.Now().Add(time.Minute)
+	matched := false
+	for time.Now().Before(deadline) {
+		ctx, cancel := context.WithTimeout(w.ctx, 5*time.Second)
+		got, err := chromedp.Run(ctx, chromedp.Evaluate[[]string](`Array.from(document.querySelectorAll('.popup-message')).map(e => e.innerText.trim())`))
+		cancel()
+		if err == nil && len(got) == len(want) {
+			allMatch := true
+			for _, t := range got {
+				if !want[t] {
+					allMatch = false
+					break
+				}
+			}
+			if allMatch {
+				matched = true
+				break
 			}
 		}
-		return true, nil
-	}); err != nil || len(elems) == 0 {
-		w.t.Fatalf("waitPopupMessage(%v): %v", messages, err)
+		w.sleep(100 * time.Millisecond)
+	}
+	if !matched {
+		w.t.Fatalf("waitPopupMessage(%v): timed out", messages)
 	}
 	w.waitGone(".popup-message")
 }
 
-func (w *wrapper) waitText(sel, value string) selenium.WebElement {
-	var elem selenium.WebElement
-	if err := w.Wait(func(wd selenium.WebDriver) (bool, error) {
-		elems, err := wd.FindElements(selenium.ByCSSSelector, sel)
-		if err != nil {
-			return false, nil
+func (w *wrapper) waitText(sel, value string) {
+	deadline := time.Now().Add(time.Minute)
+	expr := fmt.Sprintf(`Array.from(document.querySelectorAll(%q)).map(e => e.innerText.trim())`, sel)
+	for time.Now().Before(deadline) {
+		ctx, cancel := context.WithTimeout(w.ctx, 5*time.Second)
+		got, err := chromedp.Run(ctx, chromedp.Evaluate[[]string](expr))
+		cancel()
+		if err == nil && slices.Contains(got, value) {
+			return
 		}
-		for _, e := range elems {
-			if t, err := e.Text(); err == nil || t == value {
-				elem = e
-				return true, nil
-			}
-		}
-		return false, nil
-	}); err != nil || elem == nil {
-		w.t.Fatalf("lwaitText(%q): %v", value, err)
+		w.sleep(100 * time.Millisecond)
 	}
-	return elem
+	w.t.Fatalf("waitText(%q, %q): timed out", sel, value)
 }
 
 func (w *wrapper) sleep(d time.Duration) {
-	w.WaitWithTimeout(func(wd selenium.WebDriver) (bool, error) {
-		return false, nil
-	}, d)
+	time.Sleep(d)
 }
 
 func (w *wrapper) setPassphrase(pp string) {

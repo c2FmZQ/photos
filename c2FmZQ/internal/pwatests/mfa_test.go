@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU General Public License along with
 // c2FmZQ. If not, see <https://www.gnu.org/licenses/>.
 
-//go:build selenium
-// +build selenium
+//go:build chromedp
+// +build chromedp
 
 package pwa_test
 
@@ -26,7 +26,6 @@ import (
 	"time"
 
 	"github.com/pquerna/otp/totp"
-	"github.com/tebeka/selenium"
 )
 
 func TestMFAWithSecurityKey(t *testing.T) {
@@ -77,15 +76,7 @@ func TestMFAWithSecurityKey(t *testing.T) {
 	wd.sendKeys(".prompt-input", "foobar\n")
 	wd.click(".prompt-confirm-button")
 
-	var backupPhrase string
-	wd.Wait(func(selenium.WebDriver) (bool, error) {
-		v, err := wd.css("#backup-phrase-value").Text()
-		if err != nil || v == "" {
-			return false, nil
-		}
-		backupPhrase = v
-		return true, nil
-	})
+	backupPhrase := wd.waitNonEmptyText("#backup-phrase-value")
 	wd.click(".popup-close")
 
 	wd.logout()
@@ -169,15 +160,7 @@ func TestMFAWithPasskey(t *testing.T) {
 	wd.sendKeys(".prompt-input", "foobar\n")
 	wd.click(".prompt-confirm-button")
 
-	var backupPhrase string
-	wd.Wait(func(selenium.WebDriver) (bool, error) {
-		v, err := wd.css("#backup-phrase-value").Text()
-		if err != nil || v == "" {
-			return false, nil
-		}
-		backupPhrase = v
-		return true, nil
-	})
+	backupPhrase := wd.waitNonEmptyText("#backup-phrase-value")
 	wd.click(".popup-close")
 
 	wd.logout()
@@ -225,9 +208,9 @@ func TestMFAWithOTP(t *testing.T) {
 	wd.click("#account-menu-profile")
 	wd.click("#profile-form-enable-mfa")
 	wd.click("#profile-form-enable-otp")
-	otpKey, err := wd.waitFor("#profile-form-otp-key").Text()
-	if err != nil || !strings.HasPrefix(otpKey, "KEY: ") {
-		t.Fatalf("Unexpected otpKey: (%q, %v)", otpKey, err)
+	otpKey := wd.waitNonEmptyText("#profile-form-otp-key")
+	if !strings.HasPrefix(otpKey, "KEY: ") {
+		t.Fatalf("Unexpected otpKey: %q", otpKey)
 	}
 	otpKey = otpKey[5:]
 	code := func() string {

@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU General Public License along with
 // c2FmZQ. If not, see <https://www.gnu.org/licenses/>.
 
-//go:build selenium
-// +build selenium
+//go:build chromedp
+// +build chromedp
 
 package pwa_test
 
@@ -140,7 +140,7 @@ func TestSharing(t *testing.T) {
 	t.Log("Change the name and the permissions")
 	wd.click("#collections>div:nth-child(2)")
 	wd.click("#settings-button")
-	wd.waitFor("#collection-properties-name").Clear()
+	wd.clear("#collection-properties-name")
 	wd.sendKeys("#collection-properties-name", "MY PIX")
 	wd.click("#collection-properties-perm-add")
 	wd.click("#collection-properties-perm-share")

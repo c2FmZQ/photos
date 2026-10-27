@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU General Public License along with
 // c2FmZQ. If not, see <https://www.gnu.org/licenses/>.
 
-//go:build selenium
-// +build selenium
+//go:build chromedp
+// +build chromedp
 
 package pwa_test
 
@@ -30,10 +30,7 @@ func TestServiceWorkerTests(t *testing.T) {
 	wd, stop := startServer(t)
 	defer stop()
 
-	u, err := wd.CurrentURL()
-	if err != nil {
-		t.Fatalf("CurrentURL: %v", err)
-	}
+	u := wd.currentURL()
 	url, err := url.Parse(u)
 	if err != nil {
 		t.Fatalf("ParseURL: %v", err)
@@ -41,14 +38,9 @@ func TestServiceWorkerTests(t *testing.T) {
 	url.Path = "sw-tests.html"
 	url.RawQuery = ""
 
-	if err := wd.Get(url.String()); err != nil {
-		t.Fatalf("sw-tests.html: %v", err)
-	}
+	wd.navigate(url.String())
 
-	js, err := wd.waitFor("#results").Text()
-	if err != nil {
-		t.Fatalf("#results: %v", err)
-	}
+	js := wd.waitNonEmptyText("#results")
 	var results []struct {
 		Test   string `json:"test"`
 		Result string `json:"result"`
