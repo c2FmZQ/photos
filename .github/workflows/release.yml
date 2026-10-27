@@ -18,7 +18,7 @@ jobs:
       with:
         go-version: ${{steps.goversion.outputs.goversion}}
     - name: Build
-      run: cd c2FmZQ && go build ./...
+      run: cd c2FmZQ && go generate ./... && go build ./...
     - name: Run go vet
       run: cd c2FmZQ && go vet ./...
     - name: Run go test
@@ -45,7 +45,7 @@ jobs:
       with:
         go-version: ${{steps.goversion.outputs.goversion}}
     - name: Build
-      run: cd c2FmZQ && go build ./...
+      run: cd c2FmZQ && go generate ./... && go build ./...
     - name: Run PWA tests
       run: ./c2FmZQ/run-pwa-tests.sh
 
@@ -72,6 +72,7 @@ jobs:
       run: |
         export CGO_ENABLED=0
         cd c2FmZQ
+        go generate ./...
         for arch in amd64 arm arm64; do
           GOARCH="${arch}" go build -trimpath -ldflags="-s -w" -o "c2fmzq-server-${arch}" ./c2FmZQ-server
           sha256sum "c2fmzq-server-${arch}" | cut -d " " -f1 > "c2fmzq-server-${arch}.sha256"

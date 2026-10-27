@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 TTBT Enterprises LLC
+ * Copyright 2021-2026 TTBT Enterprises LLC
  *
  * This file is part of c2FmZQ (https://c2FmZQ.org/).
  *
@@ -16,10 +16,7 @@
  * c2FmZQ. If not, see <https://www.gnu.org/licenses/>.
  */
 
-/* jshint -W083 */
-'use strict';
-
-let Lang = {
+export const Lang = {
   supported: {
     'ar': 'العربية',
     'bn': 'বাংলা',
@@ -90,7 +87,7 @@ let Lang = {
       return null;
     };
     let preferredLang = findSupportedLang(navigator.languages) || 'en';
-    if (window.localStorage) {
+    if (typeof window !== 'undefined' && window.localStorage) {
       const saved = window.localStorage.getItem('lang');
       if (saved && Lang.supported[saved]) {
         preferredLang = saved;
@@ -120,7 +117,6 @@ let Lang = {
       document.documentElement.lang = lang;
       const baseLang = lang.split('-')[0];
       document.documentElement.dir = Lang.dict[lang].direction || (Lang.dict[baseLang] && Lang.dict[baseLang].direction) || 'ltr';
-
     }
   },
 
@@ -178,8 +174,7 @@ let Lang = {
   dict: {},
 };
 
-if (typeof window !== 'undefined') {
-  window.Lang = Lang;
-} else {
-  self.Lang = Lang;
-}
+export const _T = Lang.text;
+
+globalThis.Lang = Lang;
+globalThis._T = Lang.text;

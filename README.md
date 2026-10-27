@@ -73,6 +73,7 @@ For users who prefer to manage TLS manually or use other deployment methods, the
 
 ```bash
 cd c2FmZQ/c2FmZQ-server
+go generate ../...
 go build
 ./c2FmZQ-server help
 ```
@@ -109,6 +110,7 @@ GLOBAL OPTIONS:
 
 ```bash
 cd c2FmZQ/c2FmZQ-server
+go generate ../...
 GOOS=windows GOARCH=amd64 go build -o c2FmZQ-server.exe
 GOOS=linux GOARCH=arm go build -o c2FmZQ-server-arm
 GOOS=darwin GOARCH=arm64 go build -o c2FmZQ-server-darwin
@@ -125,6 +127,7 @@ For DEMO or testing purpose, the server can be launched on a github codespace.
 Create a [codespace](https://github.com/codespaces) for the `c2FmZQ/c2FmZQ` repository, open the terminal, and run:
 ```
 cd c2FmZQ
+go generate ./...
 go run ./c2FmZQ-server --passphrase=test
 ```
 Select `Open in Browser` to open the PWA, or connect the android app to the same URL.

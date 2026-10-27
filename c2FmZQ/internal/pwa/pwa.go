@@ -1,5 +1,5 @@
 //
-// Copyright 2021-2022 TTBT Enterprises LLC
+// Copyright 2021-2026 TTBT Enterprises LLC
 //
 // This file is part of c2FmZQ (https://c2FmZQ.org/).
 //
@@ -19,5 +19,7 @@ package pwa
 
 import "embed"
 
-//go:embed *.html *.css *.js *.png *.webmanifest thirdparty/* lang/* icons/*
+//go:generate ./build.sh
+
+//go:embed *.html *.css *.js *.mjs *.wasm *.png *.webmanifest thirdparty/* lang/* icons/*
 var FS embed.FS

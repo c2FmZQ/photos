@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 TTBT Enterprises LLC
+ * Copyright 2021-2026 TTBT Enterprises LLC
  *
  * This file is part of c2FmZQ (https://c2FmZQ.org/).
  *
@@ -18,13 +18,13 @@
 
 /* jshint -W083 */
 /* jshint -W126 */
-'use strict';
 
-let _T;
+import { SAMEORIGIN } from './version.mjs';
+import { Lang, _T } from './lang.mjs';
 
 const SHOW_ITEMS_INCREMENT = 25;
 
-class UI {
+export class UI {
   #main;
   constructor(main) {
     this.#main = main;
@@ -43,8 +43,6 @@ class UI {
       this.skippedPassphrase_ = true;
     }
     this.enableNotifications = localStorage.getItem('enableNotifications') === 'yes';
-
-    _T = Lang.text;
 
     const langSelect = document.querySelector('#language');
     langSelect.setAttribute('aria-label', _T('language'));
@@ -425,10 +423,13 @@ class UI {
     }
 
     this.#main.sendRPC('isLoggedIn')
-    .then(({account, isAdmin, needKey}) => {
+    .then(({account, isAdmin, needKey, server}) => {
       if (account !== '') {
         this.accountEmail_ = account;
         this.isAdmin_ = isAdmin;
+        if (!SAMEORIGIN && server) {
+          this.serverUrl_ = server;
+        }
         this.showLoggedIn_();
         this.#main.setServerFingerPrint('#server-fingerprint');
         if (needKey) {
@@ -1821,7 +1822,11 @@ class UI {
     };
     body.classList.add('noscroll');
     body.appendChild(popup);
-    popup.style.width = '' + popup.offsetWidth + 'px';
+    setTimeout(() => {
+      if (popup.style.animation) {
+        popup.style.width = '' + popup.offsetWidth + 'px';
+      }
+    });
     switch (params.slide) {
       case 'left':
         popup.style.animation = '0.5s linear slideInLeft';
@@ -3114,11 +3119,11 @@ class UI {
   }
 
   async showBackupPhrase_() {
+    let keyBackupEnabled = await this.#main.sendRPC('keyBackupEnabled');
     const {EL, content, close} = this.commonPopup_({
       title: _T('key-backup'),
     });
     content.id = 'backup-phrase-content';
-    let keyBackupEnabled = await this.#main.sendRPC('keyBackupEnabled');
 
     const warning = UI.create('div', {id:'backup-phrase-warning', className:'warning', html:_T('key-backup-warning'), parent:content});
     const phrase = UI.create('div', {id:'backup-phrase-value', parent:content});
