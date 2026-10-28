@@ -94,12 +94,61 @@ export class Main {
       this.serverHashValue_ = this.base64DecodeToBytes(sh);
     }
     if (window.localStorage.getItem('resetPassphrase') === 'yes') {
-      window.sessionStorage.removeItem('storeKey');
-    } else {
-      const savedKey = window.sessionStorage.getItem('storeKey');
-      if (savedKey) {
-        this.#storeKey = () => savedKey;
-      }
+      window.sessionStorage.removeItem('storeKeyId');
+    }
+    // The store key is only ever kept in memory. To survive a page reload,
+    // it is handed to the service worker right before the page unloads, and
+    // retrieved from it when the new page starts. See #saveStoreKey and
+    // #restoreStoreKey.
+    window.addEventListener('pagehide', () => this.#saveStoreKey());
+  }
+
+  // #saveStoreKey hands the store key to the service worker so that it can
+  // be retrieved by the page that is about to replace this one. It is
+  // indexed by a random one-time id saved in sessionStorage. The service
+  // worker drops the key when it is retrieved, when it expires, or when the
+  // service worker itself is terminated by the browser.
+  #saveStoreKey() {
+    const key = this.#storeKey();
+    const ctrl = navigator.serviceWorker.controller;
+    if (!key || !ctrl) {
+      return;
+    }
+    const bytes = window.crypto.getRandomValues(new Uint8Array(16));
+    const id = this.base64RawUrlEncode(bytes);
+    try {
+      window.sessionStorage.setItem('storeKeyId', id);
+    } catch (err) {
+      console.error('saveStoreKey', err);
+      return;
+    }
+    ctrl.postMessage({type: 'saveKey', id: id, key: key});
+  }
+
+  // #restoreStoreKey retrieves the store key saved by #saveStoreKey, if any.
+  async #restoreStoreKey() {
+    let id;
+    try {
+      id = window.sessionStorage.getItem('storeKeyId');
+      window.sessionStorage.removeItem('storeKeyId');
+    } catch (err) {
+      return;
+    }
+    const ctrl = navigator.serviceWorker.controller;
+    if (!id || !ctrl) {
+      return;
+    }
+    const key = await new Promise(resolve => {
+      const timer = setTimeout(() => resolve(null), 5000);
+      const mc = new MessageChannel();
+      mc.port1.onmessage = event => {
+        clearTimeout(timer);
+        resolve(event.data?.key || null);
+      };
+      ctrl.postMessage({type: 'getKey', id: id}, [mc.port2]);
+    });
+    if (key) {
+      this.#storeKey = () => key;
     }
   }
 
@@ -125,6 +174,9 @@ export class Main {
       getMFA: mfa => this.getMFA(mfa),
     });
 
+    if (this.#storeKey() === null) {
+      await this.#restoreStoreKey();
+    }
     if (this.#storeKey() !== null) {
       await this.unlock_();
     } else {
@@ -181,12 +233,10 @@ export class Main {
     });
     if (res.err) {
       this.#storeKey = () => null;
-      window.sessionStorage.removeItem('storeKey');
       this.#ui.wrongPassphrase(res.err);
     }
     if (res.ok && res.storeKey) {
       this.#storeKey = () => res.storeKey;
-      window.sessionStorage.setItem('storeKey', res.storeKey);
       document.getElementById('version').textContent = VERSION + (DEVEL ? ' DEVEL' : '');
       window.localStorage.removeItem('resetPassphrase');
       setTimeout(() => this.#ui.startUI());
@@ -200,7 +250,7 @@ export class Main {
   async lock() {
     if (!window.localStorage.getItem('_')) {
       this.#storeKey = () => null;
-      window.sessionStorage.removeItem('storeKey');
+      window.sessionStorage.removeItem('storeKeyId');
       this.#wasm.lock();
     }
     setTimeout(() => {
@@ -209,7 +259,8 @@ export class Main {
   }
 
   resetPassphrase() {
-    window.sessionStorage.removeItem('storeKey');
+    this.#storeKey = () => null;
+    window.sessionStorage.removeItem('storeKeyId');
     window.localStorage.setItem('resetPassphrase', 'yes');
   }
 

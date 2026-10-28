@@ -4,7 +4,7 @@
 
 The `secret key` is the root of trust of a user. It is used to encrypt file keys, album keys, and some request parameters. It can also be used to recover the user's account and force a new password. It is very important to protect it.
 
-Within the PWA, the `secret key` is saved in the encrypted store, which is protected by the `store key`. When the app is _locked_, the `store key` is not present into the PWA anywhere. When the app is _unlocked_, the `lock passphrase` is used to derive the `store key`. Both the frontend and the service worker keep a reference to the `store key` as long as the app is _unlocked_. There is no API to retrieve the `store key` from the frontend or the service worker, but forensics tools could get it. Knowledge of the `lock passphrase` or the `store key`, combined with the `salt` used to derive the `store key` are sufficient to discover the user's `secret key`.
+Within the PWA, the `secret key` is saved in the encrypted store, which is protected by the `store key`. When the app is _locked_, the `store key` is not present into the PWA anywhere. When the app is _unlocked_, the `lock passphrase` is used to derive the `store key`. The frontend (and the Go/WASM core running in it) keeps the `store key` in memory only, as long as the app is _unlocked_. It is never written to `localStorage`, `sessionStorage`, or IndexedDB. Across a page reload, it is handed to the service worker for a few seconds (see [Reload frontend](#reload-frontend)). There is no API to retrieve the `store key` from the frontend or the service worker, but forensics tools could get it. Knowledge of the `lock passphrase` or the `store key`, combined with the `salt` used to derive the `store key` are sufficient to discover the user's `secret key`.
 
 The user's `password` can also be used to retrieve the `secret key` from the `key bundle` that's stored on the server. The `key bundle` (usually) contains an _encrypted_ version of the `secret key`, and the user's `password` can be used to decrypt it. So, knowledge of the user's `password` is sufficient to discover the user's `secret key`.
 
@@ -23,7 +23,7 @@ flowchart TD
   lp[/Lock passphrase/]
   subgraph Browser
     subgraph App
-      fe(Frontend)
+      fe(Frontend<br>+ Go/WASM core)
       sw(Service Worker)
       pp[/Store key/]
     end
@@ -40,27 +40,27 @@ flowchart TD
   db -- with store key --> sk
   up --> login[[Login]] --> be
   login --> fe
-  sw --> be
+  fe --> be
   up --> gbp[[Get Backup Phrase]] --> fe
   be --> kb
   kb -- with user password --> sk
   lp --> unlock[[Unlock]] --> fe
   lp ..->|PBKDF2| pp
   fe ..-> pp
-  sw ..-> pp
-  sw --> db
-  fe --> sw
+  sw ..->|reload only| pp
+  fe --> db
+  fe -- stream/ requests --> sw
 ```
 
 ## Encrypted store sequence diagrams
 
-The PWA's service worker uses an an encrypted object store in IndexedDB. The object keys are plaintext, but the values are encrypted with `crypto_secretbox` using a 256-bit key derived from a passphrase provided by the user, or a random key if the user chooses the _skip passphrase_ option.
+The PWA uses an encrypted object store in IndexedDB. The object keys are plaintext, but the values are encrypted with `crypto_secretbox` using a 256-bit key derived from a passphrase provided by the user, or a random key if the user chooses the _skip passphrase_ option.
 
-Under normal operations, both the frontend and the service worker keep a copy of the hashed passphrase. This is required because:
-1. The service worker is started and stopped by the browser as needed. When it starts it gets the hashed passphrase from the frontend.
-2. The frontend also reloads when switching between apps, or when the user triggers a page reload. When that happens, the frontend attempt to fetch the hashed passphrase from the service worker, before prompting the user.
+The store is opened and used by the Go/WASM core, which runs in the frontend (the page). The frontend keeps the `store key` in memory only. The service worker does not use the store. It serves the app's static files, and forwards `stream/` media requests to the frontend for decryption.
 
-When neither the frontend nor the service worker is running, or when the store was manually locked, the user has to enter the passphrase.
+Because the frontend reloads when switching between apps, or when the user triggers a page reload, the `store key` would normally be lost on every reload. To avoid prompting the user each time, the frontend hands the `store key` to the service worker right before it unloads, indexed by a random one-time `id` that is saved in `sessionStorage`. The new page retrieves the key with that `id`. The service worker keeps the key in memory only, drops it as soon as it is retrieved, or after 60 seconds, or when the browser terminates the service worker. The key itself is never written to web storage.
+
+When the service worker is not running when the page comes back (e.g. the browser was restarted), or when the store was manually locked, the user has to enter the passphrase.
 
 This section describes the sequence of events for setting a passphrase, locking, unlocking, etc.
 
@@ -68,36 +68,38 @@ Note that the server is not involved at all.
 
 ### Set passphrase / unlock
 
-Sequence diagram of setting a passphrase or unlocking the store. This sequence also happens when the frontend is reloaded while the service worker is not running.
+Sequence diagram of setting a passphrase or unlocking the store. This sequence also happens when the frontend is reloaded and the `store key` could not be retrieved from the service worker.
 
 ```mermaid
 sequenceDiagram
   actor A as User
   participant FE as Frontend<br>(browser)
-  participant SW as Service Worker<br>(browser)
-  participant BE as Server<br>(cloud)
-  
+  participant W as Go/WASM core<br>(in frontend)
+  participant DB as IndexedDB<br>(browser)
+
   A->>FE: passphrase
   Note over FE: salt = rand(16)<br>pp = PBKDF2(salt, passphrase)
-  FE->>SW: hello(name=salt, key=pp)
-  Note over SW: key = SHA256(name + key)<br>v = get('__sentinel')
+  FE->>W: unlock(name=salt, key=pp)
+  Note over W: key = SHA256(name + key)
+  W->>DB: get('__sentinel')
+  DB->>W: v
   alt v is not set
     rect cyan
-    Note over FE,SW: New passphrase<br>Store is unlocked
-    Note over SW: set('__sentinel', encrypt(key, nonce))
-    SW->>FE: hello(key=pp)
-    Note over FE: Start UI
+    Note over FE,DB: New passphrase<br>Store is unlocked
+    W->>DB: set('__sentinel', encrypt(key, nonce))
+    W->>FE: ok
+    Note over FE: Keep pp in memory<br>Start UI
     end
   else decrypt(key, v) OK
     rect cyan
-    Note over FE,SW: Unlock with correct passphrase<br>Store is unlocked
-    SW->>FE: hello(key=pp)
-    Note over FE: Start UI
+    Note over FE,DB: Unlock with correct passphrase<br>Store is unlocked
+    W->>FE: ok
+    Note over FE: Keep pp in memory<br>Start UI
     end
   else decrypt(key, v) FAIL
     rect cyan
-    Note over FE,SW: Unlock failed<br>Store is locked
-    SW->>FE: hello(err=Wrong passphrase)
+    Note over FE,DB: Unlock failed<br>Store is locked
+    W->>FE: err=Wrong passphrase
     end
     FE-->>A: Prompt for passphrase
   end
@@ -105,58 +107,34 @@ sequenceDiagram
 
 ### Reload frontend
 
-Sequence diagram of reloading the frontend while the service worker is running.
+Sequence diagram of reloading the frontend while the store is unlocked.
 
 ```mermaid
 sequenceDiagram
   actor A as User
   participant FE as Frontend<br>(browser)
   participant SW as Service Worker<br>(browser)
-  participant BE as Server<br>(cloud)
-  
+
   A-->>FE: reload
-  FE->>SW: hello ()
-  alt
+  rect cyan
+  Note over FE: pagehide<br>id = rand(16)<br>sessionStorage.storeKeyId = id
+  FE->>SW: saveKey(id, pp)
+  Note over SW: savedKeys[id] = pp<br>(expires after 60s)
+  end
+  Note over FE: New page starts<br>id = sessionStorage.storeKeyId<br>delete sessionStorage.storeKeyId
+  FE->>SW: getKey(id) on a private MessageChannel
+  alt SW has the key
     rect cyan
-    Note over FE,SW: Store is locked
-    SW->>FE: hello()
+    Note over SW: delete savedKeys[id]
+    SW->>FE: pp
+    Note over FE: unlock(name=salt, key=pp)<br>Start UI
+    end
+  else SW was terminated, or key expired
+    rect cyan
+    SW->>FE: null
     end
     FE-->>A: Prompt for passphrase
-  else
-    rect cyan
-    Note over FE,SW: Store is unlocked
-    SW->>FE: hello(key=pp)
-    Note over FE: Start UI
-    end
-  end  
-```
-
-### Restart service worker
-
-Sequence diagram of restart the service worker while the frontend is running.
-
-```mermaid
-sequenceDiagram
-  actor A as User
-  participant FE as Frontend<br>(browser)
-  participant SW as Service Worker<br>(browser)
-  participant BE as Server<br>(cloud)
-  
-  Note over SW: start
-  SW->>FE: hello()
-  alt
-    rect cyan
-    Note over FE,SW: Store is locked
-    end
-    FE-->>A: Prompt for passphrase
-  else
-    rect cyan
-    Note over FE,SW: Store is unlocked
-    FE->>SW: hello(name=salt, key=pp)
-    SW->>FE: hello(key=pp)
-    Note over FE: Start UI<br>(if needed)
-    end
-  end  
+  end
 ```
 
 ### Lock
@@ -167,15 +145,14 @@ Sequence diagram for locking the store.
 sequenceDiagram
   actor A as User
   participant FE as Frontend<br>(browser)
-  participant SW as Service Worker<br>(browser)
-  participant BE as Server<br>(cloud)
+  participant W as Go/WASM core<br>(in frontend)
 
   A-->>FE: lock
-  Note over FE: Delete store key
-  FE->>SW: lock
-  Note over SW: Delete store key<br>Reset app
+  Note over FE: Delete store key<br>Delete sessionStorage.storeKeyId
+  FE->>W: lock
+  Note over W: Delete store key<br>Reset app
+  Note over FE: reload
   FE-->>A: Prompt for passphrase
-  
 ```
 
 ## Account lifecycle

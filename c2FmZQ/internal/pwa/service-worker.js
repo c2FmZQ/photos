@@ -74,6 +74,36 @@ function makeResponse(data) {
 // post back a response.
 const appStreams = new Map();
 
+// Store keys handed over by a page that is about to unload, keyed by a random
+// one-time id, so that the page that replaces it can pick them up without
+// prompting for the passphrase. A key is kept in memory only, and is dropped
+// when it is retrieved, when it expires, or when the service worker is
+// terminated by the browser.
+const savedKeys = new Map();
+const SAVED_KEY_TTL_MS = 60000;
+
+function saveKey(id, key) {
+  if (typeof id !== 'string' || typeof key !== 'string' || !id || !key) {
+    return;
+  }
+  const old = savedKeys.get(id);
+  if (old) {
+    clearTimeout(old.timer);
+  }
+  const timer = setTimeout(() => savedKeys.delete(id), SAVED_KEY_TTL_MS);
+  savedKeys.set(id, {key, timer});
+}
+
+function takeKey(id) {
+  const s = savedKeys.get(id);
+  if (!s) {
+    return null;
+  }
+  savedKeys.delete(id);
+  clearTimeout(s.timer);
+  return s.key;
+}
+
 function randomStreamId() {
   const bytes = new Uint8Array(16);
   self.crypto.getRandomValues(bytes);
@@ -108,6 +138,22 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('message', event => {
+  switch (event.data?.type) {
+    case 'saveKey':
+      saveKey(event.data.id, event.data.key);
+      return;
+    case 'getKey': {
+      // The key is only ever sent back on the private port provided by the
+      // requester.
+      const port = event.ports?.[0];
+      if (port) {
+        port.postMessage({key: takeKey(event.data.id)});
+      }
+      return;
+    }
+    default:
+      break;
+  }
   const id = event.data?.streamId;
   if (!id) return;
   const s = appStreams.get(id);
