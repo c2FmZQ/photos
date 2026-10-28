@@ -1534,8 +1534,15 @@ export class UI {
     EL.add(menu, 'contextmenu', event => {
       event.preventDefault();
     });
-    const point = UI.create('img', {parent:menu});
-    point.style.position = 'absolute';
+    const point = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    point.setAttribute('class', 'context-menu-point');
+    point.setAttribute('width', '24');
+    point.setAttribute('height', '24');
+    point.setAttribute('viewBox', '0 0 24 24');
+    point.setAttribute('aria-hidden', 'true');
+    const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+    point.appendChild(polyline);
+    menu.appendChild(point);
 
     let closeMenu;
     const handleEscape = e => {
@@ -1627,19 +1634,19 @@ export class UI {
       y += 10;
     }
     if (up && !left) {
-      point.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABmJLR0QA4ADgAODYf054AAAAg0lEQVRIx7XVQRKAIAxD0eT+h647HAeQpjSs9X1GxgJ4V9CJRwToxAFYAgN3BD54d2DCOwNLvCuwxTsCv/ht4IjfBFJ4NZDGKwEJVwMyrgRKeDZQxjOB+s7JY0A/UHLaPK9+IvL4RSjPlsUulTNYj1wR3T38XnNk10gZL4bpnhh4wLQeewpX1wE0L8gAAAAASUVORK5CYII=';
+      polyline.setAttribute('points', '24,0 0,24 24,16');
       point.style.left = '-24px';
       point.style.top = (menu.offsetHeight-26) + 'px';
     } else if (up && left) {
-      point.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABmJLR0QA4ADgAODYf054AAAAj0lEQVRIx7XSSw6AIAwE0Onc/851I8YgYL9dKYy+pgAAisaiqqITIQB0IhwPXQjfLx0I54VqhKvFSoS7jSqEp80KhH+BLEJLKIPQGowi9IQjCL0deRFG5upBGL0dVkRG6P7AXSIy/rMFnqam7kqQnayLcYQQsY7cgq0QiZzvCZsRQa6Wo3wjWeAIApBq4INdkLZW6dJ0VgoAAAAASUVORK5CYII=';
+      polyline.setAttribute('points', '0,0 24,24 0,16');
       point.style.left = (menu.offsetWidth-2) + 'px';
       point.style.top = (menu.offsetHeight-26) + 'px';
     } else if (!up && left) {
-      point.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABmJLR0QA4ADgAODYf054AAAAh0lEQVRIx7XWMRLAIAhE0d1M7n9l0kQnJkoAgZLifewk6kYAgBXoY8hMUERulf147qANHE8eXWagK1wLTJ+uzQx/L8QDWvC2lAhqwQHgjMIWHACOSjwcsOKhgAd3B7y4KxDBzYEobgrs4L+BXVwNZODLQBY+DWTin0A2PgQq8B6owlc/gdS5AJl7HmCcZQWCAAAAAElFTkSuQmCC';
+      polyline.setAttribute('points', '0,8 24,0 0,24');
       point.style.left = (menu.offsetWidth-2) + 'px';
       point.style.top = '-2px';
     } else {
-      point.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABmJLR0QA4ADgAODYf054AAAAlElEQVRIx7XV3QqAIAwF4LP3f+h1kQTTpvs5ChHE6nOYRwDQcV0ZMu7qPKcBAKCqryMiYIHzix9iiiwoHcBFqphXsEUc7Pd7uxmEkFN3pxbTyIxFFqyMZP6IeieJ2hKS3UD5hS90nUKqERBGOqEW24zNsDwijFjeZxcp9l2EdrC4UU8+IReEDSzIDcAev7g3WikcRh7lLVfXPzJ76wAAAABJRU5ErkJggg==';
+      polyline.setAttribute('points', '24,8 0,0 24,24');
       point.style.left = '-24px';
       point.style.top = '-2px';
     }
