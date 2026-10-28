@@ -171,6 +171,10 @@ func (c *Client) notifyUploadProgress() bool {
 	c.uploadMu.Lock()
 	batches := append([]*uploadBatch{}, c.uploadBatches...)
 	c.uploadMu.Unlock()
+	return c.reportUploadProgress(batches)
+}
+
+func (c *Client) reportUploadProgress(batches []*uploadBatch) bool {
 	if len(batches) == 0 {
 		return true
 	}
@@ -229,10 +233,22 @@ func (c *Client) runUploadBatches() {
 				break
 			}
 		}
-		c.uploadMu.Unlock()
 		if nextBatch == nil {
-			break
+			// Clear the queue in the same critical section as the
+			// "nothing left to do" check. Otherwise, an Upload()
+			// call that appends a batch in between would see a
+			// non-empty queue, not start a new runner, and its
+			// batch would be dropped when the queue is cleared.
+			finished := c.uploadBatches
+			c.uploadBatches = nil
+			c.uploadMu.Unlock()
+
+			close(stopCh)
+			ticker.Stop()
+			c.reportUploadProgress(finished)
+			return
 		}
+		c.uploadMu.Unlock()
 
 		for _, item := range nextBatch.files {
 			if nextBatch.err != nil || c.isUploadCanceled() {
@@ -252,14 +268,6 @@ func (c *Client) runUploadBatches() {
 		nextBatch.done = true
 		nextBatch.doneCh <- nextBatch.err
 	}
-
-	close(stopCh)
-	ticker.Stop()
-	c.notifyUploadProgress()
-
-	c.uploadMu.Lock()
-	c.uploadBatches = nil
-	c.uploadMu.Unlock()
 }
 
 func (c *Client) makeUploadHeaders(pk stingle.PublicKey, item *uploadItem) ([2]*stingle.Header, [2][]byte, string, error) {

@@ -56,6 +56,7 @@ func RunAllTests() []TestResult {
 		{"testSodiumWrapper", testSodiumWrapper},
 		{"testCache", testCache},
 		{"testStore2", testStore2},
+		{"testLegacyStoreMigration", testLegacyStoreMigration},
 	}
 
 	var results []TestResult
@@ -515,6 +516,87 @@ func testStore2() error {
 	}
 	if err := checkKeys("blah", []string{}); err != nil {
 		return err
+	}
+	return nil
+}
+
+// testLegacyStoreMigration checks that Client.Init() can load a store written
+// by the previous (JavaScript) client: albums with members: "" and index pages
+// with the old decrypt URL format.
+func testLegacyStoreMigration() error {
+	store := newMockStore()
+	app := NewClient(store, "/", true, nil, ClientCallbacks{})
+
+	// The session key is created and stored on first use.
+	encName, err := app.encryptString("photo.jpg")
+	if err != nil {
+		return err
+	}
+	if err := store.Set("vars", json.RawMessage(`{"decryptPath":"abcd","cachePref":"encrypted"}`)); err != nil {
+		return err
+	}
+	if err := store.Set("albums", json.RawMessage(`{
+		"A1": {"albumId":"A1","pk":"","encSK":"","encName":"","cover":"","members":"","isOwner":true,"isShared":false,"permissions":"","dateModified":1,"dateCreated":1},
+		"A2": {"albumId":"A2","pk":"","encSK":"","encName":"","cover":"","members":["10","20"],"isOwner":false,"isShared":true,"permissions":"","dateModified":2,"dateCreated":2}
+	}`)); err != nil {
+		return err
+	}
+	if err := store.Set("files/gallery/F1", FileRecord{
+		File: "F1",
+		Set:  0,
+		Headers: [2]FileHeaderRecord{
+			{ChunkSize: 1 << 20, DataSize: 10, FileType: stingle.FileTypePhoto, EncFileName: encName, HeaderSize: 100},
+			{ChunkSize: 1 << 20, DataSize: 5, FileType: stingle.FileTypePhoto, EncFileName: encName, HeaderSize: 100},
+		},
+		DateCreated: 1,
+	}); err != nil {
+		return err
+	}
+	legacyPage := IndexPage{Start: 0, Total: 1, Files: []IndexedFile{{Collection: "gallery", File: "F1", URL: "/abcd/photo.jpg?collection=gallery&file=F1"}}}
+	if err := store.Set("index/gallery/000000", legacyPage); err != nil {
+		return err
+	}
+	if err := store.Set("index/gone/000000", legacyPage); err != nil {
+		return err
+	}
+
+	if err := app.Init(); err != nil {
+		return err
+	}
+
+	if len(app.albums) != 2 {
+		return fmt.Errorf("len(albums) = %d, want 2", len(app.albums))
+	}
+	if a := app.albums["A1"]; a == nil || len(a.Members) != 0 || !a.IsOwner {
+		return fmt.Errorf("albums[A1] = %+v, want no members and isOwner", a)
+	}
+	if a := app.albums["A2"]; a == nil || !reflect.DeepEqual([]string(a.Members), []string{"10", "20"}) {
+		return fmt.Errorf("albums[A2] = %+v, want members [10 20]", a)
+	}
+	if app.vars.IndexVersion != indexFormatVersion {
+		return fmt.Errorf("vars.IndexVersion = %d, want %d", app.vars.IndexVersion, indexFormatVersion)
+	}
+	var page IndexPage
+	if found, err := store.Get("index/gallery/000000", &page); err != nil || !found {
+		return fmt.Errorf("store.Get(index/gallery/000000) = %v, %v", found, err)
+	}
+	if len(page.Files) != 1 || !strings.HasPrefix(page.Files[0].URL, "/stream/abcd/photo.jpg?") || !strings.HasPrefix(page.Files[0].ThumbURL, "/stream/abcd/photo.jpg?") {
+		return fmt.Errorf("rebuilt index page = %+v, want stream/ URLs", page)
+	}
+	if found, _ := store.Get("index/gone/000000", &page); found {
+		return errors.New("index/gone/000000 should have been deleted")
+	}
+
+	// A second Init() with an up-to-date version must not touch the indexes.
+	if err := store.Set("index/marker/000000", legacyPage); err != nil {
+		return err
+	}
+	app2 := NewClient(store, "/", true, nil, ClientCallbacks{})
+	if err := app2.Init(); err != nil {
+		return err
+	}
+	if found, _ := store.Get("index/marker/000000", &page); !found {
+		return errors.New("indexes were rebuilt even though the version was current")
 	}
 	return nil
 }

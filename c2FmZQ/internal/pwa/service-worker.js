@@ -70,8 +70,9 @@ function makeResponse(data) {
   }
 }
 
+// Pending stream/ requests, keyed by a random id, waiting for the page to
+// post back a response.
 const appStreams = new Map();
-const streamIdPattern = /^stream\/([0-9a-f]{32})$/;
 
 function randomStreamId() {
   const bytes = new Uint8Array(16);
@@ -144,11 +145,10 @@ self.addEventListener('fetch', event => {
   if (!rel.startsWith('stream/')) {
     return;
   }
-  const m = rel.match(streamIdPattern);
-  const id = m ? m[1] : randomStreamId();
+  const id = randomStreamId();
   event.respondWith(new Promise(async resolve => {
     let c = event.clientId ? await self.clients.get(event.clientId) : null;
-    if (!c && (m !== null || event.request.mode === 'navigate')) {
+    if (!c && event.request.mode === 'navigate') {
       const list = await self.clients.matchAll({type: 'window'});
       if (list.length > 0) {
         c = list[0];

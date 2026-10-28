@@ -71,6 +71,12 @@ For users who prefer to manage TLS manually or use other deployment methods, the
 
 #### Build and run it locally
 
+> **Note:** `go generate` must be run before `go build`. It compiles the
+> Progressive Web App to WebAssembly (`internal/pwa/pwa.wasm`), which is then
+> embedded in the server binary. The `.wasm` file is not checked in, so a
+> plain `go build` or `go install c2FmZQ/c2FmZQ-server@latest` on a fresh
+> checkout fails with `pattern *.wasm: no matching files found`.
+
 ```bash
 cd c2FmZQ/c2FmZQ-server
 go generate ../...

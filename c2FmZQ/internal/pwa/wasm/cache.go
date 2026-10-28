@@ -402,11 +402,11 @@ func (cm *CacheManager) Match(name string, opt CacheOptions) (*CacheMatchResult,
 	}
 
 	cr := &chunkedCacheReader{
-		cm:         cm,
-		name:       name,
-		curChunk:   startChunk,
-		numChunks:  numChunks,
-		curReader:  firstRC,
+		cm:        cm,
+		name:      name,
+		curChunk:  startChunk,
+		numChunks: numChunks,
+		curReader: firstRC,
 	}
 	return &CacheMatchResult{
 		Body:       cr,

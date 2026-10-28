@@ -41,34 +41,34 @@ import (
 )
 
 var serverMessages = map[string]string{
-	"Account is not approved yet":                                                                    "server-error-account-not-approved",
-	"Adding to this album is not permitted":                                                          "server-error-add-not-permitted",
-	"Can only move from trash to gallery":                                                            "server-error-move-from-trash-only",
-	"Can only move to trash, not copy":                                                               "server-error-move-to-trash-not-copy",
-	"Code is invalid":                                                                                "server-error-invalid-code",
-	"Copying from this album is not permitted":                                                       "server-error-copy-not-permitted",
-	"Data outdated":                                                                                  "server-error-data-outdated",
-	"Email updated":                                                                                  "server-info-email-updated",
-	"Invalid credentials":                                                                            "server-error-invalid-credentials",
-	"MFA disabled":                                                                                   "server-info-mfa-disabled",
-	"MFA enabled":                                                                                    "server-info-mfa-enabled",
-	"MFA failed":                                                                                     "server-error-mfa-failed",
-	"MFA OK":                                                                                         "server-info-mfa-ok",
-	"OTP disabled":                                                                                   "server-info-otp-disabled",
-	"OTP enabled":                                                                                    "server-info-otp-enabled",
-	"Password updated":                                                                               "server-info-password-updated",
-	"Quota exceeded":                                                                                 "server-error-quota-exceeded",
-	"Removing items from this album is not permitted":                                                "server-error-remove-not-permitted",
-	"Security device registered":                                                                     "server-info-security-device-registered",
-	"Security devices updated":                                                                       "server-info-security-devices-updated",
-	"This functionality is not yet implemented in the server":                                        "server-error-not-implemented",
-	"Too many files":                                                                                 "server-error-too-many-files",
-	"You are not allowed to share the album":                                                         "server-error-sharing-not-allowed",
-	"You are not a member of this album":                                                             "server-error-not-album-member",
-	"You are not logged in":                                                                          "server-error-not-logged-in",
-	"You are not the owner of the album":                                                             "server-error-not-album-owner",
-	"You can't leave your own album":                                                                 "server-error-cannot-leave-own-album",
-	"Your account hasn't been approved yet. Some features are disabled.":                             "server-info-account-not-approved",
+	"Account is not approved yet":              "server-error-account-not-approved",
+	"Adding to this album is not permitted":    "server-error-add-not-permitted",
+	"Can only move from trash to gallery":      "server-error-move-from-trash-only",
+	"Can only move to trash, not copy":         "server-error-move-to-trash-not-copy",
+	"Code is invalid":                          "server-error-invalid-code",
+	"Copying from this album is not permitted": "server-error-copy-not-permitted",
+	"Data outdated":                            "server-error-data-outdated",
+	"Email updated":                            "server-info-email-updated",
+	"Invalid credentials":                      "server-error-invalid-credentials",
+	"MFA disabled":                             "server-info-mfa-disabled",
+	"MFA enabled":                              "server-info-mfa-enabled",
+	"MFA failed":                               "server-error-mfa-failed",
+	"MFA OK":                                   "server-info-mfa-ok",
+	"OTP disabled":                             "server-info-otp-disabled",
+	"OTP enabled":                              "server-info-otp-enabled",
+	"Password updated":                         "server-info-password-updated",
+	"Quota exceeded":                           "server-error-quota-exceeded",
+	"Removing items from this album is not permitted":                    "server-error-remove-not-permitted",
+	"Security device registered":                                         "server-info-security-device-registered",
+	"Security devices updated":                                           "server-info-security-devices-updated",
+	"This functionality is not yet implemented in the server":            "server-error-not-implemented",
+	"Too many files":                                                     "server-error-too-many-files",
+	"You are not allowed to share the album":                             "server-error-sharing-not-allowed",
+	"You are not a member of this album":                                 "server-error-not-album-member",
+	"You are not logged in":                                              "server-error-not-logged-in",
+	"You are not the owner of the album":                                 "server-error-not-album-owner",
+	"You can't leave your own album":                                     "server-error-cannot-leave-own-album",
+	"Your account hasn't been approved yet. Some features are disabled.": "server-info-account-not-approved",
 	"Your app is too far out of sync. Upload your changes, then wipe your data, and login again.": "server-error-app-out-of-sync",
 }
 
@@ -99,34 +99,46 @@ func translateServerMessage(msg string) string {
 }
 
 type ClientVars struct {
-	AlbumsTimeStamp      int64  `json:"albumsTimeStamp"`
-	GalleryTimeStamp     int64  `json:"galleryTimeStamp"`
-	TrashTimeStamp       int64  `json:"trashTimeStamp"`
-	AlbumFilesTimeStamp  int64  `json:"albumFilesTimeStamp"`
-	ContactsTimeStamp    int64  `json:"contactsTimeStamp"`
-	DeletesTimeStamp     int64  `json:"deletesTimeStamp"`
-	Server               string `json:"server,omitempty"`
-	DecryptPath          string `json:"decryptPath,omitempty"`
-	MaxCacheSize         int64  `json:"maxCacheSize,omitempty"`
-	CachePref            string `json:"cachePref,omitempty"`
-	DownloadOnMobile     bool   `json:"downloadOnMobile"`
-	PrefetchThumbnails   bool   `json:"prefetchThumbnails"`
-	GalleryOffline       bool   `json:"galleryOffline,omitempty"`
-	SpaceUsed            int64  `json:"spaceUsed"`
-	SpaceQuota           int64  `json:"spaceQuota"`
-	LoginSalt            string `json:"loginSalt,omitempty"`
-	EToken               string `json:"etoken,omitempty"`
-	ServerPK             string `json:"serverPK,omitempty"`
-	PK                   string `json:"pk,omitempty"`
-	ESK                  string `json:"esk,omitempty"`
-	KeyIsBackedUp        bool   `json:"keyIsBackedUp"`
-	Email                string `json:"email,omitempty"`
-	UserID               any    `json:"userId,omitempty"`
-	IsAdmin              bool   `json:"isAdmin"`
-	EnableNotifications  bool   `json:"enableNotifications"`
-	PasswordSalt         string `json:"passwordSalt,omitempty"`
-	Password             string `json:"password,omitempty"`
+	AlbumsTimeStamp     int64  `json:"albumsTimeStamp"`
+	GalleryTimeStamp    int64  `json:"galleryTimeStamp"`
+	TrashTimeStamp      int64  `json:"trashTimeStamp"`
+	AlbumFilesTimeStamp int64  `json:"albumFilesTimeStamp"`
+	ContactsTimeStamp   int64  `json:"contactsTimeStamp"`
+	DeletesTimeStamp    int64  `json:"deletesTimeStamp"`
+	Server              string `json:"server,omitempty"`
+	DecryptPath         string `json:"decryptPath,omitempty"`
+	MaxCacheSize        int64  `json:"maxCacheSize,omitempty"`
+	CachePref           string `json:"cachePref,omitempty"`
+	DownloadOnMobile    bool   `json:"downloadOnMobile"`
+	PrefetchThumbnails  bool   `json:"prefetchThumbnails"`
+	GalleryOffline      bool   `json:"galleryOffline,omitempty"`
+	SpaceUsed           int64  `json:"spaceUsed"`
+	SpaceQuota          int64  `json:"spaceQuota"`
+	LoginSalt           string `json:"loginSalt,omitempty"`
+	EToken              string `json:"etoken,omitempty"`
+	ServerPK            string `json:"serverPK,omitempty"`
+	PK                  string `json:"pk,omitempty"`
+	ESK                 string `json:"esk,omitempty"`
+	KeyIsBackedUp       bool   `json:"keyIsBackedUp"`
+	Email               string `json:"email,omitempty"`
+	UserID              any    `json:"userId,omitempty"`
+	IsAdmin             bool   `json:"isAdmin"`
+	EnableNotifications bool   `json:"enableNotifications"`
+	PasswordSalt        string `json:"passwordSalt,omitempty"`
+	Password            string `json:"password,omitempty"`
+	IndexVersion        int    `json:"indexVersion,omitempty"`
 }
+
+// indexFormatVersion is the format version of the persisted
+// index/<collection>/NNNNNN pages. Bump it whenever their content changes in
+// a way that requires existing pages to be regenerated, e.g. when the format
+// of the decrypt URLs changes. The store is shared with older clients, so
+// Init() rebuilds all the indexes when the stored version doesn't match.
+//
+// Version 0 (unset): pages written by the JavaScript client, with
+// <prefix><decryptPath>/... URLs.
+// Version 1: <prefix>stream/<decryptPath>/... URLs.
+const indexFormatVersion = 1
 
 func (v *ClientVars) UserIDString() string {
 	if v.UserID == nil {
@@ -143,18 +155,42 @@ func (v *ClientVars) UserIDString() string {
 }
 
 type AlbumRecord struct {
-	AlbumID      string   `json:"albumId"`
-	PK           string   `json:"pk"`
-	EncSK        string   `json:"encSK"`
-	EncName      string   `json:"encName"`
-	Cover        string   `json:"cover"`
-	Members      []string `json:"members"`
-	IsOwner      bool     `json:"isOwner"`
-	IsShared     bool     `json:"isShared"`
-	IsOffline    bool     `json:"isOffline"`
-	Permissions  string   `json:"permissions"`
-	DateModified any      `json:"dateModified"`
-	DateCreated  any      `json:"dateCreated"`
+	AlbumID      string     `json:"albumId"`
+	PK           string     `json:"pk"`
+	EncSK        string     `json:"encSK"`
+	EncName      string     `json:"encName"`
+	Cover        string     `json:"cover"`
+	Members      StringList `json:"members"`
+	IsOwner      bool       `json:"isOwner"`
+	IsShared     bool       `json:"isShared"`
+	IsOffline    bool       `json:"isOffline"`
+	Permissions  string     `json:"permissions"`
+	DateModified any        `json:"dateModified"`
+	DateCreated  any        `json:"dateCreated"`
+}
+
+// StringList is a []string that also accepts a comma-separated string when
+// decoding JSON. Albums created by the previous (JavaScript) client were
+// persisted with members: "" instead of an array.
+type StringList []string
+
+func (l *StringList) UnmarshalJSON(b []byte) error {
+	var list []string
+	if err := json.Unmarshal(b, &list); err == nil {
+		*l = list
+		return nil
+	}
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return fmt.Errorf("members: expected array or string, got %s", string(b))
+	}
+	*l = nil
+	for _, m := range strings.Split(s, ",") {
+		if m != "" {
+			*l = append(*l, m)
+		}
+	}
+	return nil
 }
 
 type ContactRecord struct {
@@ -273,16 +309,23 @@ func (c *Client) Init() error {
 		return err
 	}
 	var albums map[string]*AlbumRecord
-	if found, err := c.store.Get("albums", &albums); err == nil && found && albums != nil {
-		c.albums = albums
-	} else {
-		c.albums = make(map[string]*AlbumRecord)
+	if _, err := c.store.Get("albums", &albums); err != nil {
+		jsutil.LogError("WASM: loading albums:", err)
 	}
+	if albums == nil {
+		albums = make(map[string]*AlbumRecord)
+	}
+	c.albums = albums
 	var contacts map[string]ContactRecord
-	if found, err := c.store.Get("contacts", &contacts); err == nil && found && contacts != nil {
-		c.contacts = contacts
-	} else {
-		c.contacts = make(map[string]ContactRecord)
+	if _, err := c.store.Get("contacts", &contacts); err != nil {
+		jsutil.LogError("WASM: loading contacts:", err)
+	}
+	if contacts == nil {
+		contacts = make(map[string]ContactRecord)
+	}
+	c.contacts = contacts
+	if err := c.rebuildIndexesIfNeeded(); err != nil {
+		jsutil.LogError("WASM: rebuilding indexes:", err)
 	}
 
 	if bc, err := OpenBrowserCache("local"); err == nil {
@@ -309,6 +352,34 @@ func (c *Client) Init() error {
 		c.cm = NewCacheManager(c.store, c.cache, c.vars.MaxCacheSize)
 	}
 	return nil
+}
+
+func (c *Client) rebuildIndexesIfNeeded() error {
+	if c.vars.IndexVersion == indexFormatVersion {
+		return nil
+	}
+	jsutil.Log("WASM: rebuilding indexes, version", c.vars.IndexVersion, "->", indexFormatVersion)
+	if err := c.store.DelPrefix("index/"); err != nil {
+		return err
+	}
+	keys, err := c.store.Keys("files/")
+	if err != nil {
+		return err
+	}
+	collections := make(map[string]bool)
+	for _, k := range keys {
+		rest := strings.TrimPrefix(k, "files/")
+		if i := strings.IndexByte(rest, '/'); i > 0 {
+			collections[rest[:i]] = true
+		}
+	}
+	for col := range collections {
+		if err := c.indexCollection(col); err != nil {
+			return err
+		}
+	}
+	c.vars.IndexVersion = indexFormatVersion
+	return c.saveVars()
 }
 
 func (c *Client) saveVars() error {
@@ -547,7 +618,7 @@ func (c *Client) sendRequest(endpoint string, data map[string]string) (*serverRe
 		mode = "same-origin"
 	}
 	hdrs := jsutil.NewObject(map[string]any{
-		"Content-Type":           "application/x-www-form-urlencoded",
+		"Content-Type":          "application/x-www-form-urlencoded",
 		"X-c2FmZQ-capabilities": strings.Join(c.capabilities, ","),
 	})
 	opts := jsutil.NewObject(map[string]any{

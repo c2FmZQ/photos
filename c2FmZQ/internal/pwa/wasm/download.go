@@ -164,6 +164,22 @@ func (c *Client) fetchCachedFile(name, collection string, isThumb bool, cancel <
 		"redirect":       "error",
 		"referrerPolicy": "no-referrer",
 	})
+	if cancel != nil {
+		// Abort the fetch when cancel fires, so that a read that is
+		// blocked waiting for network data doesn't keep
+		// cancelCheckCachedFiles waiting indefinitely.
+		ac := jsutil.AbortController.New()
+		opts.Set("signal", ac.Get("signal"))
+		finished := make(chan struct{})
+		defer close(finished)
+		go func() {
+			select {
+			case <-cancel:
+				ac.Call("abort")
+			case <-finished:
+			}
+		}()
+	}
 	respVal, err := jsutil.Await(jsutil.Global.Call("fetch", contentURL, opts))
 	if err != nil {
 		return err
@@ -342,7 +358,7 @@ func (c *Client) HandleStreamRequest(reqURL, rangeHeader string) (*jsutil.Stream
 			Headers:    map[string]any{"content-type": ctype},
 		}, nil
 	}
-	if reqOffset > fileSize {
+	if reqOffset >= fileSize {
 		return &jsutil.StreamResponse{
 			Status:     416,
 			StatusText: "Range Not Satisfiable",

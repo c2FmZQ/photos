@@ -20,16 +20,12 @@
 package jsutil
 
 import (
-	"crypto/rand"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
-	"mime"
 	"sync"
 	"sync/atomic"
 	"syscall/js"
-	"time"
 )
 
 var (
@@ -171,18 +167,12 @@ var (
 	defaultStreamHelper *StreamHelper
 )
 
+// StreamHelper answers the service worker's requests for stream/ URLs. The
+// service worker forwards each request to the page with a message, and the
+// handler's response is posted back as a transferable ReadableStream.
 type StreamHelper struct {
 	mu      sync.Mutex
-	streams map[string]stream
 	handler StreamHandler
-}
-
-type stream struct {
-	reader   io.Reader
-	headers  map[string]any
-	done     chan error
-	started  chan struct{}
-	progress func(int64)
 }
 
 func InitStreamHelper(handler StreamHandler) *StreamHelper {
@@ -202,7 +192,6 @@ func InitStreamHelper(handler StreamHandler) *StreamHelper {
 	}
 
 	h := &StreamHelper{
-		streams: make(map[string]stream),
 		handler: handler,
 	}
 
@@ -229,55 +218,8 @@ func InitStreamHelper(handler StreamHandler) *StreamHelper {
 		}
 
 		h.mu.Lock()
-		s, exists := h.streams[id]
-		if exists {
-			delete(h.streams, id)
-		}
 		reqHandler := h.handler
 		h.mu.Unlock()
-
-		if exists {
-			close(s.started)
-			TryCatch(
-				func() {
-					rs := NewReadableStream(s.reader, s.done, s.progress)
-					target.Call("postMessage",
-						NewObject(map[string]any{
-							"streamId": id,
-							"body":     rs,
-							"options": NewObject(map[string]any{
-								"status":     200,
-								"statusText": "OK",
-								"headers":    NewObject(s.headers),
-							}),
-						}),
-						Array.New(rs),
-					)
-				},
-				func(e any) {
-					err, ok := e.(error)
-					if !ok {
-						err = fmt.Errorf("panic: %T %v", e, e)
-					}
-					s.done <- err
-					LogError("stream helper failed:", err.Error())
-					target.Call("postMessage",
-						NewObject(map[string]any{
-							"streamId": id,
-							"body":     "Internal Server Error",
-							"options": NewObject(map[string]any{
-								"status":     500,
-								"statusText": "Internal Server Error",
-								"headers": NewObject(map[string]any{
-									"Content-Type": "text/plain",
-								}),
-							}),
-						}),
-					)
-				},
-			)
-			return nil
-		}
 
 		if reqHandler == nil {
 			target.Call("postMessage",
@@ -374,78 +316,4 @@ func InitStreamHelper(handler StreamHandler) *StreamHelper {
 
 	defaultStreamHelper = h
 	return h
-}
-
-func (h *StreamHelper) addStream(rc io.Reader, headers map[string]any, progress func(int64)) (string, <-chan struct{}, <-chan error, error) {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-
-	b := make([]byte, 16)
-	if _, err := io.ReadFull(rand.Reader, b); err != nil {
-		return "", nil, nil, err
-	}
-	id := hex.EncodeToString(b)
-	s := stream{
-		reader:   rc,
-		headers:  headers,
-		done:     make(chan error, 1),
-		started:  make(chan struct{}),
-		progress: progress,
-	}
-	h.streams[id] = s
-	return id, s.started, s.done, nil
-}
-
-func (h *StreamHelper) removeStream(id string) bool {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	_, exists := h.streams[id]
-	delete(h.streams, id)
-	return exists
-}
-
-func (h *StreamHelper) Download(rc io.ReadCloser, filename string, size int64, progress func(int64), hook func(string) error) (err error) {
-	defer rc.Close()
-	if h == nil {
-		return errors.New("streaming download unavailable")
-	}
-	hdr := map[string]any{
-		"Content-Disposition":          mime.FormatMediaType("attachment", map[string]string{"filename": filename}),
-		"Cache-Control":                "no-store",
-		"Content-Type":                 "application/octet-stream",
-		"Content-Security-Policy":      "sandbox;",
-		"Cross-Origin-Resource-Policy": "same-origin",
-		"X-Content-Type-Options":       "nosniff",
-	}
-	if size > 0 {
-		hdr["Content-Length"] = fmt.Sprintf("%d", size)
-	}
-	id, started, done, err := h.addStream(rc, hdr, progress)
-	if err != nil {
-		return err
-	}
-	url := "./stream/" + id
-	if hook != nil {
-		if err := hook(url); err != nil {
-			h.removeStream(id)
-			return err
-		}
-	} else {
-		body := Document.Get("body")
-		anchor := Document.Call("createElement", "a")
-		anchor.Set("href", url)
-		body.Call("appendChild", anchor)
-		anchor.Call("click")
-		body.Call("removeChild", anchor)
-	}
-	timer := time.NewTimer(10 * time.Second)
-	defer timer.Stop()
-	select {
-	case <-started:
-	case <-timer.C:
-		if h.removeStream(id) {
-			return errors.New("download did not start")
-		}
-	}
-	return <-done
 }
