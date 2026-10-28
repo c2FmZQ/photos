@@ -168,7 +168,11 @@ export class Main {
       capabilities: capabilities,
       onError: msg => this.#ui.popupMessage(msg),
       onInfo: msg => this.#ui.popupMessage(msg, 'info'),
-      onLoggedOut: () => this.lock(),
+      onLoggedOut: () => {
+        window.localStorage.removeItem('_');
+        window.localStorage.removeItem('salt');
+        this.lock();
+      },
       onUploadProgress: progress => this.#ui.showUploadProgress(progress),
       onDownloadProgress: progress => this.#ui.showDownloadProgress(progress),
       getMFA: mfa => this.getMFA(mfa),
@@ -221,9 +225,7 @@ export class Main {
   async unlock_() {
     const key = this.#storeKey();
     if (!key) {
-      setTimeout(() => {
-        this.#ui.promptForPassphrase(window.localStorage.getItem('resetPassphrase') === 'yes');
-      });
+      this.#ui.promptForPassphrase(window.localStorage.getItem('resetPassphrase') === 'yes');
       return;
     }
     const res = await this.#wasm.unlock({
@@ -239,15 +241,17 @@ export class Main {
       this.#storeKey = () => res.storeKey;
       document.getElementById('version').textContent = VERSION + (DEVEL ? ' DEVEL' : '');
       window.localStorage.removeItem('resetPassphrase');
-      setTimeout(() => this.#ui.startUI());
+      this.#ui.startUI();
     } else {
-      setTimeout(() => {
-        this.#ui.promptForPassphrase(window.localStorage.getItem('resetPassphrase') === 'yes');
-      });
+      this.#ui.promptForPassphrase(window.localStorage.getItem('resetPassphrase') === 'yes');
     }
   }
 
   async lock() {
+    if (this.locking_) {
+      return;
+    }
+    this.locking_ = true;
     if (!window.localStorage.getItem('_')) {
       this.#storeKey = () => null;
       window.sessionStorage.removeItem('storeKeyId');

@@ -224,13 +224,12 @@ export class UI {
         this.setPassphraseButton_.disabled = false;
         this.passphraseInput_.disabled = false;
         this.passphraseInput2_.disabled = false;
+        setTimeout(() => {
+          if (!this.uiStarted_ && !this.promptingForPassphrase_) {
+            window.location.reload();
+          }
+        }, 3000);
       });
-
-    setTimeout(() => {
-      if (!this.uiStarted_ && !this.promptingForPassphrase_) {
-        window.location.reload();
-      }
-    }, 3000);
   }
 
   wrongPassphrase(err) {
@@ -708,7 +707,7 @@ export class UI {
       return this.getUpdates_().finally(done)
         .then(() => {
           this.showQuota_();
-          this.refreshGallery_(true);
+          return this.refreshGallery_(true);
         });
     })
     .catch(e => {
@@ -751,14 +750,23 @@ export class UI {
   }
 
   async getUpdates_() {
-    return this.#main.sendRPC('getUpdates')
+    const p = (this.updating_ || Promise.resolve())
+      .catch(() => {})
+      .then(() => this.#main.sendRPC('getUpdates'))
       .catch(err => {
         this.showError_(err);
       })
       .then(() => this.#main.sendRPC('getCollections'))
       .then(v => {
         this.collections_ = v;
+      })
+      .finally(() => {
+        if (this.updating_ === p) {
+          this.updating_ = null;
+        }
       });
+    this.updating_ = p;
+    return p;
   }
 
   async refresh_() {
@@ -819,19 +827,57 @@ export class UI {
   }
 
   async refreshGallery_(scrollToTop) {
+    this.refreshGalleryGen_ = (this.refreshGalleryGen_ || 0) + 1;
+    const gen = this.refreshGalleryGen_;
+    this.pendingScrollToTop_ = Boolean(this.pendingScrollToTop_ || scrollToTop);
+
+    while (this.updating_ || this.refreshingGallery_) {
+      await Promise.all([this.updating_, this.refreshingGallery_]);
+      if (gen !== this.refreshGalleryGen_) {
+        return this.refreshingGallery_;
+      }
+    }
+
+    const p = this.refreshGalleryNow_(gen);
+    this.refreshingGallery_ = p;
+    try {
+      return await p;
+    } finally {
+      if (this.refreshingGallery_ === p) {
+        this.refreshingGallery_ = null;
+      }
+    }
+  }
+
+  async refreshGalleryNow_(gen) {
+    const scrollToTop = this.pendingScrollToTop_;
+    this.pendingScrollToTop_ = false;
     const EL = this.galleryState_.EL;
     const cachePref = await this.#main.sendRPC('cachePreference');
     if (!this.galleryState_.format) {
       this.galleryState_.format = 'grid';
     }
+    const selectedFiles = new Set();
     if (this.galleryState_.content && this.galleryState_.content.files) {
       for (const it of this.galleryState_.content.files) {
+        if (!scrollToTop && it.selected) {
+          selectedFiles.add(it.file);
+        }
         delete it.elem;
       }
     }
-    this.galleryState_.content = await this.#main.sendRPC('getFiles', this.galleryState_.collection);
-    if (!this.galleryState_.content) {
-      this.galleryState_.content = {'total': 0, 'files': []};
+    const content = await this.#main.sendRPC('getFiles', this.galleryState_.collection);
+    if (gen !== this.refreshGalleryGen_) {
+      this.pendingScrollToTop_ = Boolean(this.pendingScrollToTop_ || scrollToTop);
+      return;
+    }
+    this.galleryState_.content = content || {'total': 0, 'files': []};
+    if (selectedFiles.size > 0 && this.galleryState_.content.files) {
+      for (const it of this.galleryState_.content.files) {
+        if (selectedFiles.has(it.file)) {
+          it.selected = true;
+        }
+      }
     }
     const oldScrollLeft = document.querySelector('#collections')?.scrollLeft;
     const oldScrollTop = scrollToTop ? 0 : document.documentElement.scrollTop;
@@ -1030,7 +1076,9 @@ export class UI {
       setTimeout(() => {
         const left = Math.max(scrollTo.offsetLeft - (cd.offsetWidth - scrollTo.offsetWidth)/2, 0);
         cd.scrollTo({behavior: 'smooth', left: left});
-        scrollTo.focus();
+        if (!this.windowHandlers?.length) {
+          scrollTo.focus();
+        }
       }, 10);
     }
   }
@@ -1199,6 +1247,9 @@ export class UI {
         }
 
         const d = UI.create('div', {className:'thumbdiv', draggable:true, tabindex:'0', role:'link', title:_T('file-title', f.fileName)});
+        if (f.selected) {
+          d.classList.add('selected');
+        }
         f.elem = d;
         f.select = () => selectItem(i);
 
@@ -1228,6 +1279,9 @@ export class UI {
         g.appendChild(d);
       } else {
         const row = UI.create('div', {className:'row', parent:listDiv});
+        if (f.selected) {
+          row.classList.add('selected');
+        }
 
         const imgDiv = UI.create('div', {tabindex:'0', role:'link', title:_T('file-title', f.fileName), parent:row});
         imgDiv.draggable = true;
@@ -1791,12 +1845,13 @@ export class UI {
       closed = true;
       // Remove handlers.
       this.setGlobalContext(null);
-      popup.style.width = '' + popup.offsetWidth + 'px';
       switch (opt_slide) {
         case 'left':
+          popup.style.width = '' + popup.clientWidth + 'px';
           popup.style.animation = '0.5s linear slideOutLeft';
           break;
         case 'right':
+          popup.style.width = '' + popup.clientWidth + 'px';
           popup.style.animation = '0.5s linear slideOutRight';
           break;
         default:
@@ -1822,11 +1877,13 @@ export class UI {
     };
     body.classList.add('noscroll');
     body.appendChild(popup);
-    setTimeout(() => {
-      if (popup.style.animation) {
-        popup.style.width = '' + popup.offsetWidth + 'px';
-      }
-    });
+    if (params.slide === 'left' || params.slide === 'right') {
+      setTimeout(() => {
+        if (popup.style.animation) {
+          popup.style.width = '' + popup.clientWidth + 'px';
+        }
+      });
+    }
     switch (params.slide) {
       case 'left':
         popup.style.animation = '0.5s linear slideInLeft';
@@ -2237,7 +2294,11 @@ export class UI {
       applyButton.textContent = any ? _T('apply-changes') : _T('no-changes');
     };
 
+    let pendingAdd = null;
     const applyChanges = async () => {
+      if (pendingAdd) {
+        await pendingAdd;
+      }
       const changes = getChanges();
       if (c.create) {
         if (changes.name === undefined) {
@@ -2416,7 +2477,11 @@ export class UI {
 
         const addButton = UI.create('button', {id:'collection-properties-members-add-button', className: 'button', text:_T('add-member'), parent:membersDiv});
         const addFunc = () => {
-          const c = contacts.find(e => e.email === input.value);
+          const email = input.value.trim();
+          if (!email) {
+            return;
+          }
+          const c = contacts.find(e => e.email === email);
           if (c) {
             input.value = '';
             members.push(c);
@@ -2424,9 +2489,12 @@ export class UI {
             onChange();
             return;
           }
+          if (pendingAdd) {
+            return pendingAdd;
+          }
           addButton.disabled = true;
           input.readonly = true;
-          this.#main.sendRPC('getContact', input.value)
+          pendingAdd = this.#main.sendRPC('getContact', email)
           .then(cc => {
             input.value = '';
             contacts.push(cc);
@@ -2441,9 +2509,11 @@ export class UI {
             }
           })
           .finally(() => {
+            pendingAdd = null;
             addButton.disabled = false;
             input.readonly = false;
           });
+          return pendingAdd;
         };
         EL.add(input, 'keydown', e => {
           if (e.key === 'Enter') {

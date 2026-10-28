@@ -680,7 +680,7 @@ func (c *Client) sendRequest(endpoint string, data map[string]string) (*serverRe
 		return c.sendRequest(endpoint, data)
 	}
 
-	if partsMap != nil {
+	if partsMap != nil && endpoint != "v2/login/logout" {
 		if logout, ok := partsMap["logout"].(string); ok && logout == "1" {
 			c.vars = ClientVars{}
 			c.Wipe()
@@ -1457,11 +1457,7 @@ func (c *Client) DeleteAccount(password string) error {
 	}
 	c.resetDB()
 	_ = c.clearVars()
-	_ = c.store.Clear()
 	_ = c.deleteCache()
-	if c.callbacks.OnLoggedOut != nil {
-		c.callbacks.OnLoggedOut()
-	}
 	return nil
 }
 
@@ -1474,7 +1470,6 @@ func (c *Client) Logout() error {
 	}
 	c.resetDB()
 	_ = c.clearVars()
-	_ = c.store.Clear()
 	_ = c.deleteCache()
 	return nil
 }
