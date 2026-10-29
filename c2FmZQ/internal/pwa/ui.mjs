@@ -209,6 +209,7 @@ export class UI {
     if (!this.passphraseInput_.value) {
       return;
     }
+    clearTimeout(this.reloadTimer_);
     this.promptingForPassphrase_ = false;
     this.setPassphraseButton_.textContent = _T('setting-passphrase');
     this.setPassphraseButton_.disabled = true;
@@ -224,7 +225,8 @@ export class UI {
         this.setPassphraseButton_.disabled = false;
         this.passphraseInput_.disabled = false;
         this.passphraseInput2_.disabled = false;
-        setTimeout(() => {
+        clearTimeout(this.reloadTimer_);
+        this.reloadTimer_ = setTimeout(() => {
           if (!this.uiStarted_ && !this.promptingForPassphrase_) {
             window.location.reload();
           }
@@ -250,6 +252,7 @@ export class UI {
 
   startUI() {
     console.log('Start UI');
+    clearTimeout(this.reloadTimer_);
     if (this.uiStarted_) {
       return;
     }

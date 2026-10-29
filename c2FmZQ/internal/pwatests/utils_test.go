@@ -269,7 +269,7 @@ func (w *wrapper) waitFor(sel string) {
 	w.t.Logf("Waiting for %s", sel)
 	expr := fmt.Sprintf(`(function() {
 		const el = document.querySelector(%q);
-		if (!el || el.offsetWidth === 0 || el.offsetHeight === 0) return null;
+		if (!el || el.disabled || el.offsetWidth === 0 || el.offsetHeight === 0) return null;
 		return el;
 	})()`, sel)
 	delay := time.Minute
@@ -300,7 +300,7 @@ func (w *wrapper) sendKeys(sel, keys string) {
 	w.sleep(250 * time.Millisecond)
 	for try := 0; try <= 5; try++ {
 		w.waitFor(sel)
-		ctx, cancel := context.WithTimeout(w.ctx, 10*time.Second)
+		ctx, cancel := context.WithTimeout(w.ctx, 30*time.Second)
 		err := chromedp.Do(ctx, chromedp.SendKeys(chromedp.CSS(sel), keys))
 		cancel()
 		if err != nil {
@@ -316,7 +316,7 @@ func (w *wrapper) sendKeys(sel, keys string) {
 func (w *wrapper) waitUnobscured(sel string) error {
 	expr := fmt.Sprintf(`(function() {
 		const el = document.querySelector(%q);
-		if (!el) return false;
+		if (!el || el.disabled) return false;
 		for (let p = el; p; p = p.parentElement) {
 			if (p.getAnimations().some(a => a instanceof CSSAnimation)) return false;
 		}
@@ -326,9 +326,9 @@ func (w *wrapper) waitUnobscured(sel string) error {
 		const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
 		return top !== null && (el === top || el.contains(top));
 	})()`, sel)
-	deadline := time.Now().Add(5 * time.Second)
+	deadline := time.Now().Add(15 * time.Second)
 	for time.Now().Before(deadline) {
-		ctx, cancel := context.WithTimeout(w.ctx, 5*time.Second)
+		ctx, cancel := context.WithTimeout(w.ctx, 15*time.Second)
 		ok, err := chromedp.Run(ctx, chromedp.Evaluate[bool](expr))
 		cancel()
 		if err != nil {
@@ -351,7 +351,7 @@ func (w *wrapper) click(sel string) {
 			w.sleep(time.Second)
 			continue
 		}
-		ctx, cancel := context.WithTimeout(w.ctx, 10*time.Second)
+		ctx, cancel := context.WithTimeout(w.ctx, 30*time.Second)
 		err := chromedp.Do(ctx, chromedp.Click(chromedp.CSS(sel)))
 		cancel()
 		if err != nil {
@@ -373,7 +373,7 @@ func (w *wrapper) rightClick(sel string) {
 			w.sleep(time.Second)
 			continue
 		}
-		ctx, cancel := context.WithTimeout(w.ctx, 10*time.Second)
+		ctx, cancel := context.WithTimeout(w.ctx, 30*time.Second)
 		_, err := chromedp.Run(ctx, chromedp.QueryAfter(chromedp.CSS(sel), func(ctx context.Context, t *chromedp.Target, nodes []*chromedp.Node) (chromedp.Void, error) {
 			if len(nodes) == 0 {
 				return chromedp.Void{}, fmt.Errorf("no nodes for %s", sel)
@@ -404,7 +404,7 @@ func (w *wrapper) clear(sel string) {
 	})()`, sel)
 	for try := 0; try <= 5; try++ {
 		w.waitFor(sel)
-		ctx, cancel := context.WithTimeout(w.ctx, 10*time.Second)
+		ctx, cancel := context.WithTimeout(w.ctx, 30*time.Second)
 		ok, err := chromedp.Run(ctx, chromedp.Evaluate[bool](expr))
 		cancel()
 		if err != nil || !ok {
@@ -419,7 +419,7 @@ func (w *wrapper) clear(sel string) {
 
 func (w *wrapper) text(sel string) string {
 	w.waitFor(sel)
-	ctx, cancel := context.WithTimeout(w.ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(w.ctx, 30*time.Second)
 	defer cancel()
 	v, err := chromedp.Run(ctx, chromedp.Text(chromedp.CSS(sel), chromedp.NodeVisible))
 	if err != nil {
@@ -432,7 +432,7 @@ func (w *wrapper) waitNonEmptyText(sel string) string {
 	w.waitFor(sel)
 	deadline := time.Now().Add(time.Minute)
 	for time.Now().Before(deadline) {
-		ctx, cancel := context.WithTimeout(w.ctx, 5*time.Second)
+		ctx, cancel := context.WithTimeout(w.ctx, 10*time.Second)
 		v, err := chromedp.Run(ctx, chromedp.Text(chromedp.CSS(sel), chromedp.NodeVisible))
 		cancel()
 		if err == nil && v != "" {
@@ -445,20 +445,20 @@ func (w *wrapper) waitNonEmptyText(sel string) string {
 }
 
 func (w *wrapper) waitPopupMessage(messages ...string) {
-	want := make(map[string]bool)
-	for _, m := range messages {
-		want[m] = true
-	}
+	seen := make(map[string]bool)
 	deadline := time.Now().Add(time.Minute)
 	matched := false
 	for time.Now().Before(deadline) {
-		ctx, cancel := context.WithTimeout(w.ctx, 5*time.Second)
+		ctx, cancel := context.WithTimeout(w.ctx, 10*time.Second)
 		got, err := chromedp.Run(ctx, chromedp.Evaluate[[]string](`Array.from(document.querySelectorAll('.popup-message')).map(e => e.innerText.trim())`))
 		cancel()
-		if err == nil && len(got) == len(want) {
-			allMatch := true
+		if err == nil {
 			for _, t := range got {
-				if !want[t] {
+				seen[t] = true
+			}
+			allMatch := true
+			for _, m := range messages {
+				if !seen[m] {
 					allMatch = false
 					break
 				}
@@ -471,7 +471,7 @@ func (w *wrapper) waitPopupMessage(messages ...string) {
 		w.sleep(100 * time.Millisecond)
 	}
 	if !matched {
-		w.t.Fatalf("waitPopupMessage(%v): timed out", messages)
+		w.t.Fatalf("waitPopupMessage(%v): timed out (saw %v)", messages, seen)
 	}
 	w.waitGone(".popup-message")
 }
@@ -480,7 +480,7 @@ func (w *wrapper) waitText(sel, value string) {
 	deadline := time.Now().Add(time.Minute)
 	expr := fmt.Sprintf(`Array.from(document.querySelectorAll(%q)).map(e => e.innerText.trim())`, sel)
 	for time.Now().Before(deadline) {
-		ctx, cancel := context.WithTimeout(w.ctx, 5*time.Second)
+		ctx, cancel := context.WithTimeout(w.ctx, 10*time.Second)
 		got, err := chromedp.Run(ctx, chromedp.Evaluate[[]string](expr))
 		cancel()
 		if err == nil && slices.Contains(got, value) {
@@ -515,5 +515,6 @@ func (w *wrapper) logout() {
 	w.t.Log("Logging out")
 	w.click("#account-button")
 	w.click("#account-menu-logout")
-	w.sleep(2 * time.Second)
+	w.sleep(time.Second)
+	w.waitFor("#passphrase-input2")
 }

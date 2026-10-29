@@ -31,6 +31,7 @@ import (
 	"strings"
 	"sync"
 	"syscall/js"
+	"time"
 
 	"github.com/tyler-smith/go-bip39"
 	"golang.org/x/crypto/argon2"
@@ -555,6 +556,7 @@ func base64DecimalOrBase64Decode(s string) ([]byte, error) {
 }
 
 func (c *Client) passwordForLogin(salt []byte, password string) string {
+	jsutil.Sleep(time.Millisecond)
 	return stingle.PasswordHashForLogin([]byte(password), salt)
 }
 
@@ -563,6 +565,7 @@ func (c *Client) passwordForValidation(saltHex, password string) (string, error)
 	if err != nil {
 		return "", err
 	}
+	jsutil.Sleep(time.Millisecond)
 	// opsLimit = PWHASH_OPSLIMIT_INTERACTIVE (2), memLimit = PWHASH_MEMLIMIT_MODERATE (262144 KiB), len = 128
 	dk := argon2.IDKey([]byte(password), salt, 2, 262144, 1, 128)
 	return strings.ToUpper(hex.EncodeToString(dk)), nil
@@ -583,6 +586,7 @@ func (c *Client) makeKeyBundle(password string, pk stingle.PublicKey, sk *stingl
 	if sk == nil {
 		return stingle.MakeKeyBundle(pk)
 	}
+	jsutil.Sleep(time.Millisecond)
 	return stingle.MakeSecretKeyBundle([]byte(password), sk)
 }
 
@@ -594,6 +598,7 @@ func (c *Client) decodeKeyBundle(password, bundle string) (stingle.PublicKey, *s
 	if !hasSK {
 		return pk, nil, nil
 	}
+	jsutil.Sleep(time.Millisecond)
 	sk, err := stingle.DecodeSecretKeyBundle([]byte(password), bundle)
 	if err != nil {
 		return stingle.PublicKey{}, nil, err
