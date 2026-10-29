@@ -1,7 +1,9 @@
-#!/bin/bash
+#!/bin/bash -e
 
 cd "$(dirname $0)"
 
-npm install base64-js exifreader
+npm ci --ignore-scripts
 
 browserify browser.js > browser-libs.js
+
+rm -rf node_modules
