@@ -107,6 +107,7 @@ func TestSharing(t *testing.T) {
 	}
 
 	wd.click("#refresh-button")
+	wd.waitFor("#refresh-button")
 
 	wd.click("#collections>div:nth-child(1)")
 	wd.rightClick(".thumbdiv")
@@ -146,6 +147,7 @@ func TestSharing(t *testing.T) {
 	wd.click("#collection-properties-perm-add")
 	wd.click("#collection-properties-perm-share")
 	wd.click("#collection-properties-apply-button")
+	wd.waitGone("#collection-properties-apply-button")
 
 	wd.sleep(5 * time.Second)
 
@@ -170,6 +172,7 @@ func TestSharing(t *testing.T) {
 	wd.click("#settings-button")
 	wd.click("#collection-properties-shared")
 	wd.click("#collection-properties-apply-button")
+	wd.waitGone("#collection-properties-apply-button")
 
 	wd.sleep(5 * time.Second)
 

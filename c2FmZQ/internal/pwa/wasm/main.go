@@ -27,6 +27,7 @@ import (
 	"slices"
 	"sync"
 	"syscall/js"
+	"time"
 
 	"c2FmZQ/internal/pwa/wasm/indexeddb"
 	"c2FmZQ/internal/pwa/wasm/jsutil"
@@ -126,6 +127,7 @@ func (a *wasmApp) jsDerivePassphraseKey(this js.Value, args []js.Value) any {
 		}
 		passphrase := args[0].String()
 		salt := jsutil.Uint8ArrayToBytes(args[1])
+		jsutil.Sleep(time.Millisecond)
 		dk, err := pbkdf2.Key(sha256.New, passphrase, salt, 200000, 64)
 		if err != nil {
 			return nil, err

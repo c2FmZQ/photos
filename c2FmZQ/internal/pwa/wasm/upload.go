@@ -483,10 +483,12 @@ func (c *Client) uploadFile(collection string, item *uploadItem, noStreaming boo
 	t1 := time.Now()
 	respVal, err := jsutil.Await(jsutil.Global.Call("fetch", c.vars.Server+"v2/sync/upload", opts))
 	if err != nil {
+		_ = pr.Close()
 		if c.isUploadCanceled() {
 			return errors.New(T("canceled"))
 		}
-		if time.Since(t1) < 50*time.Millisecond && c.streamingUploadWorks && !noStreaming {
+		if time.Since(t1) < 5*time.Second && c.streamingUploadWorks && !noStreaming {
+			c.streamingUploadWorks = false
 			item.uploadedBytes.Store(0)
 			return c.uploadFile(collection, item, true)
 		}
