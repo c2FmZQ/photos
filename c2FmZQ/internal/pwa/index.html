@@ -20,7 +20,7 @@ c2FmZQ. If not, see <https://www.gnu.org/licenses/>.
 <head>
 <title>c2FmZQ</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<meta http-equiv="content-security-policy" content="default-src 'self'; img-src 'self' data:; media-src 'self' blob:; style-src 'unsafe-inline' 'self'; form-action 'none';" />
+<meta http-equiv="content-security-policy" content="default-src 'self'; connect-src 'self' https:; script-src 'wasm-unsafe-eval' 'self'; img-src 'self' data:; media-src 'self' blob:; style-src 'unsafe-inline' 'self'; form-action 'none';" />
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <link rel="icon" type="image/png" href="c2.png" />
 <link rel="stylesheet" type="text/css" href="style.css" />
@@ -30,11 +30,8 @@ c2FmZQ. If not, see <https://www.gnu.org/licenses/>.
   display: none;
 }
 </style>
-<script src="version.js"></script>
-<script src="ui.js"></script>
-<script src="lang.js"></script>
-<script src="main.js"></script>
 <script src="thirdparty/browser-libs.js"></script>
+<script type="module" src="main.mjs"></script>
 </head>
 <body>
 

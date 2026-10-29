@@ -684,6 +684,13 @@ div.row.selected>div {
     box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
 }
 
+.context-menu-point {
+    position: absolute;
+    fill: white;
+    stroke: #ccc;
+    stroke-width: 1px;
+}
+
 .context-menu-item:hover, .context-menu:not(:has(:hover)) > .context-menu-item:focus {
     background-color: #f2f2f2;
 }

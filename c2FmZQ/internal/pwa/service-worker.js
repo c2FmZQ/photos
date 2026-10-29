@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 TTBT Enterprises LLC
+ * Copyright 2021-2026 TTBT Enterprises LLC
  *
  * This file is part of c2FmZQ (https://c2FmZQ.org/).
  *
@@ -16,34 +16,27 @@
  * c2FmZQ. If not, see <https://www.gnu.org/licenses/>.
  */
 
-/* jshint -W079 */
-/* jshint -W097 */
-'use strict';
-
-self.importScripts('version.js');
-self.importScripts('lang.js');
+import { VERSION, DEVEL } from './version.mjs';
+import { Lang } from './lang.mjs';
 
 console.log(`SW Version ${VERSION}`, DEVEL ? 'DEVEL' : '');
 
-let MANIFEST = [
+const MANIFEST = [
   'c2fmzq.webmanifest',
-  'c2fmzq-client.js',
   'c2.png',
   'c2-bg.png',
   'c2-144x144.png',
-  'cache-manager.js',
   'clear.png',
   'index.html',
-  'lang.js',
-  'main.js',
-  'store2.js',
+  'lang.mjs',
+  'main.mjs',
+  'pwa.wasm',
   'style.css',
-  'ui.js',
-  'utils.js',
-  'version.js',
+  'ui.mjs',
+  'version.mjs',
+  'wasm_exec.js',
   'thirdparty/browser-libs.js',
   'thirdparty/filerobot-image-editor.min.js',
-  'thirdparty/libs.js',
   'icons/arrow-left.svg',
   'icons/arrow-right.svg',
   'icons/grid.svg',
@@ -62,515 +55,172 @@ for (const lang of Object.keys(Lang.supported)) {
   MANIFEST.push(`lang/filerobot/${lang}.json`);
 }
 
-if (self.location.search.includes('tests')) {
-  MANIFEST.push('sw-tests.js');
-  MANIFEST.push('sw-tests.html');
-  self.importScripts('sw-tests.js');
+function makeResponse(data) {
+  if (!data || data.body === undefined || data.body === null) {
+    return new Response('Internal Server Error', {status: 500, statusText: 'Internal Server Error'});
+  }
+  try {
+    return new Response(data.body, data.options);
+  } catch (err) {
+    if (data.body instanceof ReadableStream) {
+      data.body.cancel(err);
+    }
+    console.error('makeResponse failed:', err);
+    return new Response('Internal Server Error', {status: 500, statusText: 'Internal Server Error'});
+  }
 }
 
-self.importScripts('thirdparty/libs.js');
-self.importScripts('store2.js');
-self.importScripts('utils.js');
-self.importScripts('c2fmzq-client.js');
-self.importScripts('cache-manager.js');
+// Pending stream/ requests, keyed by a random id, waiting for the page to
+// post back a response.
+const appStreams = new Map();
 
-self._T = Lang.text;
+// Store keys handed over by a page that is about to unload, keyed by a random
+// one-time id, so that the page that replaces it can pick them up without
+// prompting for the passphrase. A key is kept in memory only, and is dropped
+// when it is retrieved, when it expires, or when the service worker is
+// terminated by the browser.
+const savedKeys = new Map();
+const SAVED_KEY_TTL_MS = 60000;
 
-class ServiceWorker {
-  #app;
-  #state;
-  #store;
-  #notifs;
-  #langReady;
-  constructor() {
-    this.#state = {};
-    this.#state.initp = null;
-    this.#state.rpcId = Math.floor(Math.random() * 1000000000);
-    this.#state.rpcWait = {};
-    this.#store = new Store2();
-    this.#notifs = new Store2('notifications');
-    this.#notifs.setPassphrase('notifications');
+function saveKey(id, key) {
+  if (typeof id !== 'string' || typeof key !== 'string' || !id || !key) {
+    return;
   }
-
-  static start() {
-    const sw = new ServiceWorker();
-    self.addEventListener('install', event => sw.#oninstall(event));
-    self.addEventListener('activate', event => sw.#onactivate(event));
-    self.addEventListener('freeze', event => sw.#onfreeze(event));
-    self.addEventListener('resume', event => sw.#onresume(event));
-    self.addEventListener('statechange', event => sw.#onstatechange(event));
-    self.addEventListener('unhandledrejection', event => sw.#onunhandledrejection(event));
-    self.addEventListener('message', event => sw.#onmessage(event));
-    self.addEventListener('notificationclick', event => sw.#onnotificationclick(event));
-    self.addEventListener('push', event => sw.#onpush(event));
-    self.addEventListener('pushsubscriptionchange', event => sw.#onpushsubscriptionchange(event));
-    self.addEventListener('fetch', event => sw.#onfetch(event));
-    if ('connection' in navigator) {
-      sw.#state.currentNetworkType = navigator.connection.type;
-      navigator.connection.addEventListener('change', event => {
-        if (sw.#state.currentNetworkType !== navigator.connection.type) {
-          console.log(`SW network changed ${sw.currentNetworkType_} -> ${navigator.connection.type}`);
-          sw.#state.currentNetworkType = navigator.connection.type;
-          if (sw.#app) {
-            sw.#app.onNetworkChange(event);
-          }
-        }
-      });
-    }
-    sw.#sendHello();
+  const old = savedKeys.get(id);
+  if (old) {
+    clearTimeout(old.timer);
   }
+  const timer = setTimeout(() => savedKeys.delete(id), SAVED_KEY_TTL_MS);
+  savedKeys.set(id, {key, timer});
+}
 
-  async #initApp(storeKey, storeName, capabilities, reset) {
-    const p = new Promise(async (resolve, reject) => {
-      let dbList = [storeName];
-      if ('databases' in self.indexedDB) {
-        dbList = await self.indexedDB.databases().then(list => list.filter(item => item.name !== 'notifications').map(item => item.name));
-      }
-      console.log(`SW storeName ${storeName} ${JSON.stringify(dbList)}`);
-      try {
-        if (!reset && dbList.length && !dbList.includes(storeName)) {
-          console.log('SW Wrong passphrase (new storeName)');
-          this.#sendHello(_T('wrong-passphrase'));
-          return resolve();
-        }
-        this.#store.setName(storeName);
-        this.#store.setPassphrase(storeKey);
-        await this.#store.open();
-        if (!await this.#store.check()) {
-          console.log('SW Wrong passphrase');
-          this.#store.lock();
-          this.#sendHello(_T('wrong-passphrase'));
-          return resolve();
-        }
-      } catch (err) {
-        return reject(err);
-      }
-      if (this.#state.appInitialized) {
-        return resolve();
-      }
-      this.#state.appInitialized = true;
-      dbList.filter(item => item !== storeName).forEach(name => {
-        console.log('SW Delete database', name);
-        try {
-          self.indexedDB.deleteDatabase(name);
-        } catch (err) {
-          console.log('SW deleteDatabase', name, err);
-        }
-      });
-      const app = new c2FmZQClient({
-        store: this.#store,
-        sw: this,
-        capabilities: capabilities,
-        pathPrefix: self.location.href.replace(/^(.*\/)[^\/]*/, '$1'),
-      });
-      await app.init();
-      this.#app = app;
-      await this.#langReady;
-      console.log('SW app ready');
-      this.#sendHello();
-      await this.#store.release();
-      setTimeout(this.#checkNotifications.bind(this), 500);
-      setTimeout(this.#checkPushsubscriptionchanges.bind(this), 500);
-      return resolve();
-    })
-    .finally(() => {
-      this.#state.initp = null;
-    });
-    if (this.#state.initp) {
-      console.log('SW initApp called concurrently');
-      return this.#state.initp.then(() => p);
-    }
-    this.#state.initp = p;
-    return p;
+function takeKey(id) {
+  const s = savedKeys.get(id);
+  if (!s) {
+    return null;
   }
+  savedKeys.delete(id);
+  clearTimeout(s.timer);
+  return s.key;
+}
 
-  async #checkNotifications() {
-    if (this.#state.checkingNotifications) {
-      setTimeout(this.#checkNotifications.bind(this), 500);
-      return;
-    }
-    this.#state.checkingNotifications = true;
-    try {
-      const keys = await this.#notifs.keys().then(keys => keys.filter(k => k.startsWith("notifs/")));
-      if (keys.length === 0) {
-        return;
-      }
-      await this.#langReady;
-      if (!this.#app) {
-        self.showNotif(_T('notification-encrypted-title', keys.length), {
-          tag: 'encrypted',
-          body: _T('notification-encrypted-body'),
-          requireInteraction: true,
-        });
-        return;
-      }
-      self.registration.getNotifications({tag:'encrypted'}).then(nn => nn.forEach(n => n.close()));
-      keys.forEach(k => {
-        this.#notifs.get(k)
-          .then(v => this.#app.onpush(v))
-          .finally(() => this.#notifs.del(k));
-      });
-    } finally {
-      this.#state.checkingNotifications = false;
-    }
+function randomStreamId() {
+  const bytes = new Uint8Array(16);
+  self.crypto.getRandomValues(bytes);
+  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+}
+
+self.addEventListener('install', event => {
+  if (DEVEL) {
+    console.log(`SW install ${VERSION} DEVEL`);
+    event.waitUntil(self.skipWaiting());
+    return;
   }
+  console.log(`SW install ${VERSION}`);
+  event.waitUntil(
+    self.caches.open(VERSION)
+      .then(c => c.addAll(MANIFEST))
+      .then(() => self.skipWaiting())
+  );
+});
 
-  #checkPushsubscriptionchanges() {
-    if (this.#state.checkingPushsubscriptionchanges) {
-      setTimeout(this.#checkPushsubscriptionchanges.bind(this), 500);
-      return;
-    }
-    this.#state.checkingPushsubscriptionchanges = true;
-    this.#notifs.keys()
-    .then(keys => keys.filter(k => k.startsWith("pushsubscriptionchange/")))
-    .then(keys => {
-      if (keys.length === 0 || !this.#app) {
-        return;
-      }
-      keys.forEach(k => {
-        this.#notifs.get(k)
-          .then(v => this.#app.enableNotifications('', true))
-          .then(() => this.#notifs.del(k));
-      });
-    })
-    .finally(() => {
-      this.#state.checkingPushsubscriptionchanges = false;
-    });
-  }
-
-  #sendHello(err) {
-    const key = this.#store.passphrase();
-    console.log(`SW Sending hello ${VERSION}`);
-    let msg = {
-      type: 'hello',
-      storeKey: key,
-      version: VERSION,
-    };
-    if (err) {
-      msg.storeKey = null;
-      msg.err = err;
-    }
-    this.sendMessage('', msg);
-  }
-
-  async sendRPC(clientId, f, ...args) {
-    const id = this.#state.rpcId++;
-    return new Promise((resolve, reject) => {
-      this.#state.rpcWait[id] = {resolve, reject};
-      return this.sendMessage(clientId, {
-        type: 'rpc',
-        id: id,
-        func: f,
-        args: args,
-      });
-    });
-  }
-
-  sendLoggedOut() {
-    console.log('SW Sending logged out');
-    this.sendMessage('', {type: 'loggedout'});
-  }
-
-  sendUploadProgress(p) {
-    this.sendMessage('', {type: 'upload-progress', progress: p});
-  }
-
-  sendDownloadProgress(p) {
-    this.sendMessage('', {type: 'download-progress', progress: p});
-  }
-
-  async sendMessage(id, m) {
-    const clients = await self.clients.matchAll({type: 'window'});
-    if (clients.length === 0) {
-      console.log(`SW no clients ${VERSION}`);
-      return;
-    }
-    for (let c of clients) {
-      if (id === '' || c.id === id) {
-        try {
-          c.postMessage(m);
-        } catch (err) {
-          console.log('SW sendMessage failed', m, err);
-        }
-      }
-    }
-  }
-
-  async showNotif(title, options) {
-    options.badge = './c2.png';
-    return self.registration.showNotification(title, options);
-  }
-
-  async #handleRpcRequest(clientId, event) {
-    if (!this.#app) {
-      console.log('SW handleRpcRequest not ready');
-      setTimeout(() => {
-        this.#handleRpcRequest(clientId, event);
-      }, 100);
-      return;
-    }
-    const methods = [
-      'login',
-      'createAccount',
-      'recoverAccount',
-      'upload',
-      'cancelUpload',
-      'backupPhrase',
-      'changeKeyBackup',
-      'restoreSecretKey',
-      'updateProfile',
-      'deleteAccount',
-      'generateOTP',
-      'addSecurityKey',
-      'listSecurityKeys',
-      'adminUsers',
-      'mfaCheck',
-    ];
-    if (!methods.includes(event.data.func)) {
-      console.log('SW RPC method not allowed', event.data.func);
-      this.sendMessage(clientId, {type: 'rpc-result', id: event.data.id, func: event.data.func, reject: 'method not allowed'});
-      return;
-    }
-    await this.#store.open();
-    this.#app[event.data.func](clientId, ...event.data.args)
-    .then(e => {
-      this.sendMessage(clientId, {type: 'rpc-result', id: event.data.id, func: event.data.func, resolve: e});
-    })
-    .catch(e => {
-      this.sendMessage(clientId, {type: 'rpc-result', id: event.data.id, func: event.data.func, reject: e});
-    })
-    .finally(() => this.#store.release());
-  }
-
-  async #handleRpcResult(clientId, event) {
-    if (event.data.id in this.#state.rpcWait) {
-      if (event.data.reject !== undefined) {
-        this.#state.rpcWait[event.data.id].reject(event.data.reject);
-      } else {
-        this.#state.rpcWait[event.data.id].resolve(event.data.resolve);
-      }
-      delete this.#state.rpcWait[event.data.id];
-    }
-  }
-
-  #oninstall(event) {
-    if (DEVEL) {
-      console.log(`SW install ${VERSION} DEVEL`);
-      event.waitUntil(self.skipWaiting());
-      return;
-    }
-    console.log(`SW install ${VERSION}`);
-    event.waitUntil(
-      self.caches.open(VERSION).then(c => c.addAll(MANIFEST))
-    );
-  }
-
-  #onactivate(event) {
-    if (DEVEL) {
-      console.log(`SW activate ${VERSION} DEVEL`);
-      event.waitUntil(
-        self.caches.keys()
-        .then(keys => keys.filter(k => k !== 'local').map(k => self.caches.delete(k)))
-        .then(p => Promise.all(p))
-        .then(r => console.log('SW cache deletes', r))
-        .then(() => self.clients.claim())
-        .then(() => {
-          this.#langReady = Lang.loadLanguage('en');
-          return this.#langReady;
-        })
-      );
-      return;
-    }
-    console.log(`SW activate ${VERSION}`);
-    event.waitUntil(
-      self.caches.keys()
-      .then(keys => keys.filter(k => k !== VERSION && k !== 'local').map(k => self.caches.delete(k)))
-      .then(p => Promise.all(p))
+self.addEventListener('activate', event => {
+  console.log(`SW activate ${VERSION}`, DEVEL ? 'DEVEL' : '');
+  event.waitUntil(
+    self.caches.keys()
+      .then(keys => Promise.all(
+        keys.filter(k => (DEVEL || k !== VERSION) && k !== 'local')
+            .map(k => self.caches.delete(k))
+      ))
       .then(r => console.log('SW cache deletes', r))
       .then(() => self.clients.claim())
-      .then(() => {
-        this.#langReady = Lang.loadLanguage('en');
-        return this.#langReady;
-      })
-    );
-  }
+  );
+});
 
-  #onfreeze(event) {
-    console.log('SW freeze', event);
-  }
-
-  #onresume(event) {
-    console.log('SW resume', event);
-  }
-
-  #onstatechange(event) {
-    console.log('SW state change', event);
-  }
-
-  #onunhandledrejection(event) {
-    this.sendMessage('', {type: 'error', msg: event.reason});
-  }
-
-  async #onmessage(event) {
-    const clientId = event.source.id;
-    switch(event.data?.type) {
-      case 'nop':
-        break;
-      case 'hello':
-        console.log(`SW Received hello ${event.data.version}`);
-        if (event.data.version !== VERSION) {
-          console.log(`SW Version mismatch: ${event.data.version} != ${VERSION}`);
-        }
-        this.#langReady = Lang.setLanguage(event.data.lang || 'en');
-        if (!event.data.storeKey) {
-          this.#sendHello();
-        } else {
-          this.#initApp(event.data.storeKey, event.data.storeName, event.data.capabilities, event.data.reset);
-        }
-        break;
-      case 'lock':
-        console.log('SW Received lock');
-        this.#store.lock();
-        this.#app = null;
-        this.#state.appInitialized = false;
-        this.#store = new Store2();
-        break;
-      case 'rpc':
-        this.#handleRpcRequest(clientId, event);
-        break;
-      case 'rpc-result':
-        this.#handleRpcResult(clientId, event);
-        break;
-      case 'run-tests':
-        self.runTests()
-        .then(results => {
-          this.sendMessage(clientId, {type: 'test-results', results: results});
-        });
-        break;
-      default:
-        console.log('SW Received unexpected message', event.data);
-        break;
-    }
-  }
-
-  #onnotificationclick(event) {
-    const tag = event.notification.tag;
-    let jumpTo;
-    if (tag.startsWith('new-content:') || tag.startsWith('new-member:') || tag.startsWith('new-collection:')) {
-      jumpTo = tag.substring(tag.indexOf(':')+1);
-    }
-    event.notification.close();
-    event.waitUntil(
-      self.clients.matchAll({type: "window"})
-      .then(list => {
-        if (tag.startsWith('remote-mfa:')) {
-          if (event.action && event.action === 'deny') {
-            console.log('SW Remove MFA denied');
-            return;
-          }
-          if (!this.#app) {
-            throw new Error('app is not ready');
-          }
-          return this.#app.approveRemoteMFA(tag.substring(tag.indexOf(':')+1));
-        }
-
-        let url = self.registration.scope;
-        if (jumpTo) {
-          url += '#' + btoa(JSON.stringify({collection: jumpTo}));
-        }
-        let client;
-        for (const c of list) {
-          if (c.url.startsWith(self.registration.scope) && c.focus) {
-            client = c;
-            break;
-          }
-        }
-        if (!client) {
-          return self.clients.openWindow(url);
-        }
-        return client.focus()
-          .catch(err => console.log('SW focus:', err))
-          .then(() => new Promise((resolve) => setTimeout(resolve, 500)))
-          .then(() => {
-            if (jumpTo) {
-              return client.navigate(url).catch(err => console.log('SW navigate:', err));
-            }
-          })
-          .then(() => {
-            if (jumpTo) {
-              return this.sendMessage(client.id, {type: 'jumpto', collection: jumpTo});
-            }
-          });
-      })
-    );
-  }
-
-  #onpush(event) {
-    const data = event.data ? event.data.text() : null;
-    event.waitUntil(
-      this.#notifs.set('notifs/' + new Date().getTime(), data)
-      .then(() => this.#checkNotifications())
-    );
-  }
-
-  #onpushsubscriptionchange(event) {
-    console.log('SW pushsubscriptionchange', event);
-    event.waitUntil(
-      this.#notifs.set('pushsubscriptionchange/' + new Date().getTime(), event.oldSubscription.options)
-      .then(() => this.#checkPushsubscriptionchanges())
-    );
-  }
-
-  #onfetch(event) {
-    const reqUrl = event.request.url.replace(/#.*$/, '');
-    if (!reqUrl.startsWith(self.registration.scope)) {
-      console.error('SW fetch req out of scope', reqUrl, self.registration.scope);
-      event.respondWith(new Response('request out of scope', {'status': 403, 'statusText': 'Permission denied'}));
+self.addEventListener('message', event => {
+  switch (event.data?.type) {
+    case 'saveKey':
+      saveKey(event.data.id, event.data.key);
+      return;
+    case 'getKey': {
+      // The key is only ever sent back on the private port provided by the
+      // requester.
+      const port = event.ports?.[0];
+      if (port) {
+        port.postMessage({key: takeKey(event.data.id)});
+      }
       return;
     }
-    const url = new URL(reqUrl);
-    const scope = new URL(self.registration.scope);
-    let rel = url.pathname.slice(scope.pathname.length);
-    if (rel === '') {
-      rel = 'index.html';
+    default:
+      break;
+  }
+  const id = event.data?.streamId;
+  if (!id) return;
+  const s = appStreams.get(id);
+  // Only accept the response from the client that made the request.
+  if (s && event.source?.id === s.clientId) {
+    appStreams.delete(id);
+    s.resolve(event.data);
+  }
+});
+
+self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') {
+    return;
+  }
+  const reqUrl = event.request.url.replace(/#.*$/, '');
+  if (!reqUrl.startsWith(self.registration.scope)) {
+    return;
+  }
+  const url = new URL(reqUrl);
+  const scope = new URL(self.registration.scope);
+  let rel = url.pathname.slice(scope.pathname.length);
+  if (rel === '') {
+    rel = 'index.html';
+  }
+  if (MANIFEST.includes(rel)) {
+    event.respondWith(
+      self.caches.match(rel, {cacheName: VERSION}).then(resp => {
+        if (resp) return resp;
+        console.log(`SW fetch ${rel}, no cache`);
+        return fetch(event.request);
+      })
+    );
+    return;
+  }
+  if (!rel.startsWith('stream/')) {
+    return;
+  }
+  const id = randomStreamId();
+  event.respondWith(new Promise(async resolve => {
+    let c = event.clientId ? await self.clients.get(event.clientId) : null;
+    if (!c && event.request.mode === 'navigate') {
+      const list = await self.clients.matchAll({type: 'window'});
+      if (list.length > 0) {
+        c = list[0];
+      }
     }
-    if (MANIFEST.includes(rel)) {
-      event.respondWith(
-        self.caches.match(rel).then(resp => {
-          if (resp) return resp;
-          console.log(`SW fetch ${rel}, no cache`);
-          return fetch(event.request);
-        })
-      );
+    if (!c) {
+      resolve(new Response('client not found', {status: 404, statusText: 'Not Found'}));
       return;
     }
-    let count = 0;
-    event.respondWith(new Promise(async (resolve, reject) => {
-      const handler = async () => {
-        if (this.#app) {
-          await this.#store.open();
-          return resolve(this.#app.handleFetchEvent(event).finally(() => this.#store.release()));
-        }
-        if (count++ > 100) {
-          if (!this.#store.locked()) {
-            this.fixme();
-            console.log(event.request);
-          }
-          return resolve(new Response('Service Unavailable', {'status': 502, 'statusText': 'Service Unavailable'}));
-        }
-        setTimeout(handler, 100);
-      };
-      handler();
-    }));
-  }
+    const timeoutId = setTimeout(() => {
+      appStreams.delete(id);
+      resolve(new Response('client did not respond in time', {status: 504, statusText: 'Gateway Timeout'}));
+    }, 30000);
+    appStreams.set(id, {
+      clientId: c.id,
+      resolve: data => {
+        clearTimeout(timeoutId);
+        resolve(makeResponse(data));
+      },
+    });
+    c.postMessage({
+      streamId: id,
+      url: event.request.url,
+      range: event.request.headers.get('Range') || '',
+    });
+  }));
+});
 
-  fixme() {
-    this.sendMessage('', {type: 'fixme'});
-    setInterval(() => {
-      this.sendMessage('', {type: 'fixme'});
-    }, 5000);
-  }
-}
-
-ServiceWorker.start();
 console.log(`SW loaded ${VERSION}`);

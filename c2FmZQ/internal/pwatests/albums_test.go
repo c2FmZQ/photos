@@ -86,6 +86,7 @@ func TestSharing(t *testing.T) {
 	wd.click("#collection-properties-perm-copy")
 	wd.click("#collection-properties-perm-share")
 	wd.click("#collection-properties-apply-button")
+	wd.waitText(".collectionThumbLabel", "my pix")
 
 	dir := t.TempDir()
 	b, err := pwa.FS.ReadFile("c2.png")

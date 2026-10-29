@@ -21,6 +21,8 @@
 # Set the working directory to the directory of the script
 cd $(dirname $0)
 
+go generate ./internal/pwa/... || exit 1
+
 # Export environment variables needed by docker-compose
 # GOCACHE: The Go cache directory, used to speed up builds
 export GOCACHE=$(go env GOCACHE)

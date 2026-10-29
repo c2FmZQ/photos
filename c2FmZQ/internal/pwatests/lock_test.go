@@ -21,6 +21,8 @@ package pwa_test
 
 import (
 	"testing"
+
+	"github.com/chromedp/chromedp"
 )
 
 func TestLock(t *testing.T) {
@@ -58,6 +60,43 @@ func TestChangePassphrase(t *testing.T) {
 	wd.sendKeys("#email-input", "test@c2fmzq.org")
 	wd.sendKeys("#password-input", "foobar")
 	wd.click("#login-button")
+	wd.waitFor("#gallery")
+
+	t.Log("Done")
+}
+
+// TestReload checks that reloading the page keeps the store unlocked, without
+// leaving the store key in web storage, and that reloading after locking
+// prompts for the passphrase.
+func TestReload(t *testing.T) {
+	wd, stop := startServer(t)
+	defer stop()
+
+	wd.setPassphrase("hello")
+	wd.createAccount("test@c2fmzq.org", "foobar")
+	wd.waitFor("#gallery")
+
+	t.Log("Reload while unlocked")
+	wd.navigate(wd.currentURL())
+	wd.waitFor("#gallery")
+
+	keys, err := chromedp.Run(wd.ctx, chromedp.Evaluate[[]string](`Object.keys(window.sessionStorage).concat(Object.keys(window.localStorage))`))
+	if err != nil {
+		t.Fatalf("Evaluate: %v", err)
+	}
+	for _, k := range keys {
+		if k == "storeKey" || k == "storeKeyId" {
+			t.Errorf("web storage still contains %q after reload: %v", k, keys)
+		}
+	}
+
+	t.Log("Lock and reload")
+	wd.click("#account-button")
+	wd.click("#account-menu-lock")
+	wd.waitFor("#passphrase-input")
+	wd.navigate(wd.currentURL())
+	wd.waitFor("#passphrase-input")
+	wd.sendKeys("#passphrase-input", "hello\n")
 	wd.waitFor("#gallery")
 
 	t.Log("Done")

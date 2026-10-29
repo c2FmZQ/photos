@@ -267,10 +267,15 @@ func (w *wrapper) navigate(u string) {
 
 func (w *wrapper) waitFor(sel string) {
 	w.t.Logf("Waiting for %s", sel)
+	expr := fmt.Sprintf(`(function() {
+		const el = document.querySelector(%q);
+		if (!el || el.offsetWidth === 0 || el.offsetHeight === 0) return null;
+		return el;
+	})()`, sel)
 	delay := time.Minute
 	for try := 0; try <= 5; try++ {
 		ctx, cancel := context.WithTimeout(w.ctx, delay)
-		err := chromedp.Do(ctx, chromedp.WaitVisible(chromedp.CSS(sel)))
+		err := chromedp.Do(ctx, chromedp.WaitVisible(chromedp.JSPath(expr)))
 		cancel()
 		if err != nil {
 			w.t.Logf("waitFor(%q): %v", sel, err)
@@ -312,22 +317,29 @@ func (w *wrapper) waitUnobscured(sel string) error {
 	expr := fmt.Sprintf(`(function() {
 		const el = document.querySelector(%q);
 		if (!el) return false;
+		for (let p = el; p; p = p.parentElement) {
+			if (p.getAnimations().some(a => a instanceof CSSAnimation)) return false;
+		}
 		el.scrollIntoViewIfNeeded();
 		const r = el.getBoundingClientRect();
 		if (r.width === 0 || r.height === 0) return false;
 		const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
 		return top !== null && (el === top || el.contains(top));
 	})()`, sel)
-	ctx, cancel := context.WithTimeout(w.ctx, 5*time.Second)
-	defer cancel()
-	ok, err := chromedp.Run(ctx, chromedp.Evaluate[bool](expr))
-	if err != nil {
-		return err
+	deadline := time.Now().Add(5 * time.Second)
+	for time.Now().Before(deadline) {
+		ctx, cancel := context.WithTimeout(w.ctx, 5*time.Second)
+		ok, err := chromedp.Run(ctx, chromedp.Evaluate[bool](expr))
+		cancel()
+		if err != nil {
+			return err
+		}
+		if ok {
+			return nil
+		}
+		w.sleep(50 * time.Millisecond)
 	}
-	if !ok {
-		return fmt.Errorf("element %q is obscured", sel)
-	}
-	return nil
+	return fmt.Errorf("element %q is obscured", sel)
 }
 
 func (w *wrapper) click(sel string) {

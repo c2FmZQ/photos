@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2025 TTBT Enterprises LLC
+ * Copyright 2021-2026 TTBT Enterprises LLC
  *
  * This file is part of c2FmZQ (https://c2FmZQ.org/).
  *
@@ -16,12 +16,10 @@
  * c2FmZQ. If not, see <https://www.gnu.org/licenses/>.
  */
 
-'use strict';
-
-const VERSION = 'v0.5.8';
+export const VERSION = 'v0.6.0';
 
 // Indicates that the PWA is only allowed to connect to the server from which
 // it was loaded. Set to false to allow cross-origin connections.
-const SAMEORIGIN = true;
+export const SAMEORIGIN = true;
 // Set DEVEL=true to reload source files and resources on page reload.
-const DEVEL = false;
+export const DEVEL = false;

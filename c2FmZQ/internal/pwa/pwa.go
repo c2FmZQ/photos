@@ -1,5 +1,5 @@
 //
-// Copyright 2021-2022 TTBT Enterprises LLC
+// Copyright 2021-2026 TTBT Enterprises LLC
 //
 // This file is part of c2FmZQ (https://c2FmZQ.org/).
 //
@@ -19,5 +19,13 @@ package pwa
 
 import "embed"
 
-//go:embed *.html *.css *.js *.png *.webmanifest thirdparty/* lang/* icons/*
+// The PWA core is written in Go and compiled to WebAssembly by build.sh (via
+// go generate), which produces pwa.wasm and refreshes wasm_exec.js from
+// GOROOT. pwa.wasm is embedded below but not checked into the repository, so
+// `go generate ./...` must be run before `go build`. Without it, the build
+// fails with "pattern *.wasm: no matching files found".
+//
+//go:generate ./build.sh
+
+//go:embed *.html *.css *.js *.mjs *.wasm *.png *.webmanifest thirdparty/* lang/* icons/*
 var FS embed.FS

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-Copyright 2021-2023 TTBT Enterprises LLC
+Copyright 2021-2026 TTBT Enterprises LLC
 
 This file is part of c2FmZQ (https://c2FmZQ.org/).
 
@@ -20,10 +20,10 @@ c2FmZQ. If not, see <https://www.gnu.org/licenses/>.
 <head>
 <title>Service worker tests</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta http-equiv="content-security-policy" content="default-src 'self'; script-src 'wasm-unsafe-eval' 'self'; style-src 'unsafe-inline' 'self'; form-action 'none';" />
 <link rel="icon" type="image/png" href="c2.png" />
-<script src="version.js"></script>
-<script src="utils.js"></script>
-<script src="thirdparty/browser-libs.js"></script>
+<script src="wasm_exec.js"></script>
+<script type="module" src="sw-tests.mjs"></script>
 <style>
 body {
   font-family: monospace;
@@ -50,37 +50,5 @@ body {
 </style>
 </head>
 <body>
-<script>
-navigator.serviceWorker.onmessage = event => {
-  if (event.data?.type === 'test-results') {
-    const e = document.createElement('div');
-    e.id = 'results';
-    e.textContent = JSON.stringify(event.data.results);
-    document.body.appendChild(e);
-    const d = document.createElement('div');
-    d.className = 'summary';
-    document.body.appendChild(d);
-    const push = c => {
-      const t = document.createElement('div');
-      t.textContent = c;
-      d.appendChild(t);
-    };
-    for (const r of event.data.results) {
-      push(r.test);
-      push(r.result);
-      push(r.err||'-');
-    }
-  }
-};
-navigator.serviceWorker.register('service-worker.js?tests')
-  .then(r => r.update())
-  .then(() => {
-    console.log('Service worker updated');
-    navigator.serviceWorker.controller.postMessage({type: 'run-tests'});
-  })
-  .catch(err => {
-    console.error('Service worker update failed', err);
-  });
-</script>
 </body>
 </html>
