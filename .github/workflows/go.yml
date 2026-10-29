@@ -19,7 +19,7 @@ jobs:
       with:
         go-version: ${{steps.goversion.outputs.goversion}}
     - name: Build
-      run: cd c2FmZQ && go build ./...
+      run: cd c2FmZQ && go generate ./... && go build ./...
     - name: Run go vet
       run: cd c2FmZQ && go vet ./...
     - name: Run go test
@@ -48,6 +48,6 @@ jobs:
       with:
         go-version: ${{steps.goversion.outputs.goversion}}
     - name: Build
-      run: cd c2FmZQ && go build ./...
+      run: cd c2FmZQ && go generate ./... && go build ./...
     - name: Run PWA tests
       run: ./c2FmZQ/run-pwa-tests.sh

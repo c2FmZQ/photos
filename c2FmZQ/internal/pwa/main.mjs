@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 TTBT Enterprises LLC
+ * Copyright 2021-2026 TTBT Enterprises LLC
  *
  * This file is part of c2FmZQ (https://c2FmZQ.org/).
  *
@@ -16,10 +16,14 @@
  * c2FmZQ. If not, see <https://www.gnu.org/licenses/>.
  */
 
-'use strict';
-
 /* jshint -W060 */
 /* jshint -W126 */
+
+import './wasm_exec.js';
+import { VERSION, SAMEORIGIN, DEVEL } from './version.mjs';
+import { Lang, _T } from './lang.mjs';
+import { UI } from './ui.mjs';
+
 if (!('serviceWorker' in navigator)) {
   document.open();
   document.write('service workers are not supported');
@@ -27,27 +31,49 @@ if (!('serviceWorker' in navigator)) {
 }
 /* jshint +W060 */
 
-window.addEventListener('load', async () => {
+if (SAMEORIGIN) {
+  const meta = document.createElement('meta');
+  meta.httpEquiv = 'content-security-policy';
+  meta.content = "connect-src 'self';";
+  document.head.appendChild(meta);
+}
+
+const wasmReady = new Promise(resolve => {
+  window.__c2fmzqWasmReady = resolve;
+});
+const go = new Go();
+WebAssembly.instantiateStreaming(fetch('pwa.wasm'), go.importObject)
+  .then(r => go.run(r.instance));
+
+async function startApp() {
   console.log(`Version ${VERSION}`, DEVEL ? 'DEVEL' : '');
   await Lang.init();
-  const main = new Main();
+  const wasm = await wasmReady;
+  const main = new Main(wasm);
   const ui = new UI(main);
   main.setUI(ui);
-  document.getElementById('version').textContent = VERSION + (DEVEL?' DEVEL':'');
+  document.getElementById('version').textContent = VERSION + (DEVEL ? ' DEVEL' : '');
   window.addEventListener('unhandledrejection', event => {
     ui.popupMessage(event.reason);
   });
-}, {once: true});
+  await main.init();
+}
 
-class Main {
+if (document.readyState === 'complete') {
+  startApp();
+} else {
+  window.addEventListener('load', startApp, {once: true});
+}
+
+export class Main {
+  #wasm;
   #ui;
   #storeKey;
 
-  constructor() {
+  constructor(wasm) {
+    this.#wasm = wasm;
     this.#storeKey = () => null;
     this.salt_ = null;
-    this.rpcId_ = Math.floor(Math.random() * 1000000000);
-    this.rpcWait_ = {};
     this.fixing_ = false;
 
     try {
@@ -67,121 +93,123 @@ class Main {
     if (sh) {
       this.serverHashValue_ = this.base64DecodeToBytes(sh);
     }
-    navigator.serviceWorker.oncontrollerchange = () => {
-      console.log('Controller Change');
-      this.sendHello_();
-    };
-    let swUrl = 'service-worker.js';
-    if (window.location.search.includes('tests')) {
-      swUrl += '?tests';
+    if (window.localStorage.getItem('resetPassphrase') === 'yes') {
+      window.sessionStorage.removeItem('storeKeyId');
     }
-    navigator.serviceWorker.register(swUrl)
-    .then(r => r.update())
-    .then(() => {
-      console.log('Service worker updated');
-    })
-    .catch(err => {
-      console.error('Service worker update failed', err);
-    })
-    .finally(() => {
-      this.sendHello_();
-    });
+    // The store key is only ever kept in memory. To survive a page reload,
+    // it is handed to the service worker right before the page unloads, and
+    // retrieved from it when the new page starts. See #saveStoreKey and
+    // #restoreStoreKey.
+    window.addEventListener('pagehide', () => this.#saveStoreKey());
+  }
 
-    navigator.serviceWorker.onmessage = event => {
-      if (event.source && navigator.serviceWorker.controller && event.source !== navigator.serviceWorker.controller) {
-        return;
-      }
-      switch (event.data?.type) {
-        case 'fixme':
-          this.resetServiceWorker();
-          break;
-        case 'error':
-          this.#ui.popupMessage(event.data.msg);
-          break;
-        case 'info':
-          this.#ui.popupMessage(event.data.msg, 'info');
-          break;
-        case 'loggedout':
-          this.lock();
-          break;
-        case 'hello':
-          console.log(`Received hello ${event.data.version}`);
-          if (event.data.version !== VERSION) {
-            console.log(`Version mismatch: ${event.data.version} != ${VERSION}`);
-          }
-          if (event.data.err) {
-            this.#storeKey = () => null;
-            this.#ui.wrongPassphrase(event.data.err);
-          }
-          if (!event.data.storeKey && this.#storeKey() !== null) {
-            this.sendHello_();
-          } else if (event.data.storeKey) {
-            this.#storeKey = () => event.data.storeKey;
-            let v = VERSION;
-            if (v !== event.data.version) {
-              v = `${VERSION}/${event.data.version}`;
-            }
-            document.getElementById('version').textContent = v + (DEVEL?' DEVEL':'');
-            window.localStorage.removeItem('resetPassphrase');
-            setTimeout(() => this.#ui.startUI());
-          } else {
-            setTimeout(() => {
-              this.#ui.promptForPassphrase(window.localStorage.getItem('resetPassphrase') === 'yes');
-            });
-          }
-          break;
-        case 'rpc-result':
-          if (event.data.func !== 'backupPhrase') {
-            //console.log('Received rpc-result', event.data);
-          }
-          if (event.data.id in this.rpcWait_) {
-            if (event.data.reject !== undefined) {
-              this.rpcWait_[event.data.id].reject(event.data.reject);
-            } else {
-              this.rpcWait_[event.data.id].resolve(event.data.resolve);
-            }
-            delete this.rpcWait_[event.data.id];
-          }
-          break;
-        case 'upload-progress':
-          this.#ui.showUploadProgress(event.data.progress);
-          navigator.serviceWorker.controller.postMessage({type: 'nop'});
-          break;
-        case 'download-progress':
-          this.#ui.showDownloadProgress(event.data.progress);
-          navigator.serviceWorker.controller.postMessage({type: 'nop'});
-          break;
-        case 'keep-alive':
-          navigator.serviceWorker.controller.postMessage({type: 'nop'});
-          break;
-        case 'jumpto':
-          console.log('Received jumpto', event.data.collection);
-          this.sendRPC('getUpdates').finally(() => {
-            this.#ui.switchView({collection: event.data.collection});
-          });
-          break;
-        case 'rpc':
-          console.log('Received rpc', event.data.func);
-          if (!['getMFA'].includes(event.data.func)) {
-            navigator.serviceWorker.controller.postMessage({id: event.data.id, type: 'rpc-result', reject: 'method not allowed'});
-            break;
-          }
-          this[event.data.func](...event.data.args)
-          .then(result => {
-            navigator.serviceWorker.controller.postMessage({id: event.data.id, type: 'rpc-result', resolve: result});
-          })
-          .catch(err => {
-            navigator.serviceWorker.controller.postMessage({id: event.data.id, type: 'rpc-result', reject: err});
-          });
-          break;
-        default:
-          console.log('Received Message', event.data);
-      }
-    };
+  // #saveStoreKey hands the store key to the service worker so that it can
+  // be retrieved by the page that is about to replace this one. It is
+  // indexed by a random one-time id saved in sessionStorage. The service
+  // worker drops the key when it is retrieved, when it expires, or when the
+  // service worker itself is terminated by the browser.
+  #saveStoreKey() {
+    const key = this.#storeKey();
+    const ctrl = navigator.serviceWorker.controller;
+    if (!key || !ctrl) {
+      return;
+    }
+    const bytes = window.crypto.getRandomValues(new Uint8Array(16));
+    const id = this.base64RawUrlEncode(bytes);
+    try {
+      window.sessionStorage.setItem('storeKeyId', id);
+    } catch (err) {
+      console.error('saveStoreKey', err);
+      return;
+    }
+    ctrl.postMessage({type: 'saveKey', id: id, key: key});
+  }
+
+  // #restoreStoreKey retrieves the store key saved by #saveStoreKey, if any.
+  async #restoreStoreKey() {
+    let id;
+    try {
+      id = window.sessionStorage.getItem('storeKeyId');
+      window.sessionStorage.removeItem('storeKeyId');
+    } catch (err) {
+      return;
+    }
+    const ctrl = navigator.serviceWorker.controller;
+    if (!id || !ctrl) {
+      return;
+    }
+    const key = await new Promise(resolve => {
+      const timer = setTimeout(() => resolve(null), 5000);
+      const mc = new MessageChannel();
+      mc.port1.onmessage = event => {
+        clearTimeout(timer);
+        resolve(event.data?.key || null);
+      };
+      ctrl.postMessage({type: 'getKey', id: id}, [mc.port2]);
+    });
+    if (key) {
+      this.#storeKey = () => key;
+    }
   }
 
   setUI(v) {
     this.#ui = v;
+  }
+
+  async init() {
+    await this.initServiceWorker_();
+
+    const capabilities = [''];
+    if ('PublicKeyCredential' in window) {
+      capabilities.push('mfa');
+    }
+    this.#wasm.configure({
+      sameOrigin: SAMEORIGIN,
+      capabilities: capabilities,
+      onError: msg => this.#ui.popupMessage(msg),
+      onInfo: msg => this.#ui.popupMessage(msg, 'info'),
+      onLoggedOut: () => {
+        window.localStorage.removeItem('_');
+        window.localStorage.removeItem('salt');
+        this.lock();
+      },
+      onUploadProgress: progress => this.#ui.showUploadProgress(progress),
+      onDownloadProgress: progress => this.#ui.showDownloadProgress(progress),
+      getMFA: mfa => this.getMFA(mfa),
+    });
+
+    if (this.#storeKey() === null) {
+      await this.#restoreStoreKey();
+    }
+    if (this.#storeKey() !== null) {
+      await this.unlock_();
+    } else {
+      setTimeout(() => {
+        this.#ui.promptForPassphrase(window.localStorage.getItem('resetPassphrase') === 'yes');
+      });
+    }
+  }
+
+  async initServiceWorker_() {
+    try {
+      const r = await navigator.serviceWorker.register('service-worker.js', {type: 'module'});
+      r.update().catch(err => console.error('Service worker update failed', err));
+      await navigator.serviceWorker.ready;
+      if (!navigator.serviceWorker.controller) {
+        await new Promise(resolve => {
+          const onChange = () => {
+            if (navigator.serviceWorker.controller) {
+              navigator.serviceWorker.removeEventListener('controllerchange', onChange);
+              resolve();
+            }
+          };
+          navigator.serviceWorker.addEventListener('controllerchange', onChange);
+        });
+      }
+      console.log('Service worker ready');
+    } catch (err) {
+      console.error('Service worker registration failed', err);
+    }
   }
 
   async setPassphrase(p) {
@@ -189,20 +217,45 @@ class Main {
       console.error('empty passphrase');
       return;
     }
-    const enc = new TextEncoder();
-    const km = await window.crypto.subtle.importKey('raw', enc.encode(p), 'PBKDF2', false, ['deriveBits']);
-    const bits = await window.crypto.subtle.deriveBits(
-      {'name': 'PBKDF2', salt: this.salt_, 'iterations': 200000, 'hash': 'SHA-256'}, km, 512);
-    const a = new Uint8Array(bits);
-    const k = base64.fromByteArray(a);
+    const k = await this.#wasm.derivePassphraseKey(p, this.salt_);
     this.#storeKey = () => k;
-    this.sendHello_();
+    await this.unlock_();
+  }
+
+  async unlock_() {
+    const key = this.#storeKey();
+    if (!key) {
+      this.#ui.promptForPassphrase(window.localStorage.getItem('resetPassphrase') === 'yes');
+      return;
+    }
+    const res = await this.#wasm.unlock({
+      storeKey: key,
+      storeName: this.base64RawUrlEncode(this.salt_).substring(0, 8),
+      reset: window.localStorage.getItem('resetPassphrase') === 'yes',
+    });
+    if (res.err) {
+      this.#storeKey = () => null;
+      this.#ui.wrongPassphrase(res.err);
+    }
+    if (res.ok && res.storeKey) {
+      this.#storeKey = () => res.storeKey;
+      document.getElementById('version').textContent = VERSION + (DEVEL ? ' DEVEL' : '');
+      window.localStorage.removeItem('resetPassphrase');
+      this.#ui.startUI();
+    } else {
+      this.#ui.promptForPassphrase(window.localStorage.getItem('resetPassphrase') === 'yes');
+    }
   }
 
   async lock() {
+    if (this.locking_) {
+      return;
+    }
+    this.locking_ = true;
     if (!window.localStorage.getItem('_')) {
       this.#storeKey = () => null;
-      navigator.serviceWorker.controller.postMessage({type: 'lock'});
+      window.sessionStorage.removeItem('storeKeyId');
+      this.#wasm.lock();
     }
     setTimeout(() => {
       window.location.reload();
@@ -210,6 +263,8 @@ class Main {
   }
 
   resetPassphrase() {
+    this.#storeKey = () => null;
+    window.sessionStorage.removeItem('storeKeyId');
     window.localStorage.setItem('resetPassphrase', 'yes');
   }
 
@@ -223,8 +278,9 @@ class Main {
       .then(r => r.unregister())
       .then(() => {
         window.localStorage.clear();
+        window.sessionStorage.clear();
         window.indexedDB.databases().then(list => Promise.all(list.map(item => window.indexedDB.deleteDatabase(item.name))));
-        return new Promise((resolve, reject) => {
+        return new Promise(resolve => {
           window.setTimeout(resolve, 5000);
         })
         .then(() => window.location.reload());
@@ -239,7 +295,7 @@ class Main {
 
   async calcServerFingerPrint(n, elemId, commit) {
     const elem = document.querySelector(elemId);
-    try { 
+    try {
       n = new URL(n).toString();
     } catch (err) {
       if (elem) {
@@ -366,11 +422,11 @@ class Main {
         if (userHandle) {
           let uh = new Uint8Array(userHandle);
           if (uh.byteLength < this.serverHashValue_.byteLength) {
-            throw new Error("invalid userHandle");
+            throw new Error('invalid userHandle');
           }
           for (let i = 0; i < this.serverHashValue_.byteLength; i++) {
             if (uh[i] !== this.serverHashValue_[i]) {
-              throw new Error("invalid userHandle");
+              throw new Error('invalid userHandle');
             }
           }
           userHandle = uh.slice(this.serverHashValue_.byteLength);
@@ -429,121 +485,12 @@ class Main {
     return base64.fromByteArray(v).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
   }
 
-  sendHello_() {
-    console.log(`Sending hello ${VERSION}`);
-    if (!navigator.serviceWorker.controller) {
-      console.log('No controller');
-      return;
-    }
-    const capabilities = [''];
-    if ('PublicKeyCredential' in window) {
-      capabilities.push('mfa');
-    }
-    if (this.#storeKey() === null) {
-      navigator.serviceWorker.controller.postMessage({
-        type: 'hello',
-        version: VERSION,
-        lang: Lang.current,
-        capabilities: capabilities,
-      });
-    } else {
-      navigator.serviceWorker.controller.postMessage({
-        type: 'hello',
-        storeKey: this.#storeKey(),
-        storeName: this.base64RawUrlEncode(this.salt_).substring(0, 8),
-        version: VERSION,
-        lang: Lang.current,
-        capabilities: capabilities,
-        reset: window.localStorage.getItem('resetPassphrase') === 'yes',
-      });
-    }
-  }
-
   async sendRPC(f, ...args) {
-    const sensitiveMethods = [
-      'login',
-      'createAccount',
-      'recoverAccount',
-      'upload',
-      'cancelUpload',
-      'backupPhrase',
-      'changeKeyBackup',
-      'restoreSecretKey',
-      'updateProfile',
-      'deleteAccount',
-      'generateOTP',
-      'addSecurityKey',
-      'listSecurityKeys',
-      'adminUsers',
-      'mfaCheck',
-    ];
     document.body.classList.add('waiting');
-    let p;
-    if (sensitiveMethods.includes(f)) {
-      p = this.sendMessageRPC_(f, ...args);
-    } else {
-      p = this.sendWebRPC_(f, ...args);
-    }
-    return p.finally(() => {
+    try {
+      return await this.#wasm.call(f, ...args);
+    } finally {
       document.body.classList.remove('waiting');
-    });
-  }
-
-  async sendMessageRPC_(f, ...args) {
-    const send = () => {
-      if (!navigator.serviceWorker.controller || navigator.serviceWorker.controller.state !== 'activated') {
-        setTimeout(send, 100);
-        return;
-      }
-      navigator.serviceWorker.controller.postMessage({
-        type: 'rpc',
-        id: id,
-        func: f,
-        args: args,
-      });
-    };
-    const id = this.rpcId_++;
-    return new Promise(async (resolve, reject) => {
-      this.rpcWait_[id] = {'resolve': resolve, 'reject': reject};
-      // Keep serviceworker awake.
-      if (!this.keepAliveRunning_) {
-        this.keepAliveRunning_ = true;
-        const keepAlive = async () => {
-          if (Object.keys(this.rpcWait_).length === 0) {
-            this.keepAliveRunning_ = false;
-            return;
-          }
-          return this.sendWebRPC_('ping').finally(() => {
-            setTimeout(keepAlive, 1000);
-          });
-        };
-        await keepAlive();
-      }
-      send();
-    });
-  }
-
-  async sendWebRPC_(f, ...args) {
-    return new Promise((resolve, reject) => {
-      const send = () => {
-        if (!navigator.serviceWorker.controller || navigator.serviceWorker.controller.state !== 'activated') {
-          setTimeout(send, 100);
-          return;
-        }
-        fetch('jsapi?func='+f+'&args='+base64.fromByteArray(new TextEncoder().encode(JSON.stringify(args))))
-        .then(resp => {
-          if (!resp.ok) {
-            reject(''+resp.status+' '+resp.statusText);
-          } else {
-            resp.json().then(resp => {
-              if (resp.reject !== undefined) reject(resp.reject);
-              else resolve(resp.resolve);
-            }).catch(reject);
-          }
-        })
-        .catch(reject);
-      };
-      send();
-    });
+    }
   }
 }

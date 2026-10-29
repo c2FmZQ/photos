@@ -8,6 +8,7 @@ WORKDIR /app/go/src/c2FmZQ
 RUN go mod download
 
 ADD c2FmZQ /app/go/src/c2FmZQ
+RUN go generate ./...
 RUN CGO_ENABLED=0 go test ./internal/server/...
 RUN go install ./c2FmZQ-server
 RUN go install ./c2FmZQ-server/inspect

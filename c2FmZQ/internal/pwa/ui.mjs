@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 TTBT Enterprises LLC
+ * Copyright 2021-2026 TTBT Enterprises LLC
  *
  * This file is part of c2FmZQ (https://c2FmZQ.org/).
  *
@@ -18,13 +18,13 @@
 
 /* jshint -W083 */
 /* jshint -W126 */
-'use strict';
 
-let _T;
+import { SAMEORIGIN } from './version.mjs';
+import { Lang, _T } from './lang.mjs';
 
 const SHOW_ITEMS_INCREMENT = 25;
 
-class UI {
+export class UI {
   #main;
   constructor(main) {
     this.#main = main;
@@ -43,8 +43,6 @@ class UI {
       this.skippedPassphrase_ = true;
     }
     this.enableNotifications = localStorage.getItem('enableNotifications') === 'yes';
-
-    _T = Lang.text;
 
     const langSelect = document.querySelector('#language');
     langSelect.setAttribute('aria-label', _T('language'));
@@ -226,13 +224,12 @@ class UI {
         this.setPassphraseButton_.disabled = false;
         this.passphraseInput_.disabled = false;
         this.passphraseInput2_.disabled = false;
+        setTimeout(() => {
+          if (!this.uiStarted_ && !this.promptingForPassphrase_) {
+            window.location.reload();
+          }
+        }, 3000);
       });
-
-    setTimeout(() => {
-      if (!this.uiStarted_ && !this.promptingForPassphrase_) {
-        window.location.reload();
-      }
-    }, 3000);
   }
 
   wrongPassphrase(err) {
@@ -425,10 +422,13 @@ class UI {
     }
 
     this.#main.sendRPC('isLoggedIn')
-    .then(({account, isAdmin, needKey}) => {
+    .then(({account, isAdmin, needKey, server}) => {
       if (account !== '') {
         this.accountEmail_ = account;
         this.isAdmin_ = isAdmin;
+        if (!SAMEORIGIN && server) {
+          this.serverUrl_ = server;
+        }
         this.showLoggedIn_();
         this.#main.setServerFingerPrint('#server-fingerprint');
         if (needKey) {
@@ -707,7 +707,7 @@ class UI {
       return this.getUpdates_().finally(done)
         .then(() => {
           this.showQuota_();
-          this.refreshGallery_(true);
+          return this.refreshGallery_(true);
         });
     })
     .catch(e => {
@@ -750,14 +750,23 @@ class UI {
   }
 
   async getUpdates_() {
-    return this.#main.sendRPC('getUpdates')
+    const p = (this.updating_ || Promise.resolve())
+      .catch(() => {})
+      .then(() => this.#main.sendRPC('getUpdates'))
       .catch(err => {
         this.showError_(err);
       })
       .then(() => this.#main.sendRPC('getCollections'))
       .then(v => {
         this.collections_ = v;
+      })
+      .finally(() => {
+        if (this.updating_ === p) {
+          this.updating_ = null;
+        }
       });
+    this.updating_ = p;
+    return p;
   }
 
   async refresh_() {
@@ -818,19 +827,57 @@ class UI {
   }
 
   async refreshGallery_(scrollToTop) {
+    this.refreshGalleryGen_ = (this.refreshGalleryGen_ || 0) + 1;
+    const gen = this.refreshGalleryGen_;
+    this.pendingScrollToTop_ = Boolean(this.pendingScrollToTop_ || scrollToTop);
+
+    while (this.updating_ || this.refreshingGallery_) {
+      await Promise.all([this.updating_, this.refreshingGallery_]);
+      if (gen !== this.refreshGalleryGen_) {
+        return this.refreshingGallery_;
+      }
+    }
+
+    const p = this.refreshGalleryNow_(gen);
+    this.refreshingGallery_ = p;
+    try {
+      return await p;
+    } finally {
+      if (this.refreshingGallery_ === p) {
+        this.refreshingGallery_ = null;
+      }
+    }
+  }
+
+  async refreshGalleryNow_(gen) {
+    const scrollToTop = this.pendingScrollToTop_;
+    this.pendingScrollToTop_ = false;
     const EL = this.galleryState_.EL;
     const cachePref = await this.#main.sendRPC('cachePreference');
     if (!this.galleryState_.format) {
       this.galleryState_.format = 'grid';
     }
+    const selectedFiles = new Set();
     if (this.galleryState_.content && this.galleryState_.content.files) {
       for (const it of this.galleryState_.content.files) {
+        if (!scrollToTop && it.selected) {
+          selectedFiles.add(it.file);
+        }
         delete it.elem;
       }
     }
-    this.galleryState_.content = await this.#main.sendRPC('getFiles', this.galleryState_.collection);
-    if (!this.galleryState_.content) {
-      this.galleryState_.content = {'total': 0, 'files': []};
+    const content = await this.#main.sendRPC('getFiles', this.galleryState_.collection);
+    if (gen !== this.refreshGalleryGen_) {
+      this.pendingScrollToTop_ = Boolean(this.pendingScrollToTop_ || scrollToTop);
+      return;
+    }
+    this.galleryState_.content = content || {'total': 0, 'files': []};
+    if (selectedFiles.size > 0 && this.galleryState_.content.files) {
+      for (const it of this.galleryState_.content.files) {
+        if (selectedFiles.has(it.file)) {
+          it.selected = true;
+        }
+      }
     }
     const oldScrollLeft = document.querySelector('#collections')?.scrollLeft;
     const oldScrollTop = scrollToTop ? 0 : document.documentElement.scrollTop;
@@ -1029,7 +1076,9 @@ class UI {
       setTimeout(() => {
         const left = Math.max(scrollTo.offsetLeft - (cd.offsetWidth - scrollTo.offsetWidth)/2, 0);
         cd.scrollTo({behavior: 'smooth', left: left});
-        scrollTo.focus();
+        if (!this.windowHandlers?.length) {
+          scrollTo.focus();
+        }
       }, 10);
     }
   }
@@ -1198,6 +1247,9 @@ class UI {
         }
 
         const d = UI.create('div', {className:'thumbdiv', draggable:true, tabindex:'0', role:'link', title:_T('file-title', f.fileName)});
+        if (f.selected) {
+          d.classList.add('selected');
+        }
         f.elem = d;
         f.select = () => selectItem(i);
 
@@ -1227,6 +1279,9 @@ class UI {
         g.appendChild(d);
       } else {
         const row = UI.create('div', {className:'row', parent:listDiv});
+        if (f.selected) {
+          row.classList.add('selected');
+        }
 
         const imgDiv = UI.create('div', {tabindex:'0', role:'link', title:_T('file-title', f.fileName), parent:row});
         imgDiv.draggable = true;
@@ -1479,8 +1534,15 @@ class UI {
     EL.add(menu, 'contextmenu', event => {
       event.preventDefault();
     });
-    const point = UI.create('img', {parent:menu});
-    point.style.position = 'absolute';
+    const point = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    point.setAttribute('class', 'context-menu-point');
+    point.setAttribute('width', '24');
+    point.setAttribute('height', '24');
+    point.setAttribute('viewBox', '0 0 24 24');
+    point.setAttribute('aria-hidden', 'true');
+    const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+    point.appendChild(polyline);
+    menu.appendChild(point);
 
     let closeMenu;
     const handleEscape = e => {
@@ -1572,19 +1634,19 @@ class UI {
       y += 10;
     }
     if (up && !left) {
-      point.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABmJLR0QA4ADgAODYf054AAAAg0lEQVRIx7XVQRKAIAxD0eT+h647HAeQpjSs9X1GxgJ4V9CJRwToxAFYAgN3BD54d2DCOwNLvCuwxTsCv/ht4IjfBFJ4NZDGKwEJVwMyrgRKeDZQxjOB+s7JY0A/UHLaPK9+IvL4RSjPlsUulTNYj1wR3T38XnNk10gZL4bpnhh4wLQeewpX1wE0L8gAAAAASUVORK5CYII=';
+      polyline.setAttribute('points', '24,0 0,24 24,16');
       point.style.left = '-24px';
       point.style.top = (menu.offsetHeight-26) + 'px';
     } else if (up && left) {
-      point.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABmJLR0QA4ADgAODYf054AAAAj0lEQVRIx7XSSw6AIAwE0Onc/851I8YgYL9dKYy+pgAAisaiqqITIQB0IhwPXQjfLx0I54VqhKvFSoS7jSqEp80KhH+BLEJLKIPQGowi9IQjCL0deRFG5upBGL0dVkRG6P7AXSIy/rMFnqam7kqQnayLcYQQsY7cgq0QiZzvCZsRQa6Wo3wjWeAIApBq4INdkLZW6dJ0VgoAAAAASUVORK5CYII=';
+      polyline.setAttribute('points', '0,0 24,24 0,16');
       point.style.left = (menu.offsetWidth-2) + 'px';
       point.style.top = (menu.offsetHeight-26) + 'px';
     } else if (!up && left) {
-      point.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABmJLR0QA4ADgAODYf054AAAAh0lEQVRIx7XWMRLAIAhE0d1M7n9l0kQnJkoAgZLifewk6kYAgBXoY8hMUERulf147qANHE8eXWagK1wLTJ+uzQx/L8QDWvC2lAhqwQHgjMIWHACOSjwcsOKhgAd3B7y4KxDBzYEobgrs4L+BXVwNZODLQBY+DWTin0A2PgQq8B6owlc/gdS5AJl7HmCcZQWCAAAAAElFTkSuQmCC';
+      polyline.setAttribute('points', '0,8 24,0 0,24');
       point.style.left = (menu.offsetWidth-2) + 'px';
       point.style.top = '-2px';
     } else {
-      point.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABmJLR0QA4ADgAODYf054AAAAlElEQVRIx7XV3QqAIAwF4LP3f+h1kQTTpvs5ChHE6nOYRwDQcV0ZMu7qPKcBAKCqryMiYIHzix9iiiwoHcBFqphXsEUc7Pd7uxmEkFN3pxbTyIxFFqyMZP6IeieJ2hKS3UD5hS90nUKqERBGOqEW24zNsDwijFjeZxcp9l2EdrC4UU8+IReEDSzIDcAev7g3WikcRh7lLVfXPzJ76wAAAABJRU5ErkJggg==';
+      polyline.setAttribute('points', '24,8 0,0 24,24');
       point.style.left = '-24px';
       point.style.top = '-2px';
     }
@@ -1790,12 +1852,13 @@ class UI {
       closed = true;
       // Remove handlers.
       this.setGlobalContext(null);
-      popup.style.width = '' + popup.offsetWidth + 'px';
       switch (opt_slide) {
         case 'left':
+          popup.style.width = '' + popup.clientWidth + 'px';
           popup.style.animation = '0.5s linear slideOutLeft';
           break;
         case 'right':
+          popup.style.width = '' + popup.clientWidth + 'px';
           popup.style.animation = '0.5s linear slideOutRight';
           break;
         default:
@@ -1821,7 +1884,13 @@ class UI {
     };
     body.classList.add('noscroll');
     body.appendChild(popup);
-    popup.style.width = '' + popup.offsetWidth + 'px';
+    if (params.slide === 'left' || params.slide === 'right') {
+      setTimeout(() => {
+        if (popup.style.animation) {
+          popup.style.width = '' + popup.clientWidth + 'px';
+        }
+      });
+    }
     switch (params.slide) {
       case 'left':
         popup.style.animation = '0.5s linear slideInLeft';
@@ -2232,7 +2301,11 @@ class UI {
       applyButton.textContent = any ? _T('apply-changes') : _T('no-changes');
     };
 
+    let pendingAdd = null;
     const applyChanges = async () => {
+      if (pendingAdd) {
+        await pendingAdd;
+      }
       const changes = getChanges();
       if (c.create) {
         if (changes.name === undefined) {
@@ -2411,7 +2484,11 @@ class UI {
 
         const addButton = UI.create('button', {id:'collection-properties-members-add-button', className: 'button', text:_T('add-member'), parent:membersDiv});
         const addFunc = () => {
-          const c = contacts.find(e => e.email === input.value);
+          const email = input.value.trim();
+          if (!email) {
+            return;
+          }
+          const c = contacts.find(e => e.email === email);
           if (c) {
             input.value = '';
             members.push(c);
@@ -2419,9 +2496,12 @@ class UI {
             onChange();
             return;
           }
+          if (pendingAdd) {
+            return pendingAdd;
+          }
           addButton.disabled = true;
           input.readonly = true;
-          this.#main.sendRPC('getContact', input.value)
+          pendingAdd = this.#main.sendRPC('getContact', email)
           .then(cc => {
             input.value = '';
             contacts.push(cc);
@@ -2436,9 +2516,11 @@ class UI {
             }
           })
           .finally(() => {
+            pendingAdd = null;
             addButton.disabled = false;
             input.readonly = false;
           });
+          return pendingAdd;
         };
         EL.add(input, 'keydown', e => {
           if (e.key === 'Enter') {
@@ -3114,11 +3196,11 @@ class UI {
   }
 
   async showBackupPhrase_() {
+    let keyBackupEnabled = await this.#main.sendRPC('keyBackupEnabled');
     const {EL, content, close} = this.commonPopup_({
       title: _T('key-backup'),
     });
     content.id = 'backup-phrase-content';
-    let keyBackupEnabled = await this.#main.sendRPC('keyBackupEnabled');
 
     const warning = UI.create('div', {id:'backup-phrase-warning', className:'warning', html:_T('key-backup-warning'), parent:content});
     const phrase = UI.create('div', {id:'backup-phrase-value', parent:content});
