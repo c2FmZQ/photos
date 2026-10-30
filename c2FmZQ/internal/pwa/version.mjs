@@ -16,7 +16,7 @@
  * c2FmZQ. If not, see <https://www.gnu.org/licenses/>.
  */
 
-export const VERSION = 'v0.6.0';
+export const VERSION = 'v0.6.2';
 
 // Indicates that the PWA is only allowed to connect to the server from which
 // it was loaded. Set to false to allow cross-origin connections.
