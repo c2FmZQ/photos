@@ -6,7 +6,7 @@
   "loading": "Yükleniyor...",
   "resetOperations": "Tüm işlemleri sıfırla/sil",
   "changesLoseWarningHint": "Eğer 'sıfırla' düğmesine basarsanız, değişiklikleriniz kaybolur. Devam etmek istiyor musunuz?",
-  "discardChangesWarningHint": "Eğer modalı kapatırsanız, son değişikliğiniz kaydedilmeyecektir.",
+  "discardChangesWarningHint": "Pencereyi kapatırsanız son değişikliğiniz kaydedilmeyecektir.",
   "cancel": "İptal",
   "apply": "Uygula",
   "warning": "Uyarı",

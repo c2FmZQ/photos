@@ -104,7 +104,7 @@
   "show-backup-phrase": "Show backup phrase",
   "hide-backup-phrase": "Hide backup phrase",
   "checking-password": "Checking password",
-  "key-backup-warning2": "<p>Choose whether to keep an encrypted backup of your secret key on the server.<p><p>If you do NOT keep a backup, you will need to enter your backup phrase every time you login to your account.</p>",
+  "key-backup-warning2": "<p>Choose whether to keep an encrypted backup of your secret key on the server.</p><p>If you do NOT keep a backup, you will need to enter your backup phrase every time you login to your account.</p>",
   "enabled": "Enabled",
   "disabled": "Disabled",
   "opt-keep-backup": "Keep a backup on the server (RECOMMENDED)",
