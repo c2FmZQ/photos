@@ -89,6 +89,8 @@ func Load(m crypto.MasterKey, s *storage.Storage) (*Client, error) {
 		c.WebServerConfig = NewWebServerConfig()
 	}
 	c.hc = &http.Client{}
+	c.masterKey = m
+	c.storage = s
 	c.writer = os.Stdout
 	c.prompt = prompt
 	c.createEmptyFiles()
