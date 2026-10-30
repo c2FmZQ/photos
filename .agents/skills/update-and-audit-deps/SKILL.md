@@ -32,7 +32,7 @@ This skill updates the Go version and upstream module dependencies using [`scrip
      ```
    - If npm dependencies in `c2FmZQ/internal/pwa/thirdparty/` should also be updated (and have not yet been updated in the working tree), update `c2FmZQ/internal/pwa/thirdparty/package.json` and `c2FmZQ/internal/pwa/thirdparty/package-lock.json` using `--package-lock-only --ignore-scripts` (do **not** run `./c2FmZQ/internal/pwa/thirdparty/update.sh` or `browserify` before Step 4):
      ```bash
-     (cd c2FmZQ/internal/pwa/thirdparty && npm install --package-lock-only --ignore-scripts bip39@latest sodium-plus@latest exifreader@latest && npm update --package-lock-only --ignore-scripts)
+     (cd c2FmZQ/internal/pwa/thirdparty && npm install --package-lock-only --ignore-scripts base64-js@latest exifreader@latest && npm update --package-lock-only --ignore-scripts)
      ```
 2. Inspect `git diff Dockerfile .goversion c2FmZQ/docker-compose-browser-tests.yaml c2FmZQ/go.mod c2FmZQ/internal/pwa/thirdparty/package.json c2FmZQ/internal/pwa/thirdparty/package-lock.json` to see which Go version, Go modules, and npm packages were updated.
 

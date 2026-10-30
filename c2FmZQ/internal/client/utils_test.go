@@ -65,7 +65,10 @@ func newClient(dir string) (*client.Client, error) {
 		return nil, err
 	}
 	storage := storage.New(dir, masterKey)
-	c, err := client.Create(masterKey, storage)
+	if _, err := client.Create(masterKey, storage); err != nil {
+		return nil, err
+	}
+	c, err := client.Load(masterKey, storage)
 	if err != nil {
 		return nil, err
 	}
