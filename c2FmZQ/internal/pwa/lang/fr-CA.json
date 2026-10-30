@@ -5,5 +5,6 @@
   "form-email": "Courriel:",
   "email": "Courriel",
   "contact-email": "Courriel du contact",
-  "server-info-email-updated": "Courriel mis à jour"
+  "server-info-email-updated": "Courriel mis à jour",
+  "email-update-failed": "La mise à jour du courriel a échoué"
 }

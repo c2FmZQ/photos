@@ -19,7 +19,7 @@
   "zoomOutTitle": "ज़ूम आउट",
   "toggleZoomMenuTitle": "ज़ूम मेनू टॉगल करें",
   "adjustTab": "समायोजित करें",
-  "finetuneTab": "ठीक करना",
+  "finetuneTab": "सूक्ष्म समायोजन",
   "filtersTab": "फ़िल्टर",
   "watermarkTab": "वॉटरमार्क",
   "annotateTabLabel": "एनोटेट",
@@ -31,7 +31,7 @@
   "areNotImages": "छवियां नहीं हैं",
   "isNotImage": "छवि नहीं है",
   "toBeUploaded": "अपलोड किया जाना है",
-  "cropTool": "फसल",
+  "cropTool": "क्रॉप",
   "original": "मूल",
   "custom": "कस्टम",
   "square": "वर्ग",
@@ -77,7 +77,7 @@
   "size": "आकार",
   "letterSpacing": "अक्षर रिक्ति",
   "lineHeight": "पंक्ति ऊंचाई",
-  "warmthTool": "गर्मी",
+  "warmthTool": "गर्माहट",
   "addWatermark": "+ वॉटरमार्क जोड़ें",
   "addTextWatermark": "+ पाठ वॉटरमार्क जोड़ें",
   "addWatermarkTitle": "वॉटरमार्क का प्रकार चुनें",
@@ -99,7 +99,7 @@
   "nameIsRequired": "नाम आवश्यक है।",
   "quality": "गुणवत्ता",
   "imageDimensionsHoverTitle": "सहेजी गई छवि का आकार (चौड़ाई x ऊंचाई)",
-  "cropSizeLowerThanResizedWarning": "ध्यान दें, चयनित फसल क्षेत्र लागू किए गए आकार से कम है जिससे गुणवत्ता में कमी आ सकती है",
+  "cropSizeLowerThanResizedWarning": "ध्यान दें, चयनित क्रॉप क्षेत्र लागू किए गए आकार से छोटा है जिससे गुणवत्ता में कमी आ सकती है",
   "actualSize": "वास्तविक आकार (100%)",
   "fitSize": "आकार फिट करें",
   "addImageTitle": "जोड़ने के लिए छवि चुनें...",
@@ -109,5 +109,5 @@
   "width": "चौड़ाई",
   "height": "ऊंचाई",
   "plus": "+",
-  "cropItemNoEffect": "इस फसल आइटम के लिए कोई पूर्वावलोकन उपलब्ध नहीं है"
+  "cropItemNoEffect": "इस क्रॉप आइटम के लिए कोई पूर्वावलोकन उपलब्ध नहीं है"
 }

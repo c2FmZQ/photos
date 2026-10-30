@@ -53,7 +53,7 @@
   "hue": "色相",
   "brightness": "亮度",
   "saturation": "饱和度",
-  "value": "值",
+  "value": "明度",
   "imageTool": "图像",
   "importing": "正在导入...",
   "addImage": "+ 添加图像",
