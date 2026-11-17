@@ -33,13 +33,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/c2FmZQ/webauthn"
 	"github.com/pquerna/otp/totp"
 
 	"c2FmZQ/internal/database"
 	"c2FmZQ/internal/log"
 	"c2FmZQ/internal/server"
 	"c2FmZQ/internal/stingle"
-	"c2FmZQ/internal/webauthn"
 )
 
 // startServer starts a server listening on a unix socket. Returns the unix socket
@@ -181,7 +181,7 @@ func (c *client) sendRequest(uri string, form url.Values) (*stingle.Response, er
 				UserHandle        string `json:"userHandle"`
 			} `json:"webauthn"`
 		}
-		mfa.WebAuthn.ID = id
+		mfa.WebAuthn.ID = base64.RawURLEncoding.EncodeToString(id)
 		mfa.WebAuthn.ClientDataJSON = base64.RawURLEncoding.EncodeToString(clientDataJSON)
 		mfa.WebAuthn.AuthenticatorData = base64.RawURLEncoding.EncodeToString(authData)
 		mfa.WebAuthn.Signature = base64.RawURLEncoding.EncodeToString(signature)

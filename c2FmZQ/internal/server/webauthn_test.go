@@ -24,8 +24,9 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/c2FmZQ/webauthn"
+
 	"c2FmZQ/internal/stingle"
-	"c2FmZQ/internal/webauthn"
 )
 
 func TestWebAuthn(t *testing.T) {

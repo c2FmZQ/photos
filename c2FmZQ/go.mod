@@ -1,6 +1,6 @@
 module c2FmZQ
 
-go 1.27.3
+go 1.27.4
 
 godebug multipathtcp=0
 
@@ -9,10 +9,10 @@ require (
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/aead/ecdh v0.2.0
 	github.com/c2FmZQ/storage v0.3.4
+	github.com/c2FmZQ/webauthn v0.0.0-20261117022304-9643eefd1e03
 	github.com/chromedp/cdproto v0.158.6
 	github.com/chromedp/chromedp v0.21.0
 	github.com/disintegration/imaging v1.6.2
-	github.com/fxamacker/cbor/v2 v2.10.0
 	github.com/go-test/deep v1.1.2
 	github.com/hashicorp/golang-lru v1.0.2
 	github.com/jamesruan/sodium v1.0.14
@@ -24,11 +24,11 @@ require (
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/tyler-smith/go-bip39 v1.1.0
 	github.com/urfave/cli/v2 v2.27.7
-	golang.org/x/crypto v0.58.0
+	golang.org/x/crypto v0.59.0
 	golang.org/x/image v0.47.0
 	golang.org/x/net v0.62.0
-	golang.org/x/sys v0.49.0
-	golang.org/x/term v0.47.0
+	golang.org/x/sys v0.50.0
+	golang.org/x/term v0.48.0
 	golang.org/x/time v0.16.0
 )
 
@@ -38,6 +38,7 @@ require (
 	github.com/c2FmZQ/tpm v0.6.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
+	github.com/fxamacker/cbor/v2 v2.10.0 // indirect
 	github.com/go-json-experiment/json v0.0.0-20260820222146-c27c302e5fc3 // indirect
 	github.com/google/go-tpm v0.9.8 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
@@ -48,7 +49,7 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xrash/smetrics v0.0.0-20261013231157-39c47d93efba // indirect
-	golang.org/x/text v0.43.0 // indirect
+	golang.org/x/text v0.44.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 	rsc.io/qr v0.2.0 // indirect
 )
