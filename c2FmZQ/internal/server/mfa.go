@@ -28,11 +28,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/c2FmZQ/webauthn"
+
 	"c2FmZQ/internal/database"
 	"c2FmZQ/internal/log"
 	"c2FmZQ/internal/stingle"
 	"c2FmZQ/internal/stingle/token"
-	"c2FmZQ/internal/webauthn"
 )
 
 // handleEnableMFA handles the /v2x/mfa/enable endpoint.
@@ -194,25 +195,31 @@ func (s *Server) requireMFA(user *database.User, req *http.Request, gracePeriod 
 			log.Errorf("webauthn.NewAssertionOptions: %v", err)
 			return stingle.ResponseNOK(), false
 		}
+		opts.Timeout = 45000
 		if user.WebAuthnConfig.UsePasskey {
 			opts.UserVerification = "required"
 			opts.AllowCredentials = make([]webauthn.CredentialID, 0)
 		} else {
+			opts.UserVerification = "discouraged"
 			for _, key := range user.WebAuthnConfig.Keys {
+				kid, err := base64.RawURLEncoding.DecodeString(key.ID)
+				if err != nil {
+					continue
+				}
 				opts.AllowCredentials = append(opts.AllowCredentials, webauthn.CredentialID{
 					Type:       "public-key",
-					ID:         key.ID,
+					ID:         kid,
 					Transports: key.Transports,
 				})
 			}
 			sort.Slice(opts.AllowCredentials, func(i, j int) bool {
-				a := user.WebAuthnConfig.Keys[opts.AllowCredentials[i].ID]
-				b := user.WebAuthnConfig.Keys[opts.AllowCredentials[j].ID]
+				a := user.WebAuthnConfig.Keys[opts.AllowCredentials[i].ID.String()]
+				b := user.WebAuthnConfig.Keys[opts.AllowCredentials[j].ID.String()]
 				return a.LastSeen.After(b.LastSeen)
 			})
 		}
 		if err := s.db.MutateUser(user.UserID, func(u *database.User) error {
-			u.WebAuthnConfig.AddChallenge(opts.Challenge)
+			u.WebAuthnConfig.AddChallenge(opts.Challenge.String())
 			*user = *u
 			return nil
 		}); err != nil {
@@ -277,13 +284,17 @@ func (s *Server) checkMFAResponse(user *database.User, req *http.Request) *sting
 		log.Errorf("webauthn.ParseClientData: %v", err)
 		return failResp
 	}
-	if cd.Type != "webauthn.get" {
+	if cd.Type != "webauthn.get" || cd.CrossOrigin {
 		log.Error("unexpected clientData.type")
 		return failResp
 	}
 	var authData webauthn.AuthenticatorData
 	if err := webauthn.ParseAuthenticatorData(rawAuthData, &authData); err != nil {
 		log.Errorf("webauthn.ParseAuthenticatorData: %v", err)
+		return failResp
+	}
+	if authData.AttestedCredentialData {
+		log.Error("unexpected AttestedCredentialData in assertion")
 		return failResp
 	}
 	if !authData.UserPresence {
@@ -305,7 +316,7 @@ func (s *Server) checkMFAResponse(user *database.User, req *http.Request) *sting
 		log.Errorf("Unknown key %q", data.WebAuthn.ID)
 		return failResp
 	}
-	if authData.RPIDHash != creds.RPIDHash {
+	if authData.RPIDHash.String() != creds.RPIDHash {
 		log.Error("rpIdHash mismatch")
 		return failResp
 	}
@@ -313,11 +324,16 @@ func (s *Server) checkMFAResponse(user *database.User, req *http.Request) *sting
 		// Log it, but don't fail.
 		log.Infof("SignCount: %d <= %d", authData.SignCount, creds.SignCount)
 	}
+	coseKey, err := base64.RawURLEncoding.DecodeString(creds.PublicKey)
+	if err != nil {
+		log.Errorf("creds.PublicKey: %v", err)
+		return failResp
+	}
 	if err := s.db.MutateUser(user.UserID, func(u *database.User) error {
 		if !u.WebAuthnConfig.CheckChallenge(cd.Challenge) {
 			return errors.New("unexpected clientData.challenge")
 		}
-		if err := webauthn.VerifySignature(creds.PublicKey, rawAuthData, clientDataJSON, sig); err != nil {
+		if err := webauthn.VerifySignature(coseKey, rawAuthData, clientDataJSON, sig); err != nil {
 			return err
 		}
 		now := time.Now().UTC()

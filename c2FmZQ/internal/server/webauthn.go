@@ -26,10 +26,11 @@ import (
 	"sort"
 	"time"
 
+	"github.com/c2FmZQ/webauthn"
+
 	"c2FmZQ/internal/database"
 	"c2FmZQ/internal/log"
 	"c2FmZQ/internal/stingle"
-	"c2FmZQ/internal/webauthn"
 )
 
 // handleWebAuthnRegister handles the /v2x/config/webauthn/register endpoint.
@@ -86,6 +87,7 @@ func (s *Server) handleWebAuthnRegister(user database.User, req *http.Request) *
 			if opts, err = webauthn.NewAttestationOptions(); err != nil {
 				return err
 			}
+			opts.Timeout = 60000
 			opts.RelyingParty.Name = "c2FmZQ"
 			if id := user.WebAuthnConfig.UserID; id == "" {
 				id := make([]byte, 32)
@@ -94,20 +96,33 @@ func (s *Server) handleWebAuthnRegister(user database.User, req *http.Request) *
 				}
 				user.WebAuthnConfig.UserID = base64.RawURLEncoding.EncodeToString(id)
 			}
-			opts.User.ID = user.WebAuthnConfig.UserID
+			uid, err := base64.RawURLEncoding.DecodeString(user.WebAuthnConfig.UserID)
+			if err != nil {
+				return err
+			}
+			opts.User.ID = uid
 			opts.User.Name = user.Email
 			opts.User.DisplayName = user.Email
 			for _, key := range user.WebAuthnConfig.Keys {
+				kid, err := base64.RawURLEncoding.DecodeString(key.ID)
+				if err != nil {
+					continue
+				}
 				opts.ExcludeCredentials = append(opts.ExcludeCredentials, webauthn.CredentialID{
 					Type:       "public-key",
-					ID:         key.ID,
+					ID:         kid,
 					Transports: key.Transports,
 				})
 			}
-			user.WebAuthnConfig.AddChallenge(opts.Challenge)
+			user.WebAuthnConfig.AddChallenge(opts.Challenge.String())
 			if passKey {
 				opts.AuthenticatorSelection.UserVerification = "required"
+				opts.AuthenticatorSelection.ResidentKey = "required"
 				opts.AuthenticatorSelection.RequireResidentKey = true
+			} else {
+				opts.AuthenticatorSelection.UserVerification = "discouraged"
+				opts.AuthenticatorSelection.ResidentKey = ""
+				opts.AuthenticatorSelection.RequireResidentKey = false
 			}
 			return nil
 		}
@@ -119,7 +134,7 @@ func (s *Server) handleWebAuthnRegister(user database.User, req *http.Request) *
 		if err != nil {
 			return err
 		}
-		if cd.Type != "webauthn.create" {
+		if cd.Type != "webauthn.create" || cd.CrossOrigin {
 			return errors.New("unexpected clientData.type")
 		}
 		if !user.WebAuthnConfig.CheckChallenge(cd.Challenge) {
@@ -129,7 +144,7 @@ func (s *Server) handleWebAuthnRegister(user database.User, req *http.Request) *
 		if err != nil {
 			return err
 		}
-		ao, err := webauthn.ParseAttestationObject(rawAttestationObject, rawClientDataJSON)
+		ao, err := webauthn.ParseAttestationObject(rawAttestationObject)
 		if err != nil {
 			return err
 		}
@@ -143,15 +158,16 @@ func (s *Server) handleWebAuthnRegister(user database.User, req *http.Request) *
 		if user.WebAuthnConfig.Keys == nil {
 			user.WebAuthnConfig.Keys = make(map[string]*database.WebAuthnKey)
 		}
+		credID := creds.ID.String()
 		if keyName == "" {
-			keyName = creds.ID
+			keyName = credID
 		}
 		now := time.Now().UTC()
-		user.WebAuthnConfig.Keys[creds.ID] = &database.WebAuthnKey{
+		user.WebAuthnConfig.Keys[credID] = &database.WebAuthnKey{
 			Name:           keyName,
-			ID:             creds.ID,
-			PublicKey:      creds.COSEKey,
-			RPIDHash:       ao.AuthData.RPIDHash,
+			ID:             credID,
+			PublicKey:      creds.COSEKey.String(),
+			RPIDHash:       ao.AuthData.RPIDHash.String(),
 			SignCount:      ao.AuthData.SignCount,
 			BackupEligible: ao.AuthData.BackupEligible,
 			BackupState:    ao.AuthData.BackupState,
